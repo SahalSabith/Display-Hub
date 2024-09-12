@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block baseContents %}
+{% load static %}
+<style>
+    /* Thumbnails styles */
+    .thumbnail-img {
+        border: 2px solid #f9f9f9;
+        transition: border-color 0.3s ease;
+    }
+
+    .thumbnail-img:hover {
+        border-color: #000;
+    }
+
+    .thumbnail-img {
+        width: 100%;
+        max-width: 80px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    /* Main image container */
+    .main-image {
+        position: relative;
+        overflow: hidden;
+        cursor: crosshair;
+        max-width: 100%;
+    }
+
+    .main-image:hover{
+      border: 1px dotted black;
+    }
+
+    /* Style for zoom effect */
+    .zoomable {
+        transition: transform 0.3s ease;
+        transform-origin: center center;
+    }
+
+    .zoomed {
+        transform: scale(1.6);
+    }
+
+    /* Layout and Theme */
+    :root {
+        --primary-color: #9A94EF;
+        --secondary-color: #C794EF;
+    }
+
+    body {
+        color: #333;
+    }
+
+    h5, .h4 {
+        color: var(--primary-color);
+    }
+
+    .btn-primary, .buy-now {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .star-rating i {
+        color: var(--secondary-color);
+    }
+
+    .offer {
+        background-color: #f9f9f9;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .product-info-section {
+        padding-left: 30px;
+    }
+
+    .d-flex {
+        margin-bottom: 20px;
+    }
+    .variant-select-box {
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      border: 2px solid var(--primary-color);
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+      color: var(--primary-color);
+      background-color: transparent;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  
+  .variant-select-box.active {
+      background-color: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+  }
+  
+  .variant-select-box:hover {
+      background-color: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+  }  
+</style>
+
+<div class="site-section">
+    <div class="container">
+        <div class="row">
+            <!-- Thumbnails and Main Image -->
+            <div class="col-md-6 d-flex">
+                <div class="thumbnails col-3 d-flex flex-column">
+                    {% if product.image1 %}
+                    <img src="{{ product.image1.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image1.url }}')">
+                    {% endif %}
+                    {% if product.image2 %}
+                    <img src="{{ product.image2.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image2.url }}')">
+                    {% endif %}
+                    {% if product.image3 %}
+                    <img src="{{ product.image3.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image3.url }}')">
+                    {% endif %}
+                    {% if product.image4 %}
+                    <img src="{{ product.image4.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image4.url }}')">
+                    {% endif %}
+                </div>
+                <div class="main-image col-9">
+                    <img id="mainImage" src="{{ product.image1.url }}" alt="Product Image" class="img-fluid zoomable" onmousemove="zoomImage(event)" onmouseleave="resetZoom()">
+                </div>
+            </div>
+
+              <!-- Product Information Section -->
+              <div class="col-md-6 product-info-section">
+                <h2>{{ product.name }}</h2>
+                <p><strong class="text-primary h4">₹ {{ product.price }}</strong></p>
+                <ul>
+                    <li>Size: {{ product.size }} inch</li>
+                    <li>Resolution: {{ product.resolution }}p</li>
+                    <li>Refresh Rate: {{ product.refreshRate }}Hz</li>
+                    <li>Stock Left: <span class="text-danger">{{ product.stock }}</span></li>
+                </ul>
+
+                <!-- Variant Selection -->
+                <div class="mb-3">
+                  <label class="form-label">Select Size</label>
+                  <div id="sizeSelect" class="d-flex flex-wrap">
+                      {% for variant in product.varient.all %}
+                          <div class="variant-select-box" data-value="{{ variant.size.id }}">
+                              {{ variant.size.size }} inch
+                          </div>
+                      {% empty %}
+                          <p>No sizes available</p>
+                      {% endfor %}
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Select Refresh Rate</label>
+                  <div id="refreshRateSelect" class="d-flex flex-wrap">
+                      {% for variant in product.varient.all %}
+                          <div class="variant-select-box" data-value="{{ variant.refreshRate.id }}">
+                              {{ variant.refreshRate.refreshRate }}Hz
+                          </div>
+                      {% empty %}
+                          <p>No refresh rates available</p>
+                      {% endfor %}
+                  </div>
+                </div>
+
+                
+                <!-- Customer Reviews -->
+                <div class="star-rating d-flex">
+                    <i class="bi bi-star" data-value="1"></i>
+                    <i class="bi bi-star" data-value="2"></i>
+                    <i class="bi bi-star" data-value="3"></i>
+                    <i class="bi bi-star" data-value="4"></i>
+                    <i class="bi bi-star" data-value="5"></i>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="d-flex mt-4">
+                    <form action="{% url 'addToCart' product.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group mb-3" style="max-width: 120px;">
+                            <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
+                            <input name="quantity" type="number" class="form-control text-center" value="1">
+                            <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
+                        </div>
+                        <button type="submit" class="buy-now btn btn-primary me-2" style="width: 150px;">Add To Cart</button>
+                        <button type="button" class="buy-now btn btn-primary" style="width: 150px;">Buy Now</button>
+                    </form>
+                </div>
+              </div>
+
+
+        <!-- Offers and Coupons Section -->
+        <section id="offers-coupons" class="my-5">
+            <div class="container">
+                <h2 class="mb-4">Available Offers & Coupons</h2>
+                <div class="offers-list">
+                    <div class="offer mb-3 p-3 border rounded">
+                        <h5 class="mb-2">Buy One Get One 50% Off</h5>
+                        <p class="mb-1">Purchase one monitor and get a second monitor at 50% off. Limited time offer!</p>
+                        <p class="text-muted mb-0">Expires: September 30, 2024</p>
+                    </div>
+                    <div class="offer mb-3 p-3 border rounded">
+                        <h5 class="mb-2">Save $100 on Your Purchase</h5>
+                        <p class="mb-1">Get an instant $100 discount on any monitor. Use code: MONITOR100 at checkout.</p>
+                        <p class="text-muted mb-0">Expires: October 15, 2024</p>
+                    </div>
+                    <div class="coupon mb-3 p-3 border rounded">
+                        <h5 class="mb-2">Free Shipping on Orders Over $500</h5>
+                        <p class="mb-1">Enjoy free shipping on orders over $500. No code required.</p>
+                        <p class="text-muted mb-0">Expires: December 31, 2024</p>
+                    </div>
+                    <div class="no-offers text-center">
+                        <p>No offers or coupons available at the moment. Check back later for new deals!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer Reviews Section -->
+        <section id="reviews" class="my-5">
+            <div class="container">
+                <h2 class="mb-4">Customer Reviews</h2>
+                <div class="reviews-list">
+                    <div class="review mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="mb-1">John Doe</h5>
+                            <span class="text-muted">August 30, 2024</span>
+                        </div>
+                        <p>This product is amazing! It exceeded my expectations.</p>
+                    </div>
+                    <div class="no-reviews text-center">
+                        <p>No reviews yet. Be the first to review this product!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    function updateMainImage(imageUrl) {
+        const mainImage = document.getElementById('mainImage');
+        mainImage.src = imageUrl;
+    }
+
+    function zoomImage(event) {
+        const mainImage = document.getElementById('mainImage');
+        const rect = mainImage.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        mainImage.classList.add('zoomed');
+        const xPercent = (x / mainImage.width) * 100;
+        const yPercent = (y / mainImage.height) * 100;
+        mainImage.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    }
+
+    function resetZoom() {
+        const mainImage = document.getElementById('mainImage');
+        mainImage.classList.remove('zoomed');
+        mainImage.style.transformOrigin = 'center center';
+    }
+    document.querySelectorAll('.variant-select-box').forEach(box => {
+        box.addEventListener('click', function() {
+            this.parentNode.querySelectorAll('.variant-select-box').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

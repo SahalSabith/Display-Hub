@@ -1,0 +1,40 @@
+{% extends "account.html" %}
+{% block accountContent %}
+{% load static %}
+
+<div class="col py-3">
+
+    <button type="button" class="btn btn-outline-success mb-4"><a href="{% url "addAddress" %}">Add New Address</a></button>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="row">Address No</th>
+          <th scope="row">Name</th>
+          <th scope="row">Phone Number</th>
+          <th scope="row">House No/Number</th>
+          <th scope="row">City</th>
+          <th scope="row">District</th>
+          <th scope="row">State</th>
+          <th scope="row">Zip Code</th>
+          <th scope="row">Delete</th>
+        </tr>
+      </thead>
+        <tbody>
+          {% for address in addresses %}
+          <tr>
+            <td>Address {{address.id}}<a href="{% url "editAddress" address.id %}"><i class="bi bi-pencil-fill mx-3"></i></a></td>
+            <td>{{address.name}}</td>
+            <td>{{address.phone}}</td>
+            <td>{{address.houseName}}</td>
+            <td>{{address.city}}</td>
+            <td>{{address.district}}</td>
+            <td>{{address.state}}</td>
+            <td>{{address.zipCode}}</td>
+            <td><a href="{% url "removeAddress" address.id %}"><i class="bi bi-trash3-fill"></i></a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+</div>
+
+{% endblock  %}

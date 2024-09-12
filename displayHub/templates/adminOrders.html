@@ -1,0 +1,54 @@
+{% extends "adminBase.html" %}
+{% load static %}
+{% block adminContents %}
+
+    <main id="main" class="main">
+        <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="container">
+                    <h2>All Orders</h2>
+                    <input type="text" id="searchOrder" class="form-control" placeholder="Search orders by Order ID" onkeyup="filterOrders()">
+
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>User</th>
+                                <th>Ordered Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderTable">
+                            {% for order in orders %}
+                            <tr class="clickable-row" data-url="{% url 'orderDeatils' order.orderId.first.id %}" style="cursor:pointer;">
+                                <td>{{ order.orderNo }}</td>
+                                <td>{{ order.userId.username}}</td>
+                                <td>{{ order.orderedAt }}</td>
+                                <td>{{ order.get_orderStatus_display }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main><!-- End #main -->
+<script>
+function filterOrders() {
+    let input = document.getElementById("searchOrder").value.toUpperCase();
+    let rows = document.getElementById("orderTable").getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+        let orderID = rows[i].getElementsByTagName("td")[0].innerText;
+        if (orderID.toUpperCase().indexOf(input) > -1) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+
+{% endblock %}

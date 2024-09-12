@@ -1,0 +1,68 @@
+{% extends "adminBase.html" %}
+{% load static %}
+{% block adminContents %}
+
+    <main id="main" class="main">
+        <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="container">
+                    <h2>All Users</h2>
+                    <input type="text" id="searchUser" class="form-control" placeholder="Search Users by Username" onkeyup="filterUsers()">
+
+                    <table class="table table-bordered mt-3">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Username</th>
+                          <th data-type="date" data-format="YYYY/DD/MM">Created At</th>
+                          <th>User Status</th>
+                          <th>Activation</th>
+                        </tr>
+                      </thead>
+                      <tbody id="userTable">
+                        {% for user in allUsers %}
+                        <tr style="cursor:pointer;">
+                          <td>{{user.first_name|upper}}  {{user.last_name|upper}}</td>
+                          <td>{{user.email}}</td>
+                          <td>{{user.username}}</td>
+                          <td>{{user.date_joined}}</td>
+                          {% if user.is_superuser %}
+                          <td>Admin</td>
+                          {% else %}
+                          <td>User</td>
+                          {% endif %}
+                          {% if not user.is_superuser %}
+                            {% if user.is_active%}
+                              <td><button class="btn btn-outline-success"><a class="text-success" href="{% url 'block' user.id %}">Deactivate</a></td>
+                            {% else %}
+                              <td><button class="btn btn-outline-success"><a class="text-success" href="{% url 'block' user.id %}">Activate</a></td>
+                            {% endif %}
+                          {% endif %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main><!-- End #main -->
+<script>
+  function filterUsers() {
+    let input = document.getElementById("searchUser").value.toUpperCase();
+    let rows = document.getElementById("userTable").getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+        let username = rows[i].getElementsByTagName("td")[2].innerText;
+        if (username.toUpperCase().indexOf(input) > -1) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+
+{% endblock %}

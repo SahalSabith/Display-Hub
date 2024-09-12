@@ -1,0 +1,172 @@
+{% extends "account.html" %}
+{% block accountContent %}
+{% load static %}
+
+<style>
+    .order-details-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+        color: var(--primary-color, #9A94EF);
+    }
+    
+    p {
+        font-size: 1.1rem;
+    }
+    
+    table {
+        margin-top: 20px;
+    }
+    
+    .table th, .table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-dark {
+        background-color: var(--secondary-color, #C794EF);
+        color: #fff;
+    }
+    
+    .cancel-btn {
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+        background-color: #c82333;
+    }
+    
+    @media (max-width: 768px) {
+        .text-md-end {
+            text-align: left !important;
+        }
+        
+        .order-details-card {
+            padding: 20px;
+        }
+        
+        .row {
+            margin-bottom: 10px;
+        }
+        
+        p {
+            font-size: 1rem;
+        }
+    }
+    
+</style>
+<div class="container mt-5">
+    <div class="card p-4 order-details-card">
+        <h2 class="text-center mb-4">Order Details</h2>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p><strong>Order Status:</strong> 
+                    <span class="badge 
+                        {% if order.orderStatus == 'pending' %} bg-warning text-dark
+                        {% elif order.orderStatus == 'processing' %} bg-primary text-light
+                        {% elif order.orderStatus == 'shipped' %} bg-info text-dark
+                        {% elif order.orderStatus == 'out_for_delivery' %} bg-success text-light
+                        {% elif order.orderStatus == 'delivered' %} bg-success text-light
+                        {% elif order.orderStatus == 'canceled' %} bg-danger text-light
+                        {% elif order.orderStatus == 'returned' %} bg-dark text-light
+                        {% elif order.orderStatus == 'refunded' %} bg-dark text-light
+                        {% elif order.orderStatus == 'failed' %} bg-danger text-light
+                        {% elif order.orderStatus == 'on_hold' %} bg-secondary text-light
+                        {% elif order.orderStatus == 'completed' %} bg-success text-light
+                        {% elif order.orderStatus == 'awaiting_payment' %} bg-warning text-dark
+                        {% endif %}
+                    ">
+                    {{ order.get_orderStatus_display }}
+                    </span>
+                </p>
+            </div>            
+            <div class="col-md-6 text-md-end">
+                <p><strong>Ordered Date:</strong> {{order.orderedAt}}</p>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p><strong>Order No (ID):</strong> {{order.orderNo}}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p><strong>Payment Method:</strong> {{order.paymentMethod}}</p>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <p><strong>Selected Address:</strong> {{order.addressId.name}}, {{order.addressId.city}}</p>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <p><strong>Total Amount:</strong> ₹ {{order.totalPrice}}</p>
+            </div>
+        </div>
+        
+        <h4>Products Ordered:</h4>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for orders in orders %}
+                <tr>
+                    <td>{{orders.product.product.name}}</td>
+                    <td>{{orders.quantity}}</td>
+                    <td>₹ {{orders.product.price}}</td>
+                    <td>₹ {{orders.totalPrice}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' %}
+        <div class="row mt-3">
+            <div class="col-md-12 text-center">
+                <form id="cancelOrderForm" method="POST" action="{% url 'cancelOrder' order.pk orderItem.id %}">
+                    {% csrf_token %}
+                    <button type="button" onclick="confirmCancelation();" class="cancel-btn">Cancel Order</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<script>
+    function confirmCancelation() {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You are about to cancel this order!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancelOrderForm').submit();
+            }
+        });
+    }
+</script>
+
+{% endblock %}

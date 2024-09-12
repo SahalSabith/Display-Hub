@@ -1,0 +1,77 @@
+{% extends "adminBase.html" %}
+
+{% load static %}
+
+{% block adminContents %}
+<main id="main" class="main">
+  <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+              <h5>All Products</h5>
+              <input type="text" id="searchProducts" class="form-control" placeholder="Search Product By Name" onkeyup="filterProduct()">
+              <table class="table table-bordered mt-3">
+                <thead>
+                  <tr>
+                    <th>Product Id</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Activation</th>
+                    <th></th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable">
+                  {% for product in products %}
+                  <tr class="clickable-row" data-url="{% url 'allVarients' product.id %}" style="cursor:pointer;">
+                      <td>{{product.id}}</td>
+                      <td>{{product.name}}</td>
+                      <td>{{product.brand}}</td>
+                      <td>{{product.category}}</td>
+                      {% if product.status %}
+                    <td>
+                        <button class="btn btn-outline-warning">
+                            <a class="text-warning" href="#" onclick="confirmDeactivation('{% url 'blockProduct' product.id %}'); return false;">Deactivate</a>
+                        </button>
+                    </td>
+                    {% else %}
+                    <td>
+                        <button class="btn btn-outline-warning">
+                            <a class="text-warning" href="#" onclick="confirmActivation('{% url 'blockProduct' product.id %}'); return false;">Activate</a>
+                        </button>
+                    </td>
+                    {% endif %}
+                      <td>
+                          <button class="btn btn-outline-success">
+                              <a class="text-success" href="{% url 'addVarient' product.id %}">Add Variants</a>
+                          </button>
+                      </td>
+                      <td><a href="{% url "editProduct" product.id %}"><i class="bi bi-pencil-fill"></i></a></td>
+                  </tr>
+                  {% endfor %}
+              </tbody> 
+            </table>             
+              <!-- End Table with stripped rows -->
+
+          {% include 'messages.html' %}
+          <button class="btn btn-outline-success"><a class="text-success" href="{% url "addProduct" %}">Add Product</a></button>
+        </div>
+      </div>
+  </section>
+</main><!-- End #main -->
+<script>
+  function filterProduct() {
+    let input = document.getElementById("searchProducts").value.toUpperCase();
+    let rows = document.getElementById("productsTable").getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+        let product = rows[i].getElementsByTagName("td")[1].innerText;
+        if (product.toUpperCase().indexOf(input) > -1) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+  {% endblock %}

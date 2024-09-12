@@ -1,0 +1,54 @@
+{% extends "adminBase.html" %}
+
+{% block adminContents %}
+
+{% load static %}
+<main id="main" class="main">
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                <h5 class="card-title">Add Varient</h5>
+                            <form class="row g-3" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="col-md-6">
+                                    <label for="inputStock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="inputStock" name="stock" placeholder="Enter stock" pattern=".*\S.*" value="{{variant.stock}}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="inputPrice" class="form-label">Price</label>
+                                    <input type="number" class="form-control" id="inputPrice" name="price" placeholder="Enter price" pattern=".*\S.*" value="{{variant.price}}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="inputState" class="form-label">Size</label>
+                                    <select id="inputState" class="form-select" name="size">
+                                    <option selected value="{{variant.size.id}}">{{variant.size.size}} Inch</option>
+                                    {% for size in size %}
+                                    <option value="{{size.id}}">{{size.size}} Inch</option>
+                                    {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="inputState" class="form-label">Refresh Rate</label>
+                                    <select id="inputState" class="form-select" name="refreshRate">
+                                    <option selected value="{{variant.refreshRate.id}}">{{variant.refreshRate.refreshRate}} Hz</option>
+                                    {% for refreshRate in refreshRates %}
+                                    <option value="{{refreshRate.id}}">{{refreshRate.refreshRate}} Hz</option>
+                                    {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </form>
+                            </div>
+                            </div>
+
+                                </div>
+                            </div>
+                            </section>
+
+                            </main><!-- End #main -->
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block baseContents %}
+{% load static %}
+<style>
+  .star-rating {
+    display: flex;
+    font-size: 24px; 
+}
+.star-rating .bi-star {
+    color: #ffd700; /* Gold color for stars */
+    cursor: pointer;
+}
+.star-rating .bi-star:hover,
+.star-rating .bi-star.active {
+    color: #ffeb3b; /* Lighter gold for hover/active state */
+}
+</style>
+<div class="bg-light py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 mb-0"><a href="{% url "home" %}">Home</a> <span class="mx-2 mb-0">/</span> <strong class="text-black">Shop</strong></div>
+    </div>
+  </div>
+</div>
+<div class="site-section">
+  <div class="container">
+
+    <div class="row mb-5">
+      <div class="col-md-9 order-2">
+
+        <div class="row">
+          <div class="col-md-12 mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="text-black h5 mb-0">Shop All</h2>
+              <div class="d-flex">
+                <form method="get" class="form-inline d-flex align-items-center">
+                  <label for="sort" class="mr-2 mb-0">Sort by:</label>
+                  <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
+                    <option value="">Select</option>
+                    <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
+                    <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
+                    <option value="new_arrivals" {% if request.GET.sort == "new_arrivals" %}selected{% endif %}>New arrivals</option>
+                    <option value="az" {% if request.GET.sort == "az" %}selected{% endif %}>A-Z</option>
+                    <option value="za" {% if request.GET.sort == "za" %}selected{% endif %}>Z-A</option>
+                  </select>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>        
+
+        <div class="row mb-5">
+          {% for product in products %}
+          <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
+              <div class="block-4 text-center border" style="width:250px; height:465px;">
+                  {% if not product.status or not product.brand.status or not product.category.status %}
+                  <figure class="block-4-image">
+                      <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
+                      <div class="overlay">
+                          <span class="text-white bg-danger p-2">Unavailable</span>
+                      </div>
+                  </figure>
+                  <div class="block-4-text p-4">
+                      <h3>{{ product.name }}</h3>
+                      <p class="mb-0">{{ product.brand }}</p>
+                      <p class="text-muted font-weight-bold">Unavailable</p>
+                      <div class="star-rating d-flex justify-content-center">
+                          <i class="bi bi-star" data-value="1"></i>
+                          <i class="bi bi-star" data-value="2"></i>
+                          <i class="bi bi-star" data-value="3"></i>
+                          <i class="bi bi-star" data-value="4"></i>
+                          <i class="bi bi-star" data-value="5"></i>
+                      </div>
+                  </div>
+                  {% elif product.stock == 0 %}
+                  <figure class="block-4-image">
+                      <img src="{{ product.imageId.image1.url }}" alt="Image placeholder" class="img-fluid opacity-50">
+                      <div class="overlay">
+                          <span class="text-white bg-warning p-2">Out of Stock</span>
+                      </div>
+                  </figure>
+                  <div class="block-4-text p-4">
+                      <h3>{{ product.product.name }}</h3>
+                      <p class="mb-0">{{ product.product.brand }}</p>
+                      <p class="text-muted font-weight-bold">Out of Stock</p>
+                      <div class="star-rating d-flex justify-content-center">
+                          <i class="bi bi-star" data-value="1"></i>
+                          <i class="bi bi-star" data-value="2"></i>
+                          <i class="bi bi-star" data-value="3"></i>
+                          <i class="bi bi-star" data-value="4"></i>
+                          <i class="bi bi-star" data-value="5"></i>
+                      </div>
+                  </div>
+                  {% else %}
+                  <figure class="block-4-image">
+                    <a href="{% url 'productInfo' product.id %}">
+                    <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
+                  </a>
+                  </figure>
+                  <div class="block-4-text p-4">
+                      <h3><a href="{% url 'productInfo' product.id %}">{{ product.name }}</a></h3>
+                      <p class="mb-0">{{ product.brand }}</p>
+                      <p class="text-primary font-weight-bold">₹ {{ product.varient.first.price }}</p>
+                      <div class="star-rating d-flex justify-content-center">
+                          <i class="bi bi-star" data-value="1"></i>
+                          <i class="bi bi-star" data-value="2"></i>
+                          <i class="bi bi-star" data-value="3"></i>
+                          <i class="bi bi-star" data-value="4"></i>
+                          <i class="bi bi-star" data-value="5"></i>
+                      </div>
+                  </div>
+                  {% endif %}
+              </div>
+          </div>
+          {% endfor %}
+      </div>      
+
+        <div class="row" data-aos="fade-up">
+          <div class="col-md-12 text-center">
+            <div class="site-block-27">
+              <ul>
+                {% if products.has_previous %}
+                    <li><a href="?page=1{% if sort %}&sort={{ sort }}{% endif %}">&lt;&lt;</a></li>
+                    <li><a href="?page={{ products.previous_page_number }}{% if sort %}&sort={{ sort }}{% endif %}">&lt;</a></li>
+                {% endif %}
+            
+                {% for page_num in products.paginator.page_range %}
+                    {% if page_num == products.number %}
+                        <li class="active"><a href="?page={{ page_num }}{% if sort %}&sort={{ sort }}{% endif %}">{{ page_num }}</a></li>
+                    {% else %}
+                        <li><a href="?page={{ page_num }}{% if sort %}&sort={{ sort }}{% endif %}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            
+                {% if products.has_next %}
+                    <li><a href="?page={{ products.next_page_number }}{% if sort %}&sort={{ sort }}{% endif %}">&gt;</a></li>
+                    <li><a href="?page={{ products.paginator.num_pages }}{% if sort %}&sort={{ sort }}{% endif %}">&gt;&gt;</a></li>
+                {% endif %}
+            </ul>            
+            </div>
+          </div>
+        </div>        
+      </div>
+      
+      <div class="col-md-3 order-1 mb-5 mb-md-0">
+        <div class="border p-4 rounded mb-4">
+            <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
+            {% for category in categories %}
+            <ul class="list-unstyled mb-0">
+                <li class="mb-1"><a href="#" class="d-flex"><span>{{category.name}}</span> <span class="text-black ml-auto">({{categories.count}})</span></a></li>
+            </ul>
+            {% endfor %}
+        </div>
+    
+        <div class="border p-4 rounded mb-4">
+            <div class="mb-4">
+                <h3 class="mb-3 h6 text-uppercase text-black d-block">Size</h3>
+                {% for size in sizes %}
+                <label for="size_{{ size.size }}" class="d-flex">
+                    <input type="checkbox" id="size_{{ size.size }}" class="mr-2 mt-1"> <span class="text-black">{{ size.size }} inch ({{ size.count }})</span>
+                </label>
+                {% endfor %}
+            </div>
+    
+            <div class="mb-4">
+                <h3 class="mb-3 h6 text-uppercase text-black d-block">Refresh rate</h3>
+                {% for rate in refresh_rates %}
+                <a href="#" class="d-flex color-item align-items-center">
+                    <span><span class="text-black">{{ rate.refreshRate }} Hz ({{ rate.count }})</span></span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>    
+    </div>
+    
+  </div>
+</div>
+
+{% endblock  %}

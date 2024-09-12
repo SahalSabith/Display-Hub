@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Hub</title>
+    <link rel="stylesheet" href="{% static "css/forgotPassword.css" %}">
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-wrapper">
+            <form id="forgotPasswordForm" method="POST" class="form" action="{% url "emailVerification" %}">
+                {% csrf_token %}
+                <h2>Verify Email</h2>
+                <button type="submit" id="sendOtpBtn">Send OTP</button>
+                <div class="timer" id="timer">45 seconds remaining</div>
+            </form>
+            <form id="otpForm" method="POST" class="form">
+                {% csrf_token %}
+                <div class="input-group">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="otp" name="otp" placeholder="Enter the OTP" required>
+                </div>
+                <div class="messages3"></div>
+                <button type="button" id="verifyOtpBtn">Verify OTP</button>
+            </form>
+        </div>
+    </div>    
+    
+<script src="{% static "js/forgotPassword.js" %}"></script>
+<script>
+    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
+        const form = document.getElementById('otpForm');
+        const formData = new FormData(form);
+        const messagesDiv = document.querySelector('.messages3');
+
+        fetch("{% url 'verifiyEmailOtp' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                messagesDiv.textContent = data.error_message;
+                messagesDiv.style.color = 'red';
+            }
+        })
+        .catch(error => {
+            messagesDiv.textContent = 'An error occurred. Please try again.';
+            messagesDiv.style.color = 'red';
+        });
+    });
+</script>
+</body>
+</html>

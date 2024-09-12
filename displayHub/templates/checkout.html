@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block baseContents %}
+{% load static %}
+
+<div class="bg-light py-3">
+  <div class="container">
+      <div class="row">
+          <div class="col-md-12 mb-0">
+              <a href="{% url 'home' %}">Home</a> 
+              <span class="mx-2 mb-0">/</span> 
+              <a href="{% url 'cart' %}">Cart</a> 
+              <span class="mx-2 mb-0">/</span> 
+              <strong class="text-black">Checkout</strong>
+          </div>
+      </div>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="site-section">
+      <div class="container">
+          <h2 class="h3 mb-4 text-black">Check Out</h2>
+
+          <div class="row">
+              <!-- Product Table (now at the top) -->
+              <div class="col-md-12 mb-4">
+                  <h3 class="h4 text-black mb-3">Your Order</h3>
+                  <div class="p-3 p-lg-5 border">
+                      <table class="table site-block-order-table mb-5">
+                          <thead>
+                              <tr>
+                                  <th>Product</th>
+                                  <th>Total</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {% for item in products %}
+                              <tr>
+                                  <td>{{ item.product.product.name }} <strong class="mx-2">x</strong> {{ item.quantity }}</td>
+                                  <td>₹{{item.productTotal}}</td>
+                              </tr>
+                              {% endfor %}
+                              <tr>
+                                  <td class="text-black font-weight-bold"><strong>Cart Subtotal</strong></td>
+                                  <td class="text-black">₹{{cart.cartTotal}}</td>
+                              </tr>
+                              <tr>
+                                  <td class="text-black font-weight-bold"><strong>Delivery Charge</strong></td>
+                                  <td class="text-black"> </td>
+                              </tr>
+                              <tr>
+                                  <td class="text-black font-weight-bold"><strong>Order Total</strong></td>
+                                  <td class="text-black font-weight-bold">$</td>
+                              </tr>
+                            </tbody>
+                      </table>
+                  </div>
+              </div>
+
+              <!-- Address Selection -->
+              <div class="col-md-6 mb-4">
+                <h3 class="h4 text-black mb-3">Shipping Address</h3>
+                <div class="p-3 p-lg-5 border">
+                    <div class="form-group">
+                        <label for="select_address">Select Address</label>
+                        <select name="address" class="form-control" id="select_address">
+                            {% for address in addresses %}
+                            <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-lg py-3 btn-block" id="add_address_btn">
+                        <a href="{% url 'addAddress' %}" class="text-white">Add New Address</a>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="col-md-6 mb-4">
+                <h3 class="h4 text-black mb-3">Payment Options</h3>
+                <div class="p-3 p-lg-5 border">
+                    <label class="text-black">Choose a Payment Method:</label>
+                    <div class="form-group">
+                        <label class="radio-inline mr-3">
+                            <input type="radio" name="paymentMethod" value="wallet"> Wallet
+                        </label>
+                        <label class="radio-inline mr-3">
+                            <input type="radio" name="paymentMethod" value="cashOnDelivery"> Cash on Delivery
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="paymentMethod" value="internetBanking"> Online Banking
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+              <!-- Coupon Section (now below the product table) -->
+              <div class="col-md-12 mb-4">
+                  <div class="p-3 p-lg-5 border">
+                      <h3 class="h4 text-black mb-3">Apply Coupon</h3>
+                      <div class="input-group w-75 mb-3">
+                          <input type="text" class="form-control" id="coupon_code" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
+                          <div class="input-group-append">
+                              <button class="btn btn-primary btn-sm" type="button" id="apply_coupon_btn">Apply</button>
+                          </div>
+                      </div>
+
+                      <ul class="list-group mb-4">
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                              Total Amount
+                              <span>$ </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                              Delivery Charge
+                              <span> </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                              Coupon Discount
+                              <span>$ </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                              Final Total
+                              <strong>$ </strong>
+                          </li>
+                      </ul>
+
+                      <button type="submit" class="btn btn-primary btn-lg py-3 btn-block">Place Order</button>
+                  </div>
+              </div>
+          </div>
+
+      </div>
+  </div>
+</form>
+
+
+<script>
+    function showError() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'You Should Choose one Payment Methode',
+            timer: 2000, // Duration in milliseconds
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            willClose: () => {
+                Swal.stopTimer();
+            }
+        });
+    }
+
+    // Check for the error flag or message
+    document.addEventListener('DOMContentLoaded', (event) => {
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    showError();
+                {% endif %}
+            {% endfor %}
+        {% elif request.session.show_error %}
+            showError();
+            {% if request.session.show_error %}
+                {% with request.session.modified as modified %}
+                {% endwith %}
+            {% endif %}
+        {% endif %}
+    });
+</script>
+
+
+
+{% endblock %}

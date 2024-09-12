@@ -1,0 +1,61 @@
+{% extends "adminBase.html" %}
+
+{% load static %}
+
+{% block adminContents %}
+  <main id="main" class="main">
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+              <h5>All Brands</h5>
+              <input type="text" id="searchBrand" class="form-control" placeholder="Search Category" onkeyup="filterBrand()">
+              <table class="table table-bordered mt-3">
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>Brand</th>
+                    <th>Activation</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody id="brandTable">
+                </tr>
+                  {% for brand in brands %}
+                    <td>{{brand.id}}</td>
+                    <td>{{brand.name}}</td>
+                    {% if brand.status %}
+                    <td>
+                        <button class="btn btn-outline-success text-success" onclick="confirmDeactivation('{% url 'blockBrand' brand.id %}')">Deactivate</button>
+                    </td>
+                    {% else %}
+                    <td>
+                        <button class="btn btn-outline-success text-success" onclick="confirmActivation('{% url 'blockBrand' brand.id %}')">Activate</button>
+                    </td>
+                    {% endif %}
+                    <td><a href="{% url "editBrand" brand.id %}"><i class="bi bi-pencil-fill"></i></a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <button class="btn btn-outline-success"><a class="text-success" href="{% url "addBrand" %}">Add Brand</a>
+          {% include 'messages.html' %}
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    function filterBrand() {
+      let input = document.getElementById("searchBrand").value.toUpperCase();
+      let rows = document.getElementById("brandTable").getElementsByTagName("tr");
+  
+      for (let i = 0; i < rows.length; i++) {
+          let brand = rows[i].getElementsByTagName("td")[1].innerText;
+          if (brand.toUpperCase().indexOf(input) > -1) {
+              rows[i].style.display = "";
+          } else {
+              rows[i].style.display = "none";
+          }
+      }
+  }
+  </script>
+  {% endblock %}

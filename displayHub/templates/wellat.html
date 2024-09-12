@@ -1,0 +1,44 @@
+{% extends "account.html" %}
+{% block accountContent %}
+{% load static %}
+
+<div class="col py-3">
+    <button type="button" class="btn btn-outline-success mb-4">Add Cash</button>
+    <h4 class="mb-4">Available Balance : 34000</h4>
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">No</th>
+        <th scope="col">Transaction</th>
+        <th scope="col">Status</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">1</th>
+        <td>Refund of order #5sghw73</td>
+        <td>Pending</td>
+        <td>₹ 4500</td>
+        <td>12/05/2024</td>
+      </tr>
+      <tr>
+        <th scope="row">2</th>
+        <td>Refund of order #5sghw73</td>
+        <td>Completed</td>
+        <td>₹ 4500</td>
+        <td>12/05/2024</td>
+      </tr>
+      <tr>
+        <th scope="row">3</th>
+        <td>Refund of order #5sghw73</td>
+        <td>Completed</td>
+        <td>₹ 4500</td>
+        <td>12/05/2024</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% endblock  %}

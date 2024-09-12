@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block baseContents %}
+{% load static %}
+
+{% if user.is_authenticated %}
+<div class="bg-light py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 mb-0"><a href="{% url "home" %}">Home</a> <span class="mx-2 mb-0">/</span> <strong class="text-black">Cart</strong></div>
+    </div>
+  </div>
+</div>
+<div class="site-section">
+  <div class="container">
+    <div class="row mb-5">
+      <form id="cart-form" class="col-md-12" method="post">
+        <div class="site-blocks-table">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th class="product-thumbnail">Image</th>
+                <th class="product-name">Product</th>
+                <th class="product-price">Price</th>
+                <th class="product-quantity">Quantity</th>
+                <th class="product-total">Total</th>
+                <th class="product-remove">Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr data-item-id="{{ item.id }}" data-stock="{{ item.product.stock }}">
+                <td class="product-thumbnail">
+                  <img src="{{ item.product.imageId.image1.url }}" alt="Image" class="img-fluid">
+                </td>
+                <td class="product-name">
+                  <h2 class="h5 text-black">{{ item.product.product.name }}</h2>
+                </td>
+                <td class="product-price">{{ item.product.price }}</td>
+                <td>
+                  <div class="input-group mb-3" style="max-width: 120px;">
+                    <div class="input-group-prepend">
+                      <button class="btn btn-outline-primary js-btn-minus" type="button">−</button>
+                    </div>
+                    <input type="text" class="form-control text-center quantity-input" value="{{ item.quantity }}" placeholder="" aria-label="Example text with button addon">
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-primary js-btn-plus" type="button">+</button>
+                    </div>
+                  </div>
+                </td>
+                <td class="product-total">{{ item.product.price }}</td>
+                <td><a href="{% url "remove" item.id %}" class="btn btn-primary btn-sm">X</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="row mb-5">
+          <div class="col-md-6">
+            <a href="{% url 'shop' %}" class="btn btn-outline-primary btn-sm btn-block">Continue Shopping</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 pl-5">
+        <div class="row justify-content-end">
+          <div class="col-md-7">
+            <div class="row">
+              <div class="col-md-12 text-right border-bottom mb-5">
+                <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <span class="text-black">Subtotal</span>
+              </div>
+              <div class="col-md-6 text-right">
+                <strong id="subtotal" class="text-black"></strong>
+              </div>
+            </div>
+            <div class="row mb-5">
+              <div class="col-md-6">
+                <span class="text-black">Total</span>
+              </div>
+              <div class="col-md-6 text-right">
+                <strong id="total" class="text-black"></strong>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <a href="{% url 'checkOut' %}" class="btn btn-primary btn-lg py-3 btn-block">Proceed To Checkout</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+
+<div class="container-fluid my-5">
+  <div class="d-flex flex-column align-items-center justify-content-center">
+    <h3 class="text-center">You are not authenticated</h3>
+    <a href="{% url "signIn" %}" class="btn btn-primary mt-3">Sign In</a>
+  </div>
+</div>
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const cartForm = document.getElementById('cart-form');
+
+    function updateTotals() {
+      let subtotal = 0;
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const price = parseFloat(row.querySelector('.product-price').textContent.replace('₹', ''));
+        const quantity = parseInt(row.querySelector('.quantity-input').value);
+        const total = price * quantity;
+        row.querySelector('.product-total').textContent = `₹${total.toFixed(2)}`;
+        subtotal += total;
+      });
+      document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('total').textContent = `₹${subtotal.toFixed(2)}`;
+    }
+
+    // Initial calculation of totals
+    updateTotals();
+
+    cartForm.addEventListener('click', function(event) {
+      if (event.target.classList.contains('js-btn-plus') || event.target.classList.contains('js-btn-minus')) {
+        const row = event.target.closest('tr');
+        const quantityInput = row.querySelector('.quantity-input');
+        const stock = parseInt(row.getAttribute('data-stock'));
+        let quantity = parseInt(quantityInput.value);
+
+        if (quantity > stock) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: `Not enough stock available!`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          quantity = stock; // Reset to stock level
+        } else if (quantity < 1) {
+          quantity = 1; // quantity is at least 1
+        }
+
+        quantityInput.value = quantity;
+        updateTotals();
+      }
+    });
+  });
+
+  function showError() {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Please Add Items To the Cart',
+        timer: 2000, // Duration in milliseconds
+        timerProgressBar: true,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        willClose: () => {
+            Swal.stopTimer();
+        }
+    });
+}
+
+// Function to show success alert
+function showSuccess() {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Product Successfully Added',
+        timer: 2000, // Duration in milliseconds
+        timerProgressBar: true,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        willClose: () => {
+            Swal.stopTimer();
+        }
+    });
+}
+
+// Check for messages or session flag for error/success handling
+document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                showError();
+            {% elif message.tags == 'success' %}
+                showSuccess();
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+});
+</script>
+
+{% endblock %}

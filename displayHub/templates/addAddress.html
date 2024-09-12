@@ -1,0 +1,53 @@
+{% extends "account.html" %}
+{% block accountContent %}
+{% load static %}
+
+<form class="mx-5" method="post">
+    {% csrf_token %}
+    <div class="container">
+        <h2>Add new address</h2>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="name">Name</label>
+          <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="phone">Phone</label>
+          <input type="tel" class="form-control" id="phone" name="phone" maxlength="12" required>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="houseName">House Name</label>
+          <input type="text" class="form-control" id="houseName" name="houseName" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="city">City</label>
+          <input type="text" class="form-control" id="city" name="city" required>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="district">District</label>
+          <input type="text" class="form-control" id="district" name="district" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="state">State</label>
+          <input type="text" class="form-control" id="state" name="state" required>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="zipCode">Zip Code</label>
+          <input type="number" class="form-control" id="zipCode" name="zipCode" maxlength="6" required>
+        </div>
+      </div>
+  
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+  </form>
+  
+{% endblock  %}
