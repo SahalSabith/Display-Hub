@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,HttpResponseRedirect,get_object_or_404
-from adminManagements.models import Products,Brand,Category,Size,RefreshRate
+from adminManagements.models import Products,Brand,Category,Size,RefreshRate,Varients
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -12,7 +12,8 @@ import string
 from django.contrib import messages
 from django.db.models import Count
 from django.db import models
-
+import json
+from django.http import JsonResponse
 
 # Create your views here.
 @never_cache
@@ -94,19 +95,70 @@ def products(request):
     }
     return render(request, 'shop.html', context)
 
-
 @never_cache
-def productInfo(request,pId):
+def productInfo(request, pId):
     product = Products.objects.get(id=pId)
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
 
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            size = data.get('size')
+            refreshRate = data.get('refreshRate')
+
+            # Initialize response data
+            responseData = {}
+
+            # Get refresh rates related to the selected size
+            if size:
+                refreshRatesForSize = Varients.objects.filter(
+                    size_id=size,
+                    product=product
+                ).values('refreshRate_id', 'refreshRate__refreshRate').distinct()
+
+                responseData['refreshRates'] = list(refreshRatesForSize)
+
+            # Get sizes related to the selected refresh rate
+            if refreshRate:
+                sizesForRefreshRate = Varients.objects.filter(
+                    refreshRate_id=refreshRate,
+                    product=product
+                ).values('size_id', 'size__size').distinct()
+
+                responseData['size'] = list(sizesForRefreshRate)
+
+            # Get the variant based on size and refresh rate (if both are selected)
+            if size and refreshRate:
+                selectedVarient = Varients.objects.filter(
+                    size_id=size,
+                    refreshRate_id=refreshRate,
+                    product=product
+                ).first()
+
+                if selectedVarient:
+                    responseData.update({
+                        'price': selectedVarient.price,
+                        'size': selectedVarient.size.size,
+                        'refreshRate': selectedVarient.refreshRate.refreshRate,
+                        'stock': selectedVarient.stock
+                    })
+                else:
+                    responseData['error'] = 'No matching variant found.'
+
+            return JsonResponse(responseData)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid request format'}, status=400)
+
+    # For GET requests, return initial data
     context = {
         'product': product,
         'varientSize': varientSize,
-        'varientRefreshRates': varientRefreshRates,
+        'varientRefreshRates': varientRefreshRates
     }
-    return render(request,'productInfo.html',context)
+    return render(request, 'productInfo.html', context)
+
 
 @never_cache
 @login_required(login_url='/signIn')

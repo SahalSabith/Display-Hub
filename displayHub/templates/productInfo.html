@@ -27,8 +27,8 @@
         max-width: 100%;
     }
 
-    .main-image:hover{
-      border: 1px dotted black;
+    .main-image:hover {
+        border: 1px dotted black;
     }
 
     /* Style for zoom effect */
@@ -84,31 +84,27 @@
     .d-flex {
         margin-bottom: 20px;
     }
-    .variant-select-box {
-      display: inline-block;
-      padding: 10px;
-      margin: 5px;
-      border: 2px solid var(--primary-color);
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
-      font-weight: bold;
-      color: var(--primary-color);
-      background-color: transparent;
-      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-  }
-  
-  .variant-select-box.active {
-      background-color: var(--primary-color);
-      color: #fff;
-      border-color: var(--primary-color);
-  }
-  
-  .variant-select-box:hover {
-      background-color: var(--primary-color);
-      color: #fff;
-      border-color: var(--primary-color);
-  }  
+    .filter-options {
+        margin-bottom: 20px;
+    }
+      
+    .horizontal-options {
+        display: flex;
+        flex-wrap: wrap;
+    }
+      
+    .option-item {
+        margin-right: 15px;
+        margin-bottom: 10px;
+    }
+      
+    .option-item input[type="radio"] {
+        margin-right: 5px;
+    }
+      
+    .option-item label {
+        font-size: 0.9em; /* Adjust font size to make labels smaller */
+    }
 </style>
 
 <div class="site-section">
@@ -135,45 +131,42 @@
                 </div>
             </div>
 
-              <!-- Product Information Section -->
-              <div class="col-md-6 product-info-section">
+            <!-- Product Information Section -->
+            <div class="col-md-6 product-info-section">
                 <h2>{{ product.name }}</h2>
-                <p><strong class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
+                <p><strong id="price" class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
                 <ul>
-                    <li>Size: {{ product.varient.first.size.size }} inch</li>
+                    <li id="size">Size: {{ product.varient.first.size.size }} inch</li>
                     <li>Resolution: {{ product.resolution }}p</li>
-                    <li>Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</li>
-                    <li>Stock Left: <span class="text-danger">{{ product.varient.first.stock }}</span></li>
-                </ul>
+                    <li id="refreshRate">Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</li>
+                    <li id="stock">Stock Left: <span class="text-danger">{{ product.varient.first.stock }}</span></li>
+                </ul>                
 
                 <!-- Variant Selection -->
-                <div class="mb-3">
-                    <label class="form-label">Select Size</label>
-                    <div id="sizeSelect" class="d-flex flex-wrap">
-                    {% for size in varientSize %}
-                        <div class="variant-select-box" data-value="{{ size.size_id }}">
-                        {{ size.size__size }} inch
+                <div class="filter-options horizontal-options">
+                        <legend>Monitor Size</legend>
+                        <div id="sizeOptions" class="option-item">
+                            {% for size in varientSize %}
+                            <div class="option-item">
+                                <input type="radio" id="size-{{ size.size_id }}" name="monitorSize" value="{{size.size_id}}" />
+                                <label for="size-{{ size.size_id }}">{{size.size__size}} inches</label>
+                            </div>
+                            {% endfor %}
                         </div>
-                    {% empty %}
-                        <p>No sizes available</p>
-                    {% endfor %}
-                    </div>
                 </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Select Refresh Rate</label>
-                    <div id="refreshRateSelect" class="d-flex flex-wrap">
-                    {% for refreshRate in varientRefreshRates %}
-                        <div class="variant-select-box" data-value="{{ refreshRate.refreshRate_id }}">
-                        {{ refreshRate.refreshRate__refreshRate }}Hz
+
+                <div class="filter-options horizontal-options">
+                    <legend>Refresh Rate</legend>
+                    <div id="refreshRateOptions" class="option-item">
+                        {% for refreshrate in varientRefreshRates %}
+                        <div class="option-item">
+                            <input type="radio" id="refresh-{{ refreshrate.refreshRate_id }}" name="refreshRate" value="{{ refreshrate.refreshRate_id }}" />
+                            <label for="refresh-{{ refreshrate.refreshRate_id }}">{{ refreshrate.refreshRate__refreshRate }} Hz</label>
                         </div>
-                    {% empty %}
-                        <p>No refresh rates available</p>
-                    {% endfor %}
+                        {% endfor %}
                     </div>
-                </div>
-                
-                                
+                </div>                          
+              
                 <!-- Customer Reviews -->
                 <div class="star-rating d-flex">
                     <i class="bi bi-star" data-value="1"></i>
@@ -182,27 +175,29 @@
                     <i class="bi bi-star" data-value="4"></i>
                     <i class="bi bi-star" data-value="5"></i>
                 </div>
-                
+              
                 <!-- Buttons -->
                 <div class="d-flex mt-4">
                     <form action="{% url 'addToCart' product.id %}" method="post">
                         {% csrf_token %}
                         <div class="mb-5">
                             <div class="input-group mb-3" style="max-width: 120px;">
-                              <div class="input-group-prepend">
-                                <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
-                              </div>
-                              <input name="quantity" type="number" class="form-control text-center" value="1" placeholder="" aria-label="Example text with button addon" aria-describedby="button-addon1">
-                              <div class="input-group-append">
-                                <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
-                              </div>
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
+                                </div>
+                                <input name="quantity" type="number" class="form-control text-center" value="1" placeholder="" aria-label="Example text with button addon" aria-describedby="button-addon1">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
+                                </div>
                             </div>
-                          </div>
+                        </div>
                         <button type="submit" class="buy-now btn btn-primary me-2" style="width: 150px;">Add To Cart</button>
                         <button type="button" class="buy-now btn btn-primary" style="width: 150px;">Buy Now</button>
                     </form>
                 </div>
-              </div>
+            </div>
+        </div>
+
         <!-- Offers and Coupons Section -->
         <section id="offers-coupons" class="my-5">
             <div class="container">
@@ -219,31 +214,9 @@
                         <p class="text-muted mb-0">Expires: October 15, 2024</p>
                     </div>
                     <div class="coupon mb-3 p-3 border rounded">
-                        <h5 class="mb-2">Free Shipping on Orders Over $500</h5>
-                        <p class="mb-1">Enjoy free shipping on orders over $500. No code required.</p>
-                        <p class="text-muted mb-0">Expires: December 31, 2024</p>
-                    </div>
-                    <div class="no-offers text-center">
-                        <p>No offers or coupons available at the moment. Check back later for new deals!</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Customer Reviews Section -->
-        <section id="reviews" class="my-5">
-            <div class="container">
-                <h2 class="mb-4">Customer Reviews</h2>
-                <div class="reviews-list">
-                    <div class="review mb-3 p-3 border rounded">
-                        <div class="d-flex justify-content-between">
-                            <h5 class="mb-1">John Doe</h5>
-                            <span class="text-muted">August 30, 2024</span>
-                        </div>
-                        <p>This product is amazing! It exceeded my expectations.</p>
-                    </div>
-                    <div class="no-reviews text-center">
-                        <p>No reviews yet. Be the first to review this product!</p>
+                        <h5 class="mb-2">Additional 10% Off for Members</h5>
+                        <p class="mb-1">Exclusive offer for members. Get an additional 10% off on your purchase.</p>
+                        <p class="text-muted mb-0">Expires: October 31, 2024</p>
                     </div>
                 </div>
             </div>
@@ -252,33 +225,136 @@
 </div>
 
 <script>
-    function updateMainImage(imageUrl) {
+    function updateMainImage(src) {
         const mainImage = document.getElementById('mainImage');
-        mainImage.src = imageUrl;
+        mainImage.src = src;
     }
 
     function zoomImage(event) {
-        const mainImage = document.getElementById('mainImage');
-        const rect = mainImage.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        mainImage.classList.add('zoomed');
-        const xPercent = (x / mainImage.width) * 100;
-        const yPercent = (y / mainImage.height) * 100;
-        mainImage.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        const img = event.target;
+        img.classList.add('zoomed');
     }
 
     function resetZoom() {
-        const mainImage = document.getElementById('mainImage');
-        mainImage.classList.remove('zoomed');
-        mainImage.style.transformOrigin = 'center center';
+        const img = document.getElementById('mainImage');
+        img.classList.remove('zoomed');
     }
-    document.querySelectorAll('.variant-select-box').forEach(box => {
-        box.addEventListener('click', function() {
-            this.parentNode.querySelectorAll('.variant-select-box').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+    document.addEventListener('DOMContentLoaded', () => {
+    const sizeOptions = document.getElementById('sizeOptions');
+    const refreshRateOptions = document.getElementById('refreshRateOptions');
+    const priceElement = document.getElementById('price');
+    const sizeElement = document.getElementById('size');
+    const refreshRateElement = document.getElementById('refreshRate');
+    const stockElement = document.getElementById('stock');
+
+    // Function to send selected size and refresh rate to the backend
+    function sendSelection() {
+        const size = document.querySelector('input[name="monitorSize"]:checked')?.value;
+        const refreshRate = document.querySelector('input[name="refreshRate"]:checked')?.value;
+        const pId = "{{ product.id }}";  // Assuming product ID is available in the template
+        
+        fetch(`/product/${pId}/`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ size: size, refreshRate: refreshRate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                // Update price, size, refresh rate, stock based on the selected variant
+                if (data.price) {
+                    priceElement.textContent = `₹ ${data.price}`;
+                    sizeElement.textContent = `Size: ${data.size} inch`;
+                    refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
+                    stockElement.textContent = `Stock Left: ${data.stock}`;
+                }
+
+                // Update refresh rate options if available
+                if (data.refreshRates) {
+                    refreshRateOptions.innerHTML = '';  // Clear existing options
+                    data.refreshRates.forEach(rate => {
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.id = `refresh-${rate.refreshRate_id}`;
+                        input.name = 'refreshRate';
+                        input.value = rate.refreshRate_id;
+
+                        const label = document.createElement('label');
+                        label.htmlFor = input.id;
+                        label.textContent = `${rate.refreshRate__refreshRate} Hz`;
+
+                        refreshRateOptions.appendChild(input);
+                        refreshRateOptions.appendChild(label);
+                    });
+                }
+
+                // Update size options if available
+                if (data.size) {
+                    sizeOptions.innerHTML = '';  // Clear existing options
+                    data.size.forEach(size => {
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.id = `size-${size.size_id}`;
+                        input.name = 'monitorSize';
+                        input.value = size.size_id;
+
+                        const label = document.createElement('label');
+                        label.htmlFor = input.id;
+                        label.textContent = `${size.size__size} inches`;
+
+                        sizeOptions.appendChild(input);
+                        sizeOptions.appendChild(label);
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
-    });
+    }
+
+    // Add event listeners to trigger sendSelection on size or refresh rate selection
+    sizeOptions.addEventListener('change', sendSelection);
+    refreshRateOptions.addEventListener('change', sendSelection);
+});
+
+function fetchVariantDetails() {
+    let sizeId = document.getElementById('sizeSelect').value;
+    let refreshRateId = document.getElementById('refreshRateSelect').value;
+    
+    if (sizeId && refreshRateId) {
+        fetch(`/product/{{ product.id }}/variant-info/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ sizeId: sizeId, refreshRateId: refreshRateId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('variantDetails').innerHTML = 
+                    `Price: ${data.price}<br>
+                    Stock: ${data.stock}<br>
+                    Resolution: ${data.resolution}<br>
+                    Refresh Rate: ${data.refreshRate}`;
+                document.getElementById('errorMessage').style.display = 'none';
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('variantDetails').innerHTML = '';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    } else {
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('variantDetails').innerHTML = '';
+    }
+}
 </script>
 {% endblock %}
