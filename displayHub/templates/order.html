@@ -2,49 +2,62 @@
 {% block accountContent %}
 {% load static %}
 
-<div class="col py-3">
-<form class="form-inline my-lg-0">
-    <input class="form-control mr-sm-2 my-4" type="search" placeholder="Search" aria-label="Search">
-    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-  </form>
-<table class="table">
-    <thead>
-      <tr>
-        <th scope="col">No</th>
-        <th scope="col">Order Id</th>
-        <th scope="col">Payment Method</th>
-        <th scope="col">Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for order in orders %}
-  <tr class="clickable-row" data-url="{% url 'orderDetails' order.orderId.first.id %}" style="cursor:pointer;">
-    <th scope="row">{{ forloop.counter }}</th>
-    <td>{{ order.orderNo }}</td>
-    <td>{{ order.paymentMethod }}</td>
-    <td>
-          <span class="badge 
-            {% if order.orderStatus == 'pending' %} bg-warning text-dark
-            {% elif order.orderStatus == 'processing' %} bg-primary text-light
-            {% elif order.orderStatus == 'shipped' %} bg-info text-dark
-            {% elif order.orderStatus == 'out_for_delivery' %} bg-success text-light
-            {% elif order.orderStatus == 'delivered' %} bg-success text-light
-            {% elif order.orderStatus == 'canceled' %} bg-danger text-light
-            {% elif order.orderStatus == 'returned' %} bg-dark text-light
-            {% elif order.orderStatus == 'refunded' %} bg-dark text-light
-            {% elif order.orderStatus == 'failed' %} bg-danger text-light
-            {% elif order.orderStatus == 'on_hold' %} bg-secondary text-light
-            {% elif order.orderStatus == 'completed' %} bg-success text-light
-            {% elif order.orderStatus == 'awaiting_payment' %} bg-warning text-dark
-            {% endif %}
-          ">
-      {{ order.get_orderStatus_display }}
-            </span>
-    </td>
-  </tr>
-{% endfor %}    
-    </tbody>
-  </table>
+<div class="container-fluid py-3">
+  <!-- Search form -->
+  <div class="row mb-4">
+    <div class="col-lg-6 col-md-8 col-sm-12 mx-auto">
+      <form class="form-inline d-flex">
+        <input class="form-control me-2 w-75" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Orders Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th scope="col">No</th>
+              <th scope="col">Order Id</th>
+              <th scope="col">Payment Method</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr class="clickable-row" data-url="{% url 'orderDetails' order.orderId.first.id %}" style="cursor:pointer;">
+              <th scope="row">{{ forloop.counter }}</th>
+              <td>{{ order.orderNo }}</td>
+              <td>{{ order.paymentMethod }}</td>
+              <td>
+                <span class="badge 
+                  {% if order.orderStatus == 'pending' %} bg-warning text-dark
+                  {% elif order.orderStatus == 'processing' %} bg-primary text-light
+                  {% elif order.orderStatus == 'shipped' %} bg-info text-dark
+                  {% elif order.orderStatus == 'out_for_delivery' %} bg-success text-light
+                  {% elif order.orderStatus == 'delivered' %} bg-success text-light
+                  {% elif order.orderStatus == 'canceled' %} bg-danger text-light
+                  {% elif order.orderStatus == 'returned' %} bg-dark text-light
+                  {% elif order.orderStatus == 'refunded' %} bg-dark text-light
+                  {% elif order.orderStatus == 'failed' %} bg-danger text-light
+                  {% elif order.orderStatus == 'on_hold' %} bg-secondary text-light
+                  {% elif order.orderStatus == 'completed' %} bg-success text-light
+                  {% elif order.orderStatus == 'awaiting_payment' %} bg-warning text-dark
+                  {% endif %}
+                ">
+                  {{ order.get_orderStatus_display }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}    
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
-{% endblock  %}
+{% endblock %}
