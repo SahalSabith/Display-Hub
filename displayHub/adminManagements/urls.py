@@ -39,6 +39,8 @@ urlpatterns = [
     path('admin/editBrand/<int:bId>',views.editBrand,name='editBrand'),
     path('admin/allOrders',views.listOrders,name='allOrders'),
     path('admin/orderDetails/<int:oId>/',views.orderDetail,name='orderDeatils'),
+    path('admin/newSize',views.addSize,name='createSize'),
+    path('admin/newrefreshrate',views.addRefreshRate,name='createRefreshRate')
 ]
 
 if settings.DEBUG:

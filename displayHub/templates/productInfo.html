@@ -138,41 +138,42 @@
               <!-- Product Information Section -->
               <div class="col-md-6 product-info-section">
                 <h2>{{ product.name }}</h2>
-                <p><strong class="text-primary h4">₹ {{ product.price }}</strong></p>
+                <p><strong class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
                 <ul>
-                    <li>Size: {{ product.size }} inch</li>
+                    <li>Size: {{ product.varient.first.size.size }} inch</li>
                     <li>Resolution: {{ product.resolution }}p</li>
-                    <li>Refresh Rate: {{ product.refreshRate }}Hz</li>
-                    <li>Stock Left: <span class="text-danger">{{ product.stock }}</span></li>
+                    <li>Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</li>
+                    <li>Stock Left: <span class="text-danger">{{ product.varient.first.stock }}</span></li>
                 </ul>
 
                 <!-- Variant Selection -->
                 <div class="mb-3">
-                  <label class="form-label">Select Size</label>
-                  <div id="sizeSelect" class="d-flex flex-wrap">
-                      {% for variant in product.varient.all %}
-                          <div class="variant-select-box" data-value="{{ variant.size.id }}">
-                              {{ variant.size.size }} inch
-                          </div>
-                      {% empty %}
-                          <p>No sizes available</p>
-                      {% endfor %}
-                  </div>
+                    <label class="form-label">Select Size</label>
+                    <div id="sizeSelect" class="d-flex flex-wrap">
+                    {% for size in varientSize %}
+                        <div class="variant-select-box" data-value="{{ size.size_id }}">
+                        {{ size.size__size }} inch
+                        </div>
+                    {% empty %}
+                        <p>No sizes available</p>
+                    {% endfor %}
+                    </div>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label">Select Refresh Rate</label>
-                  <div id="refreshRateSelect" class="d-flex flex-wrap">
-                      {% for variant in product.varient.all %}
-                          <div class="variant-select-box" data-value="{{ variant.refreshRate.id }}">
-                              {{ variant.refreshRate.refreshRate }}Hz
-                          </div>
-                      {% empty %}
-                          <p>No refresh rates available</p>
-                      {% endfor %}
-                  </div>
-                </div>
-
                 
+                <div class="mb-3">
+                    <label class="form-label">Select Refresh Rate</label>
+                    <div id="refreshRateSelect" class="d-flex flex-wrap">
+                    {% for refreshRate in varientRefreshRates %}
+                        <div class="variant-select-box" data-value="{{ refreshRate.refreshRate_id }}">
+                        {{ refreshRate.refreshRate__refreshRate }}Hz
+                        </div>
+                    {% empty %}
+                        <p>No refresh rates available</p>
+                    {% endfor %}
+                    </div>
+                </div>
+                
+                                
                 <!-- Customer Reviews -->
                 <div class="star-rating d-flex">
                     <i class="bi bi-star" data-value="1"></i>
@@ -186,18 +187,22 @@
                 <div class="d-flex mt-4">
                     <form action="{% url 'addToCart' product.id %}" method="post">
                         {% csrf_token %}
-                        <div class="input-group mb-3" style="max-width: 120px;">
-                            <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
-                            <input name="quantity" type="number" class="form-control text-center" value="1">
-                            <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
-                        </div>
+                        <div class="mb-5">
+                            <div class="input-group mb-3" style="max-width: 120px;">
+                              <div class="input-group-prepend">
+                                <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
+                              </div>
+                              <input name="quantity" type="number" class="form-control text-center" value="1" placeholder="" aria-label="Example text with button addon" aria-describedby="button-addon1">
+                              <div class="input-group-append">
+                                <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
+                              </div>
+                            </div>
+                          </div>
                         <button type="submit" class="buy-now btn btn-primary me-2" style="width: 150px;">Add To Cart</button>
                         <button type="button" class="buy-now btn btn-primary" style="width: 150px;">Buy Now</button>
                     </form>
                 </div>
               </div>
-
-
         <!-- Offers and Coupons Section -->
         <section id="offers-coupons" class="my-5">
             <div class="container">

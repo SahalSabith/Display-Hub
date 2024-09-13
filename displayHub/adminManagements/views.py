@@ -7,6 +7,8 @@ from django.contrib import messages
 import base64
 from django.core.files.base import ContentFile
 from shopping.models import Order,OrderItem
+from django.http import HttpResponse, JsonResponse
+import json
 
 
 # Create your views here.
@@ -40,6 +42,34 @@ def addBrand(request):
         except IntegrityError:
             messages.error(request,"The Brand Already Exits")
     return render(request,'addBrand.html')
+
+@never_cache
+@login_required(login_url='/admin/login')
+def addSize(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        size = data.get('newSize')
+        if size:
+            newSize = Size.objects.create(size=size)
+            newSize.save()
+            return JsonResponse({'message': 'Size added successfully.', 'newSizeId': newSize.id})
+        else:
+            return JsonResponse({'error': 'Invalid size value.'}, status=400)
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+@never_cache
+@login_required(login_url='/admin/login')
+def addRefreshRate(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        refreshRate = data.get('newRefreshRate')
+        if refreshRate:
+            newRefreshRate = RefreshRate.objects.create(refreshRate=refreshRate)
+            newRefreshRate.save()
+            return JsonResponse({'message': 'Refresh rate added successfully.', 'newRefreshRateId': newRefreshRate.id})
+        else:
+            return JsonResponse({'error': 'Invalid refresh rate value.'}, status=400)
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
 @never_cache

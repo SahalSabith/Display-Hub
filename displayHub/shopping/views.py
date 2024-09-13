@@ -98,7 +98,15 @@ def products(request):
 @never_cache
 def productInfo(request,pId):
     product = Products.objects.get(id=pId)
-    return render(request,'productInfo.html',{'product':product})
+    varientSize = product.varient.values('size_id', 'size__size').distinct()
+    varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
+
+    context = {
+        'product': product,
+        'varientSize': varientSize,
+        'varientRefreshRates': varientRefreshRates,
+    }
+    return render(request,'productInfo.html',context)
 
 @never_cache
 @login_required(login_url='/signIn')

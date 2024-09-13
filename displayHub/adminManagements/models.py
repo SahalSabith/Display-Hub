@@ -21,9 +21,19 @@ class Size(models.Model):
     id = models.AutoField(primary_key=True)
     size = models.IntegerField()
 
+    def __str__(self):
+        sizeStr = str(self.size)
+        return sizeStr
+    
+
 class RefreshRate(models.Model):
     id = models.AutoField(primary_key=True)
     refreshRate = models.IntegerField()
+
+    def __str__(self):
+        refreshRateStr = str(self.refreshRate)
+        return refreshRateStr
+    
 
 class Products(models.Model):
     id = models.AutoField(primary_key=True)

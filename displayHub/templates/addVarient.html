@@ -1,54 +1,212 @@
 {% extends "adminBase.html" %}
 
 {% block adminContents %}
-
 {% load static %}
 <main id="main" class="main">
     <section class="section">
-      <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-body">
-                <h5 class="card-title">Add Varient</h5>
-                            <form class="row g-3" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="col-md-6">
-                                    <label for="inputStock" class="form-label">Stock</label>
-                                    <input type="number" class="form-control" id="inputStock" name="stock" placeholder="Enter stock" pattern=".*\S.*" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="inputPrice" class="form-label">Price</label>
-                                    <input type="number" class="form-control" id="inputPrice" name="price" placeholder="Enter price" pattern=".*\S.*" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="inputState" class="form-label">Size</label>
-                                    <select id="inputState" class="form-select" name="size" required>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Add Varient</h5>
+                        <form class="row g-3" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="col-md-6">
+                                <label for="inputStock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="inputStock" name="stock" placeholder="Enter stock" pattern=".*\S.*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputPrice" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="inputPrice" name="price" placeholder="Enter price" pattern=".*\S.*" required>
+                            </div>
+
+                            <!-- Size Select Dropdown -->
+                            <div class="col-md-6">
+                                <label for="inputSize" class="form-label">Size</label>
+                                <select id="inputSize" class="form-select" name="size" required onchange="handleSizeChange(this)">
                                     <option value="">Select a Size</option>
                                     {% for size in sizes %}
                                     <option value="{{size.id}}">{{size.size}} Inch</option>
                                     {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="inputState" class="form-label">Refresh Rate</label>
-                                    <select id="inputState" class="form-select" name="refreshRate" required>
+                                    <option value="addSize">Add Size</option>
+                                </select>
+                            </div>
+
+                            <!-- Refresh Rate Select Dropdown -->
+                            <div class="col-md-6">
+                                <label for="inputRefreshRate" class="form-label">Refresh Rate</label>
+                                <select id="inputRefreshRate" class="form-select" name="refreshRate" required onchange="handleRefreshRateChange(this)">
                                     <option value="">Select a Refresh Rate</option>
                                     {% for refreshRate in refreshRates %}
                                     <option value="{{refreshRate.id}}">{{refreshRate.refreshRate}} Hz</option>
                                     {% endfor %}
-                                    </select>
-                                </div>
-
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-primary">Submit</button>
-                                </div>
-                            </form>
-                            </div>
+                                    <option value="addRefreshRate">Add Refresh Rate</option>
+                                </select>
                             </div>
 
-                                </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary">Submit</button>
                             </div>
-                            </section>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
 
-                            </main><!-- End #main -->
+<!-- Size Modal -->
+<div class="modal fade" id="addSizeModal" tabindex="-1" aria-labelledby="addSizeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSizeLabel">Add New Size</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSizeForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="newSize" class="form-label">Size (Inches)</label>
+                        <input type="number" class="form-control" id="newSize" name="newSize" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Size</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Refresh Rate Modal -->
+<div class="modal fade" id="addRefreshRateModal" tabindex="-1" aria-labelledby="addRefreshRateLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRefreshRateLabel">Add New Refresh Rate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRefreshRateForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="newRefreshRate" class="form-label">Refresh Rate (Hz)</label>
+                        <input type="number" class="form-control" id="newRefreshRate" name="newRefreshRate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Refresh Rate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleSizeChange(select) {
+        if (select.value === "addSize") {
+            const addSizeModal = new bootstrap.Modal(document.getElementById('addSizeModal'));
+            addSizeModal.show();
+            select.value = ""; 
+        }
+    }
+
+    function handleRefreshRateChange(select) {
+        if (select.value === "addRefreshRate") {
+            const addRefreshRateModal = new bootstrap.Modal(document.getElementById('addRefreshRateModal'));
+            addRefreshRateModal.show();
+            select.value = "";  
+        }
+    }
+
+    document.getElementById('addSizeForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const newSize = document.getElementById('newSize').value;
+        
+        fetch("{% url 'createSize' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ newSize: newSize })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                const addSizeModal = bootstrap.Modal.getInstance(document.getElementById('addSizeModal'));
+                addSizeModal.hide();
+
+                const sizeDropdown = document.getElementById('inputSize');
+                const addSizeOption = sizeDropdown.querySelector("option[value='addSize']");
+                const option = document.createElement('option');
+                option.value = data.newSizeId;
+                option.text = `${newSize} Inch`;
+                sizeDropdown.insertBefore(option, addSizeOption);  // Insert before Add Size
+
+                // Clear the input field after submission
+                document.getElementById('newSize').value = '';
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error,
+                    icon: 'error'
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    document.getElementById('addRefreshRateForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const newRefreshRate = document.getElementById('newRefreshRate').value;
+
+        fetch("{% url 'createRefreshRate' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ newRefreshRate: newRefreshRate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                const addRefreshRateModal = bootstrap.Modal.getInstance(document.getElementById('addRefreshRateModal'));
+                addRefreshRateModal.hide();
+
+                // Update refresh rate dropdown and add before the "Add Refresh Rate" option
+                const refreshRateDropdown = document.getElementById('inputRefreshRate');
+                const addRefreshRateOption = refreshRateDropdown.querySelector("option[value='addRefreshRate']");
+                const option = document.createElement('option');
+                option.value = data.newRefreshRateId;
+                option.text = `${newRefreshRate} Hz`;
+                refreshRateDropdown.insertBefore(option, addRefreshRateOption);  // Insert before Add Refresh Rate
+
+                // Clear the input field after submission
+                document.getElementById('newRefreshRate').value = '';
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error,
+                    icon: 'error'
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
 {% endblock %}
