@@ -17,7 +17,8 @@ class Cart(models.Model):
         return total 
     
     def __str__(self):
-        return self.pk
+        id = str(self.pk)
+        return id
 
 
 class CartItem(models.Model):
@@ -32,7 +33,8 @@ class CartItem(models.Model):
         return total
     
     def __str__(self):
-        return self.pk
+        id = str(self.pk)
+        return id
 
 class Order(models.Model):
     statusChoices = [
