@@ -31,22 +31,48 @@ def cart(request):
 @never_cache
 @login_required(login_url='/signIn')
 def addToCart(request, pId):
-    if request.POST:
-        product = Varients.objects.get(id=pId)
-        user = request.user
-        quantity = request.POST.get('quantity', 1)
-        if product.stock >= int(quantity):
-            if CartItem.objects.filter(product=product).exists():
-                return redirect('cart')
-            else:
-                cart, created = Cart.objects.get_or_create(userId=user)
-                cartItem, created = CartItem.objects.get_or_create(product=product, quantity=quantity, cartId=cart)
-                messages.success(request,"Product Suuccessfully Added")
-                return redirect('cart')
+    if request.method == 'POST':
+        # Retrieve session data
+        session_data = request.session.get('product_data', None)
+        if not session_data:
+            messages.error(request, "No product data in session.")
+            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+
+        # Retrieve product variant info from session
+        variant_id = session_data.get('variant_id')
+        quantity = int(request.POST.get('quantity', 1))
+
+        try:
+            variant = Varients.objects.get(id=variant_id)
+        except Varients.DoesNotExist:
+            messages.error(request, "Selected product variant does not exist.")
+            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+
+        if variant.stock >= quantity:
+            user = request.user
+            # Get or create the user's cart
+            cart, created = Cart.objects.get_or_create(userId=user)
+
+            # Check if the item already exists in the cart
+            cart_item, created = CartItem.objects.get_or_create(
+                productId=variant.product,
+                varientId=variant,
+                cartId=cart,
+                defaults={'quantity': quantity}
+            )
+
+            if not created:
+                # If the item already exists, update the quantity
+                cart_item.quantity += quantity
+                cart_item.save()
+
+            messages.success(request, "Product successfully added to cart.")
+            return redirect('cart')
         else:
-            return redirect('productInfo',pId)
-    else:
-        return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+            messages.error(request, "Not enough stock available.")
+            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+
+    return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
 @never_cache
 @login_required(login_url='/signIn')
@@ -95,6 +121,11 @@ def products(request):
     }
     return render(request, 'shop.html', context)
 
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.cache import never_cache
+import json
+
 @never_cache
 def productInfo(request, pId):
     product = Products.objects.get(id=pId)
@@ -141,8 +172,19 @@ def productInfo(request, pId):
                         'price': selectedVarient.price,
                         'size': selectedVarient.size.size,
                         'refreshRate': selectedVarient.refreshRate.refreshRate,
-                        'stock': selectedVarient.stock
+                        'stock': selectedVarient.stock,
+                        'variantId': selectedVarient.id
                     })
+                    
+                    # Save the selected variant data to the session
+                    request.session['product_data'] = {
+                        'product_id': pId,
+                        'variant_id': selectedVarient.id,
+                        'price': selectedVarient.price,
+                        'size': selectedVarient.size.size,
+                        'refreshRate': selectedVarient.refreshRate.refreshRate,
+                        'stock': selectedVarient.stock
+                    }
                 else:
                     responseData['error'] = 'No matching variant found.'
 
@@ -152,11 +194,40 @@ def productInfo(request, pId):
             return JsonResponse({'error': 'Invalid request format'}, status=400)
 
     # For GET requests, return initial data
-    context = {
-        'product': product,
-        'varientSize': varientSize,
-        'varientRefreshRates': varientRefreshRates
-    }
+    session_data = request.session.get('product_data', None)
+    if session_data:
+        # If there's existing session data, use it
+        context = {
+            'product': product,
+            'varientSize': varientSize,
+            'varientRefreshRates': varientRefreshRates,
+            'session_data': session_data
+        }
+    else:
+        # If no session data, use default variant data
+        default_variant = product.varient.first()
+        if default_variant:
+            request.session['product_data'] = {
+                'product_id': pId,
+                'variant_id': default_variant.id,
+                'price': default_variant.price,
+                'size': default_variant.size.size,
+                'refreshRate': default_variant.refreshRate.refreshRate,
+                'stock': default_variant.stock
+            }
+            context = {
+                'product': product,
+                'varientSize': varientSize,
+                'varientRefreshRates': varientRefreshRates,
+                'session_data': request.session['product_data']
+            }
+        else:
+            context = {
+                'product': product,
+                'varientSize': varientSize,
+                'varientRefreshRates': varientRefreshRates
+            }
+
     return render(request, 'productInfo.html', context)
 
 

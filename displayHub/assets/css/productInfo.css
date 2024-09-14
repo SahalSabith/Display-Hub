@@ -1,0 +1,115 @@
+/* Existing Styles */
+.thumbnail-img {
+    border: 2px solid #f9f9f9;
+    transition: border-color 0.3s ease;
+}
+.thumbnail-img:hover {
+    border-color: #000;
+}
+.thumbnail-img {
+    width: 100%;
+    max-width: 80px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+/* Main image container */
+.main-image {
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+    max-width: 100%;
+}
+.main-image:hover {
+    border: 1px dotted black;
+}
+
+/* Style for zoom effect */
+.zoomable {
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+}
+.zoomed {
+    transform: scale(1.6);
+}
+
+/* Layout and Theme */
+:root {
+    --primary-color: #9A94EF;
+    --secondary-color: #C794EF;
+}
+.btn-primary, .buy-now {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.star-rating i {
+    color: var(--secondary-color);
+}
+.offer {
+    background-color: #f9f9f9;
+}
+.container {
+    padding: 20px;
+}
+.product-info-section {
+    padding-left: 30px;
+}
+
+/* General styling for the option buttons */
+.option-item {
+    display: inline-block;
+    margin: 5px;
+}
+.option-item input[type="radio"] {
+    display: none;
+}
+.option-item label {
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.option-item label:hover {
+    background-color: #e3e3ff;
+    border-color: #9A94EF;
+}
+.option-item input[type="radio"]:checked + label {
+    background-color: #9A94EF;
+    color: white;
+    border-color: #7F77FF;
+}
+
+/* Styling for the container */
+#sizeOptions, #refreshRateOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.filter-options {
+    margin-bottom: 20px;
+}
+.filter-options legend {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+/* Updated Styles for Offers & Coupons Section */
+#offers-coupons .offer, #offers-coupons .coupon {
+    padding: 10px; /* Reduced padding */
+    margin-bottom: 10px; /* Reduced margin */
+    font-size: 0.9em; /* Smaller font size */
+}
+
+/* New Styles for Customer Reviews Section */
+#customer-reviews .review {
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9em; /* Smaller font size */
+}

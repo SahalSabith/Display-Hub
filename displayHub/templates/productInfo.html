@@ -1,112 +1,7 @@
 {% extends "base.html" %}
 {% block baseContents %}
 {% load static %}
-<style>
-    /* Thumbnails styles */
-    .thumbnail-img {
-        border: 2px solid #f9f9f9;
-        transition: border-color 0.3s ease;
-    }
-
-    .thumbnail-img:hover {
-        border-color: #000;
-    }
-
-    .thumbnail-img {
-        width: 100%;
-        max-width: 80px;
-        object-fit: cover;
-        cursor: pointer;
-    }
-
-    /* Main image container */
-    .main-image {
-        position: relative;
-        overflow: hidden;
-        cursor: crosshair;
-        max-width: 100%;
-    }
-
-    .main-image:hover {
-        border: 1px dotted black;
-    }
-
-    /* Style for zoom effect */
-    .zoomable {
-        transition: transform 0.3s ease;
-        transform-origin: center center;
-    }
-
-    .zoomed {
-        transform: scale(1.6);
-    }
-
-    /* Layout and Theme */
-    :root {
-        --primary-color: #9A94EF;
-        --secondary-color: #C794EF;
-    }
-
-    body {
-        color: #333;
-    }
-
-    h5, .h4 {
-        color: var(--primary-color);
-    }
-
-    .btn-primary, .buy-now {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--secondary-color);
-        border-color: var(--secondary-color);
-    }
-
-    .star-rating i {
-        color: var(--secondary-color);
-    }
-
-    .offer {
-        background-color: #f9f9f9;
-    }
-
-    .container {
-        padding: 20px;
-    }
-
-    .product-info-section {
-        padding-left: 30px;
-    }
-
-    .d-flex {
-        margin-bottom: 20px;
-    }
-    .filter-options {
-        margin-bottom: 20px;
-    }
-      
-    .horizontal-options {
-        display: flex;
-        flex-wrap: wrap;
-    }
-      
-    .option-item {
-        margin-right: 15px;
-        margin-bottom: 10px;
-    }
-      
-    .option-item input[type="radio"] {
-        margin-right: 5px;
-    }
-      
-    .option-item label {
-        font-size: 0.9em; /* Adjust font size to make labels smaller */
-    }
-</style>
-
+<link rel="stylesheet" href="{% static "css/productInfo.css" %}">
 <div class="site-section">
     <div class="container">
         <div class="row">
@@ -114,16 +9,16 @@
             <div class="col-md-6 d-flex">
                 <div class="thumbnails col-3 d-flex flex-column">
                     {% if product.image1 %}
-                    <img src="{{ product.image1.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image1.url }}')">
+                        <img src="{{ product.image1.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image1.url }}')">
                     {% endif %}
                     {% if product.image2 %}
-                    <img src="{{ product.image2.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image2.url }}')">
+                        <img src="{{ product.image2.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image2.url }}')">
                     {% endif %}
                     {% if product.image3 %}
-                    <img src="{{ product.image3.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image3.url }}')">
+                        <img src="{{ product.image3.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image3.url }}')">
                     {% endif %}
                     {% if product.image4 %}
-                    <img src="{{ product.image4.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image4.url }}')">
+                        <img src="{{ product.image4.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image4.url }}')">
                     {% endif %}
                 </div>
                 <div class="main-image col-9">
@@ -133,26 +28,24 @@
 
             <!-- Product Information Section -->
             <div class="col-md-6 product-info-section">
-                <h2>{{ product.name }}</h2>
-                <p><strong id="price" class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
-                <ul>
-                    <li id="size">Size: {{ product.varient.first.size.size }} inch</li>
-                    <li>Resolution: {{ product.resolution }}p</li>
-                    <li id="refreshRate">Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</li>
-                    <li id="stock">Stock Left: <span class="text-danger">{{ product.varient.first.stock }}</span></li>
-                </ul>                
+                <h2 class="productName">{{ product.name }}</h2>
+                <h6><strong id="price" class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
+                <h6 id="size">Size: {{ product.varient.first.size.size }} inch</h6>
+                <h6>Resolution: {{ product.resolution }}p</h6>
+                <h6 id="refreshRate">Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</h6>
+                    <h6 id="stock">Only {{ product.varient.first.stock }} Left</h6>
 
                 <!-- Variant Selection -->
                 <div class="filter-options horizontal-options">
-                        <legend>Monitor Size</legend>
-                        <div id="sizeOptions" class="option-item">
-                            {% for size in varientSize %}
-                            <div class="option-item">
-                                <input type="radio" id="size-{{ size.size_id }}" name="monitorSize" value="{{size.size_id}}" />
-                                <label for="size-{{ size.size_id }}">{{size.size__size}} inches</label>
-                            </div>
-                            {% endfor %}
+                    <legend>Monitor Size</legend>
+                    <div id="sizeOptions" class="option-item">
+                        {% for size in varientSize %}
+                        <div class="option-item">
+                            <input type="radio" id="size-{{ size.size_id }}" name="monitorSize" value="{{size.size_id}}" />
+                            <label for="size-{{ size.size_id }}">{{size.size__size}} inches</label>
                         </div>
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <div class="filter-options horizontal-options">
@@ -192,7 +85,6 @@
                             </div>
                         </div>
                         <button type="submit" class="buy-now btn btn-primary me-2" style="width: 150px;">Add To Cart</button>
-                        <button type="button" class="buy-now btn btn-primary" style="width: 150px;">Buy Now</button>
                     </form>
                 </div>
             </div>
@@ -203,21 +95,43 @@
             <div class="container">
                 <h2 class="mb-4">Available Offers & Coupons</h2>
                 <div class="offers-list">
-                    <div class="offer mb-3 p-3 border rounded">
-                        <h5 class="mb-2">Buy One Get One 50% Off</h5>
+                    <div class="offer mb-2 p-2 border rounded">
+                        <h5 class="mb-1">Buy One Get One 50% Off</h5>
                         <p class="mb-1">Purchase one monitor and get a second monitor at 50% off. Limited time offer!</p>
                         <p class="text-muted mb-0">Expires: September 30, 2024</p>
                     </div>
-                    <div class="offer mb-3 p-3 border rounded">
-                        <h5 class="mb-2">Save $100 on Your Purchase</h5>
+                    <div class="offer mb-2 p-2 border rounded">
+                        <h5 class="mb-1">Save $100 on Your Purchase</h5>
                         <p class="mb-1">Get an instant $100 discount on any monitor. Use code: MONITOR100 at checkout.</p>
                         <p class="text-muted mb-0">Expires: October 15, 2024</p>
                     </div>
-                    <div class="coupon mb-3 p-3 border rounded">
-                        <h5 class="mb-2">Additional 10% Off for Members</h5>
+                    <div class="coupon mb-2 p-2 border rounded">
+                        <h5 class="mb-1">Additional 10% Off for Members</h5>
                         <p class="mb-1">Exclusive offer for members. Get an additional 10% off on your purchase.</p>
                         <p class="text-muted mb-0">Expires: October 31, 2024</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer Reviews Section -->
+        <section id="customer-reviews" class="my-5">
+            <div class="container">
+                <h2 class="mb-4">Customer Reviews</h2>
+                <div class="review mb-3 p-3 border rounded">
+                    <h5 class="mb-2">John Doe</h5>
+                    <p class="mb-1">"Great product! The quality is top-notch and the delivery was fast. Highly recommend."</p>
+                    <p class="text-muted mb-0">Rating: ★★★★☆</p>
+                </div>
+                <div class="review mb-3 p-3 border rounded">
+                    <h5 class="mb-2">Jane Smith</h5>
+                    <p class="mb-1">"Good value for money. The monitor performs well, but the packaging could be improved."</p>
+                    <p class="text-muted mb-0">Rating: ★★★☆☆</p>
+                </div>
+                <div class="review mb-3 p-3 border rounded">
+                    <h5 class="mb-2">Alice Johnson</h5>
+                    <p class="mb-1">"Excellent service and a fantastic product. I am very satisfied with my purchase."</p>
+                    <p class="text-muted mb-0">Rating: ★★★★★</p>
                 </div>
             </div>
         </section>
@@ -239,122 +153,97 @@
         const img = document.getElementById('mainImage');
         img.classList.remove('zoomed');
     }
+
     document.addEventListener('DOMContentLoaded', () => {
-    const sizeOptions = document.getElementById('sizeOptions');
-    const refreshRateOptions = document.getElementById('refreshRateOptions');
-    const priceElement = document.getElementById('price');
-    const sizeElement = document.getElementById('size');
-    const refreshRateElement = document.getElementById('refreshRate');
-    const stockElement = document.getElementById('stock');
-
-    // Function to send selected size and refresh rate to the backend
-    function sendSelection() {
-        const size = document.querySelector('input[name="monitorSize"]:checked')?.value;
-        const refreshRate = document.querySelector('input[name="refreshRate"]:checked')?.value;
-        const pId = "{{ product.id }}";  // Assuming product ID is available in the template
-        
-        fetch(`/product/${pId}/`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify({ size: size, refreshRate: refreshRate })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                // Update price, size, refresh rate, stock based on the selected variant
-                if (data.price) {
-                    priceElement.textContent = `₹ ${data.price}`;
-                    sizeElement.textContent = `Size: ${data.size} inch`;
-                    refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
-                    stockElement.textContent = `Stock Left: ${data.stock}`;
-                }
-
-                // Update refresh rate options if available
-                if (data.refreshRates) {
-                    refreshRateOptions.innerHTML = '';  // Clear existing options
-                    data.refreshRates.forEach(rate => {
-                        const input = document.createElement('input');
-                        input.type = 'radio';
-                        input.id = `refresh-${rate.refreshRate_id}`;
-                        input.name = 'refreshRate';
-                        input.value = rate.refreshRate_id;
-
-                        const label = document.createElement('label');
-                        label.htmlFor = input.id;
-                        label.textContent = `${rate.refreshRate__refreshRate} Hz`;
-
-                        refreshRateOptions.appendChild(input);
-                        refreshRateOptions.appendChild(label);
-                    });
-                }
-
-                // Update size options if available
-                if (data.size) {
-                    sizeOptions.innerHTML = '';  // Clear existing options
-                    data.size.forEach(size => {
-                        const input = document.createElement('input');
-                        input.type = 'radio';
-                        input.id = `size-${size.size_id}`;
-                        input.name = 'monitorSize';
-                        input.value = size.size_id;
-
-                        const label = document.createElement('label');
-                        label.htmlFor = input.id;
-                        label.textContent = `${size.size__size} inches`;
-
-                        sizeOptions.appendChild(input);
-                        sizeOptions.appendChild(label);
-                    });
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    // Add event listeners to trigger sendSelection on size or refresh rate selection
-    sizeOptions.addEventListener('change', sendSelection);
-    refreshRateOptions.addEventListener('change', sendSelection);
-});
-
-function fetchVariantDetails() {
-    let sizeId = document.getElementById('sizeSelect').value;
-    let refreshRateId = document.getElementById('refreshRateSelect').value;
+        const sizeOptions = document.getElementById('sizeOptions');
+        const refreshRateOptions = document.getElementById('refreshRateOptions');
+        const priceElement = document.getElementById('price');
+        const sizeElement = document.getElementById('size');
+        const refreshRateElement = document.getElementById('refreshRate');
+        const stockElement = document.getElementById('stock');
     
-    if (sizeId && refreshRateId) {
-        fetch(`/product/{{ product.id }}/variant-info/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ sizeId: sizeId, refreshRateId: refreshRateId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('variantDetails').innerHTML = 
-                    `Price: ${data.price}<br>
-                    Stock: ${data.stock}<br>
-                    Resolution: ${data.resolution}<br>
-                    Refresh Rate: ${data.refreshRate}`;
-                document.getElementById('errorMessage').style.display = 'none';
-            } else {
-                document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('variantDetails').innerHTML = '';
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    } else {
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('variantDetails').innerHTML = '';
-    }
-}
+        // Function to send selected size and refresh rate to the backend
+        function sendSelection() {
+            const size = document.querySelector('input[name="monitorSize"]:checked')?.value;
+            const refreshRate = document.querySelector('input[name="refreshRate"]:checked')?.value;
+            const pId = "{{ product.id }}";  // Assuming product ID is available in the template
+            
+            fetch(`/product/${pId}/`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ size: size, refreshRate: refreshRate })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Update price, size, refresh rate, stock based on the selected variant
+                    if (data.price) {
+                        priceElement.textContent = `₹ ${data.price}`;
+                        sizeElement.textContent = `Size: ${data.size} inch`;
+                        refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
+                        if (data.stock <= 5) {
+                            stockElement.textContent = `Only ${data.stock} Left`;
+                            stockElement.style.color = 'red';
+                        } else {
+                            stockElement.textContent = `Stock Left: ${data.stock}`;
+                            stockElement.style.color = 'black';
+                        }
+                        
+                    }
+    
+                    // Update refresh rate options if available
+                    if (data.refreshRates) {
+                        refreshRateOptions.innerHTML = '';  // Clear existing options
+                        data.refreshRates.forEach(rate => {
+                            const input = document.createElement('input');
+                            input.type = 'radio';
+                            input.id = `refresh-${rate.refreshRate_id}`;
+                            input.name = 'refreshRate';
+                            input.value = rate.refreshRate_id;
+    
+                            const label = document.createElement('label');
+                            label.htmlFor = input.id;
+                            label.textContent = `${rate.refreshRate__refreshRate} Hz`;
+    
+                            refreshRateOptions.appendChild(input);
+                            refreshRateOptions.appendChild(label);
+                        });
+                    }
+    
+                    // Update size options if available
+                    if (data.sizeOptions) {
+                        sizeOptions.innerHTML = '';  // Clear existing options
+                        data.sizeOptions.forEach(size => {
+                            const input = document.createElement('input');
+                            input.type = 'radio';
+                            input.id = `size-${size.size_id}`;
+                            input.name = 'monitorSize';
+                            input.value = size.size_id;
+    
+                            const label = document.createElement('label');
+                            label.htmlFor = input.id;
+                            label.textContent = `${size.size__size} inches`;
+    
+                            sizeOptions.appendChild(input);
+                            sizeOptions.appendChild(label);
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    
+        // Add event listeners to trigger sendSelection on size or refresh rate selection
+        sizeOptions.addEventListener('change', sendSelection);
+        refreshRateOptions.addEventListener('change', sendSelection);
+    });
 </script>
+
 {% endblock %}

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from userProfile.models import Address
+from adminManagements.models import Products,Varients
 
 # Create your models here.
 class Cart(models.Model):
@@ -14,16 +15,24 @@ class Cart(models.Model):
         for item in cartItems:
             total += item.productTotal()
         return total 
+    
+    def __str__(self):
+        return self.pk
 
 
 class CartItem(models.Model):
     id = models.AutoField(primary_key=True)
-    #product a here
+    productId = models.ForeignKey(Products,on_delete=models.CASCADE)
+    varientId = models.ForeignKey(Varients,on_delete=models.CASCADE)
     quantity = models.IntegerField()
     cartId = models.ForeignKey(Cart,on_delete=models.CASCADE)
 
     def productTotal(self):
         return self.quantity * self.product.price
+    
+    def __str__(self):
+        return self.pk
+    
 
 class Order(models.Model):
     statusChoices = [
