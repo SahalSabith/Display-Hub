@@ -36,12 +36,11 @@ def order(request):
         return redirect('admin')
 
     user_id = request.user.id
-    orders = Order.objects.filter(userId=user_id).prefetch_related('orderId')
+    orders = Order.objects.filter(userId=user_id)
 
     context = {
         'orders': orders,
     }
-
     return render(request, 'order.html', context)
 
 

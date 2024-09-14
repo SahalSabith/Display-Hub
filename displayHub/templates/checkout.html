@@ -37,8 +37,8 @@
                           <tbody>
                               {% for item in products %}
                               <tr>
-                                  <td>{{ item.product.product.name }} <strong class="mx-2">x</strong> {{ item.quantity }}</td>
-                                  <td>₹{{item.productTotal}}</td>
+                                  <td>{{ item.productId.name }} <strong class="mx-2">x</strong> {{ item.quantity }}</td>
+                                  <td>₹{{item.cartItemTotal}}</td>
                               </tr>
                               {% endfor %}
                               <tr>

@@ -13,7 +13,7 @@ class Cart(models.Model):
         total = 0
         cartItems = CartItem.objects.filter(cartId=self)
         for item in cartItems:
-            total += item.productTotal()
+            total += item.cartItemTotal()
         return total 
     
     def __str__(self):
@@ -27,12 +27,12 @@ class CartItem(models.Model):
     quantity = models.IntegerField()
     cartId = models.ForeignKey(Cart,on_delete=models.CASCADE)
 
-    def productTotal(self):
-        return self.quantity * self.product.price
+    def cartItemTotal(self):
+        total = self.varientId.price * self.quantity
+        return total
     
     def __str__(self):
         return self.pk
-    
 
 class Order(models.Model):
     statusChoices = [
@@ -51,7 +51,7 @@ class Order(models.Model):
     ]
     orderStatus = models.CharField(max_length=20,choices=statusChoices,default='pending')
     orderedAt = models.DateTimeField(auto_now=True)
-    userId = models.ForeignKey(User,on_delete=models.CASCADE)
+    userId = models.ForeignKey(User,related_name='userId',on_delete=models.CASCADE)
     addressId = models.ForeignKey(Address,on_delete=models.CASCADE)
     payments = [
         ('cashOnDelivery','CashOnDelivey'),
@@ -62,11 +62,10 @@ class Order(models.Model):
     orderNo = models.CharField(max_length=10,unique=True)
     totalPrice = models.IntegerField(default=0)
 
-
 class OrderItem(models.Model):
     id = models.AutoField(primary_key=True)
-    #product hefre also 
+    productId = models.ForeignKey(Products,on_delete=models.CASCADE)
+    varientId = models.ForeignKey(Varients,on_delete=models.CASCADE) 
     quantity = models.IntegerField()
-    orderId = models.ForeignKey(Order,related_name='orderId',on_delete=models.CASCADE)
     totalPrice = models.IntegerField(default=0)
-
+    orderItemId = models.ForeignKey(Order,related_name='orderItemId',on_delete=models.CASCADE)

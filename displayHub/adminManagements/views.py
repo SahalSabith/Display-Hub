@@ -390,37 +390,40 @@ def editBrand(request,bId):
             messages.error(request,"The Brand Already Exits")
     return render(request,'editBrand.html',{'brand':brand})
 
+
 @never_cache
 @login_required(login_url='/admin/login')
 def listOrders(request):
     if not request.user.is_superuser:
         return redirect('home')
-    orders = Order.objects.all().prefetch_related('orderId')
-    return render(request,'adminOrders.html',{'orders':orders})
+    orders = Order.objects.all()
+    context = {
+        'orders': orders
+    }
+    return render(request, 'adminOrders.html', context)
 
 @never_cache
 @login_required(login_url='/admin/login')
 def orderDetail(request, oId):
     if not request.user.is_superuser:
         return redirect('home')
-    
-    order = get_object_or_404(OrderItem, id=oId)
-    orderId = order.orderId
-    orderItems = OrderItem.objects.filter(orderId=orderId.pk)
-    
-    if request.POST:
+
+    order = Order.objects.get(id=oId)
+    orderItems = OrderItem.objects.filter(orderItemId=order)
+
+    if not order:
+        return redirect('admin') 
+
+    if request.method == "POST":
         newStatus = request.POST.get("status")
         if newStatus in dict(Order.statusChoices).keys():
-            orderId.orderStatus = newStatus
-            orderId.save()
-        else:
-            pass
-
+            order.orderStatus = newStatus
+            order.save()
 
     context = {
         'order': order,
         'order_status_options': Order.statusChoices,
-        'orderItems':orderItems,
-        'orderId':orderId
+        'orderItem': orderItems,
     }
-    return render(request, 'adminOrderDetails.html',context)
+    return render(request, 'adminOrderDetails.html', context)
+

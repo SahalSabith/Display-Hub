@@ -127,26 +127,27 @@
                 </tr>
             </thead>
             <tbody>
-                {% for orders in orders %}
+        {% for orders in orders %}
                 <tr>
-                    <td>{{orders.product.product.name}}</td>
-                    <td>{{orders.quantity}}</td>
-                    <td>₹ {{orders.product.price}}</td>
-                    <td>₹ {{orders.totalPrice}}</td>
+                    <td>{{ orders.productId.name }}</td>
+                    <td>{{ orders.quantity }}</td>
+                    <td>₹ {{ orders.varientId.price }}</td>
+                    <td>₹ {{ orders.totalPrice }}</td>
                 </tr>
-                {% endfor %}
+               
             </tbody>
         </table>
         {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' %}
         <div class="row mt-3">
             <div class="col-md-12 text-center">
-                <form id="cancelOrderForm" method="POST" action="{% url 'cancelOrder' order.pk orderItem.id %}">
+                <form id="cancelOrderForm" method="POST" action="{% url 'cancelOrder' order.pk orders.id %}">
                     {% csrf_token %}
                     <button type="button" onclick="confirmCancelation();" class="cancel-btn">Cancel Order</button>
                 </form>
             </div>
         </div>
-        {% endif %}
+    {% endif %}
+    {% endfor %}                
     </div>
 </div>
 

@@ -38,7 +38,7 @@ urlpatterns = [
     path('admin/editCategory/<int:cId>',views.editCategory,name='editCategory'),
     path('admin/editBrand/<int:bId>',views.editBrand,name='editBrand'),
     path('admin/allOrders',views.listOrders,name='allOrders'),
-    path('admin/orderDetails/<int:oId>/',views.orderDetail,name='orderDeatils'),
+    path('admin/orderDetails/<int:oId>/',views.orderDetail,name='adminOrderDeatils'),
     path('admin/newSize',views.addSize,name='createSize'),
     path('admin/newrefreshrate',views.addRefreshRate,name='createRefreshRate')
 ]

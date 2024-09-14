@@ -12,6 +12,7 @@ import string
 from django.contrib import messages
 from django.db.models import Count
 from django.db import models
+from django.db.models import Min
 import json
 from django.http import JsonResponse
 
@@ -90,17 +91,20 @@ def products(request):
     sizes = Size.objects.values('size').annotate(count=models.Count('size')).order_by('size')
     refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=models.Count('refreshRate')).order_by('refreshRate')
     categories = Products.objects.values('category').annotate(count=models.Count('category')).order_by('category')
+    productsList = productsList.annotate(min_price=Min('varient__price'))
+
 
     if sort == 'price_asc':
-        productsList = productsList.order_by('price')
+        productsList = productsList.order_by('-min_price')
     elif sort == 'price_desc':
-        productsList = productsList.order_by('-price')
+        productsList = productsList.order_by('min_price')
     elif sort == 'new_arrivals':
-        productsList = productsList.order_by('-product__createdAt')
+        productsList = productsList.order_by('-createdAt')
     elif sort == 'az':
-        productsList = productsList.order_by('product__name')
+        productsList = productsList.order_by('name')
     elif sort == 'za':
-        productsList = productsList.order_by('-product__name')
+        productsList = productsList.order_by('-name')
+
 
     category = Category.objects.all()
     paginator = Paginator(productsList, 6)
@@ -120,11 +124,6 @@ def products(request):
         'refresh_rates': refreshRates,
     }
     return render(request, 'shop.html', context)
-
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.views.decorators.cache import never_cache
-import json
 
 @never_cache
 def productInfo(request, pId):
@@ -252,7 +251,7 @@ def checkOut(request):
             messages.error(request, 'Please select a payment method.')
             request.session['show_error'] = True
             return redirect('checkOut')
-
+        
         characters = string.ascii_letters + string.digits
         orderNumber = ''.join(random.choice(characters) for _ in range(10))
         print("Order Id is " + orderNumber)
@@ -266,16 +265,18 @@ def checkOut(request):
         )
 
         for item in cartItems:
-            product = Varients.objects.get(id=item.product.pk)
-            OrderItem.objects.create(
-                orderId=order,
-                product=product,
+            product = Products.objects.get(id=item.productId.id)
+            varient = Varients.objects.get(id=item.varientId.id)
+            orderItem = OrderItem.objects.create(
+                orderItemId=order,
+                productId=product,
+                varientId=varient,
                 quantity=item.quantity,
-                totalPrice=item.productTotal()
+                totalPrice=item.cartItemTotal()
             )
 
-            product.stock -= item.quantity
-            product.save()
+            varient.stock -= item.quantity
+            varient.save()
 
         cartItems.delete()
         carts.delete()
@@ -288,7 +289,6 @@ def checkOut(request):
     context = {
         'products': cartItems,
         'addresses': addresses,
-        'cart':carts
     }
     return render(request, 'checkout.html', context)
 
@@ -296,14 +296,13 @@ def checkOut(request):
 @never_cache
 @login_required(login_url='/signIn')
 def orderDetails(request, oId):
-    orderItem = OrderItem.objects.get(pk=oId)
-    order = orderItem.orderId
-    orders = OrderItem.objects.filter(orderId=order)
+    order = Order.objects.get(id=oId)
+
+    orderItems = OrderItem.objects.filter(orderItemId=order)
 
     context = {
         'order': order,
-        'orders': orders,
-        'orderItem':orderItem
+        'orders': orderItems,
     }
     return render(request, 'orderDetails.html', context)
 
@@ -318,7 +317,7 @@ def cancelOrder(request, oId, oiId):
             order.orderStatus = 'canceled'
             order.save()
 
-            variant = orderItem.product
+            variant = orderItem.varientId
             variant.stock += orderItem.quantity
             variant.save()
 

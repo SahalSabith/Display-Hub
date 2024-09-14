@@ -28,7 +28,7 @@
           </thead>
           <tbody>
             {% for order in orders %}
-            <tr class="clickable-row" data-url="{% url 'orderDetails' order.orderId.first.id %}" style="cursor:pointer;">
+            <tr class="clickable-row" data-url="{% url 'orderDetails' order.pk %}" style="cursor:pointer;">
               <th scope="row">{{ forloop.counter }}</th>
               <td>{{ order.orderNo }}</td>
               <td>{{ order.paymentMethod }}</td>

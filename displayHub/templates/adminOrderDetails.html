@@ -1,7 +1,6 @@
 {% extends "adminBase.html" %}
 {% load static %}
 {% block adminContents %}
-
 <main id="main" class="main">
     <section class="section">
         <div class="row">
@@ -16,27 +15,27 @@
                                 <tbody>
                                     <tr>
                                         <th>Order ID</th>
-                                        <td>{{ order.orderId.orderNo }}</td>
+                                        <td>{{ order.orderNo }}</td>
                                     </tr>
                                     <tr>
                                         <th>Total Amount</th>
-                                        <td>₹{{ order.orderId.totalPrice }}</td>
+                                        <td>₹{{ order.totalPrice }}</td>
                                     </tr>
                                     <tr>
                                         <th>Ordered At</th>
-                                        <td>{{ order.orderId.orderedAt }}</td>
+                                        <td>{{ order.orderedAt }}</td>
                                     </tr>
                                     <tr>
                                         <th>Username</th>
-                                        <td>{{ order.orderId.userId.username }}</td>
+                                        <td>{{ order.userId.username }}</td>
                                     </tr>
                                     <tr>
                                         <th>Email</th>
-                                        <td>{{ order.orderId.userId.email }}</td>
+                                        <td>{{ order.userId.email }}</td>
                                     </tr>
                                     <tr>
                                         <th>Payment Option</th>
-                                        <td>{{ order.orderId.paymentMethod }}</td>
+                                        <td>{{ order.paymentMethod }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -48,7 +47,7 @@
                                     {% csrf_token %}
                                     <select name="status" class="form-select me-2" style="max-width: 200px;">
                                         {% for value, display in order_status_options %}
-                                            <option value="{{ value }}" {% if value == orderId.orderStatus %}selected{% endif %}>
+                                            <option value="{{ value }}" {% if value == order.orderStatus %}selected{% endif %}>
                                                 {{ display }}
                                             </option>
                                         {% endfor %}
@@ -78,31 +77,31 @@
                                                 <tbody>
                                                     <tr>
                                                         <th>Name</th>
-                                                        <td>{{ order.orderId.addressId.name }}</td>
+                                                        <td>{{ order.addressId.name }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>Phone</th>
-                                                        <td>{{ order.orderId.addressId.phone }}</td>
+                                                        <td>{{ order.addressId.phone }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>House Name</th>
-                                                        <td>{{ order.orderId.addressId.houseName }}</td>
+                                                        <td>{{ order.addressId.houseName }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>City</th>
-                                                        <td>{{ order.orderId.addressId.city }}</td>
+                                                        <td>{{ order.addressId.city }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>District</th>
-                                                        <td>{{ order.orderId.addressId.district }}</td>
+                                                        <td>{{ order.addressId.district }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>State</th>
-                                                        <td>{{ order.orderId.addressId.state }}</td>
+                                                        <td>{{ order.addressId.state }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th>ZIP Code</th>
-                                                        <td>{{ order.orderId.addressId.zipCode }}</td>
+                                                        <td>{{ order.addressId.zipCode }}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -121,14 +120,16 @@
                                         <th>Product Name</th>
                                         <th>Quantity</th>
                                         <th>Total Price</th>
+                                        <th>id</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for item in orderItems %}
+                                    {% for item in orderItem %}
                                         <tr>
-                                            <td>{{ item.product.product.name }}</td>
+                                            <td>{{ item.productId.name }}</td>
                                             <td>{{ item.quantity }}</td>
                                             <td>₹{{ item.totalPrice }}</td>
+                                            <td>{{item.id}}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -140,5 +141,4 @@
         </div>
     </section>
 </main>
-
 {% endblock %}
