@@ -50,70 +50,56 @@
         </div>        
 
         <div class="row mb-5">
-          {% for product in products %}
-          <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-              <div class="block-4 text-center border" style="width:250px; height:465px;">
-                  {% if not product.status or not product.brand.status or not product.category.status %}
-                  <figure class="block-4-image">
+          <!-- Check if products exist -->
+          {% if products %}
+            {% for product in products %}
+            <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
+                <div class="block-4 text-center border" style="width:250px; height:465px;">
+                    {% if not product.status or not product.brand.status or not product.category.status %}
+                    <figure class="block-4-image">
+                        <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
+                        <div class="overlay">
+                            <span class="text-white bg-danger p-2">Unavailable</span>
+                        </div>
+                    </figure>
+                    <div class="block-4-text p-4">
+                        <h3>{{ product.name }}</h3>
+                        <p class="mb-0">{{ product.brand }}</p>
+                        <p class="text-muted font-weight-bold">Unavailable</p>
+                    </div>
+                    {% elif product.stock == 0 %}
+                    <figure class="block-4-image">
+                        <img src="{{ product.imageId.image1.url }}" alt="Image placeholder" class="img-fluid opacity-50">
+                        <div class="overlay">
+                            <span class="text-white bg-warning p-2">Out of Stock</span>
+                        </div>
+                    </figure>
+                    <div class="block-4-text p-4">
+                        <h3>{{ product.product.name }}</h3>
+                        <p class="mb-0">{{ product.product.brand }}</p>
+                        <p class="text-muted font-weight-bold">Out of Stock</p>
+                    </div>
+                    {% else %}
+                    <figure class="block-4-image">
+                      <a href="{% url 'productInfo' product.id %}">
                       <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
-                      <div class="overlay">
-                          <span class="text-white bg-danger p-2">Unavailable</span>
-                      </div>
-                  </figure>
-                  <div class="block-4-text p-4">
-                      <h3>{{ product.name }}</h3>
-                      <p class="mb-0">{{ product.brand }}</p>
-                      <p class="text-muted font-weight-bold">Unavailable</p>
-                      <div class="star-rating d-flex justify-content-center">
-                          <i class="bi bi-star" data-value="1"></i>
-                          <i class="bi bi-star" data-value="2"></i>
-                          <i class="bi bi-star" data-value="3"></i>
-                          <i class="bi bi-star" data-value="4"></i>
-                          <i class="bi bi-star" data-value="5"></i>
-                      </div>
-                  </div>
-                  {% elif product.stock == 0 %}
-                  <figure class="block-4-image">
-                      <img src="{{ product.imageId.image1.url }}" alt="Image placeholder" class="img-fluid opacity-50">
-                      <div class="overlay">
-                          <span class="text-white bg-warning p-2">Out of Stock</span>
-                      </div>
-                  </figure>
-                  <div class="block-4-text p-4">
-                      <h3>{{ product.product.name }}</h3>
-                      <p class="mb-0">{{ product.product.brand }}</p>
-                      <p class="text-muted font-weight-bold">Out of Stock</p>
-                      <div class="star-rating d-flex justify-content-center">
-                          <i class="bi bi-star" data-value="1"></i>
-                          <i class="bi bi-star" data-value="2"></i>
-                          <i class="bi bi-star" data-value="3"></i>
-                          <i class="bi bi-star" data-value="4"></i>
-                          <i class="bi bi-star" data-value="5"></i>
-                      </div>
-                  </div>
-                  {% else %}
-                  <figure class="block-4-image">
-                    <a href="{% url 'productInfo' product.id %}">
-                    <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
-                  </a>
-                  </figure>
-                  <div class="block-4-text p-4">
-                      <h3><a href="{% url 'productInfo' product.id %}">{{ product.name }}</a></h3>
-                      <p class="mb-0">{{ product.brand }}</p>
-                      <p class="text-primary font-weight-bold">₹ {{ product.varient.first.price }}</p>
-                      <div class="star-rating d-flex justify-content-center">
-                          <i class="bi bi-star" data-value="1"></i>
-                          <i class="bi bi-star" data-value="2"></i>
-                          <i class="bi bi-star" data-value="3"></i>
-                          <i class="bi bi-star" data-value="4"></i>
-                          <i class="bi bi-star" data-value="5"></i>
-                      </div>
-                  </div>
-                  {% endif %}
-              </div>
-          </div>
-          {% endfor %}
-      </div>      
+                    </a>
+                    </figure>
+                    <div class="block-4-text p-4">
+                        <h3><a href="{% url 'productInfo' product.id %}">{{ product.name }}</a></h3>
+                        <p class="mb-0">{{ product.brand }}</p>
+                        <p class="text-primary font-weight-bold">₹ {{ product.varient.first.price }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="col-md-12">
+              <p>No products found with this name.</p>
+            </div>
+          {% endif %}
+      </div>  
 
         <div class="row" data-aos="fade-up">
           <div class="col-md-12 text-center">

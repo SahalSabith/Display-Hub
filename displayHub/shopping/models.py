@@ -38,20 +38,16 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     statusChoices = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
+        ('dispatched', 'Dispatched'),
         ('shipped', 'Shipped'),
         ('out_for_delivery', 'Out for Delivery'),
         ('delivered', 'Delivered'),
         ('canceled', 'Canceled'),
         ('returned', 'Returned'),
-        ('refunded', 'Refunded'),
-        ('failed', 'Failed'),
-        ('on_hold', 'On Hold'),
-        ('completed', 'Completed'),
         ('awaiting_payment', 'Awaiting Payment'),
+        ('refunded', 'Refunded')
     ]
-    orderStatus = models.CharField(max_length=20,choices=statusChoices,default='pending')
+    orderStatus = models.CharField(max_length=20,choices=statusChoices,default='dispatched')
     orderedAt = models.DateTimeField(auto_now=True)
     userId = models.ForeignKey(User,related_name='userId',on_delete=models.CASCADE)
     addressId = models.ForeignKey(Address,on_delete=models.CASCADE)
@@ -63,6 +59,7 @@ class Order(models.Model):
     paymentMethod = models.CharField(max_length=20,choices=payments,default='cashOnDelivery')
     orderNo = models.CharField(max_length=10,unique=True)
     totalPrice = models.IntegerField(default=0)
+    cancelReason = models.TextField()
 
 class OrderItem(models.Model):
     id = models.AutoField(primary_key=True)

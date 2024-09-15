@@ -27,4 +27,5 @@ urlpatterns = [
     path('cart/checkout',views.checkOut,name='checkOut'),
     path('account/orderDetails/<int:oId>',views.orderDetails,name='orderDetails'),
     path('account/cancel/<int:oId>/',views.cancelOrder,name='cancelOrder'),
+    path('cart/quantityUpdate',views.updateQuantity,name='updateQuantity')
 ]

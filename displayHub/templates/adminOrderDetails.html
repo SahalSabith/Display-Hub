@@ -37,6 +37,12 @@
                                         <th>Payment Option</th>
                                         <td>{{ order.paymentMethod }}</td>
                                     </tr>
+                                    {% if order.orderStatus == 'canceled' %}
+                                    <tr>
+                                        <th>Cancel Reason</th>
+                                        <td>{{ order.cancelReason }}</td>
+                                    </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
 
@@ -129,7 +135,7 @@
                                             <td>{{ item.productId.name }}</td>
                                             <td>{{ item.quantity }}</td>
                                             <td>₹{{ item.totalPrice }}</td>
-                                            <td>{{item.id}}</td>
+                                            <td>{{ item.id }}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>

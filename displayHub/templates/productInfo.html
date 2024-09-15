@@ -29,11 +29,19 @@
             <!-- Product Information Section -->
             <div class="col-md-6 product-info-section">
                 <h2 class="productName">{{ product.name }}</h2>
+                {% if product.varient.first.stock <= 0 %}
+                <h6><strong id="price" class="text-danger h4">Out Of Stock</strong></p>
+                {% else %}
                 <h6><strong id="price" class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
+                {% endif %}
                 <h6 id="size">Size: {{ product.varient.first.size.size }} inch</h6>
                 <h6>Resolution: {{ product.resolution }}p</h6>
                 <h6 id="refreshRate">Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</h6>
-                    <h6 id="stock">Only {{ product.varient.first.stock }} Left</h6>
+                {% if product.varient.first.stock == 0 or product.varient.first.stock < 0 %}
+                <h6 class="text-danger" id="stock">Out Of Stock We Will update It Soon</h6>
+                {% else %}
+                <h6 id="stock">Only {{ product.varient.first.stock }} Left</h6>
+                {% endif %}
 
                 <!-- Variant Selection -->
                 <div class="filter-options horizontal-options">
@@ -161,12 +169,11 @@
         const sizeElement = document.getElementById('size');
         const refreshRateElement = document.getElementById('refreshRate');
         const stockElement = document.getElementById('stock');
-    
-        // Function to send selected size and refresh rate to the backend
+        
         function sendSelection() {
             const size = document.querySelector('input[name="monitorSize"]:checked')?.value;
             const refreshRate = document.querySelector('input[name="refreshRate"]:checked')?.value;
-            const pId = "{{ product.id }}";  // Assuming product ID is available in the template
+            const pId = "{{ product.id }}"; 
             
             fetch(`/product/${pId}/`, {
                 method: 'POST',
@@ -186,14 +193,18 @@
                         priceElement.textContent = `₹ ${data.price}`;
                         sizeElement.textContent = `Size: ${data.size} inch`;
                         refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
-                        if (data.stock <= 5) {
+                        if (data.stock <= 0) {
+                            stockElement.textContent = `Out Of Stock We will update it soon`;
+                            priceElement.textContent = `Out Of Stock`;
+                            priceElement.style.color = 'red';
+                            stockElement.style.color = 'red';
+                        } else if (data.stock <= 5) {
                             stockElement.textContent = `Only ${data.stock} Left`;
                             stockElement.style.color = 'red';
                         } else {
                             stockElement.textContent = `Stock Left: ${data.stock}`;
                             stockElement.style.color = 'black';
                         }
-                        
                     }
     
                     // Update refresh rate options if available
@@ -233,6 +244,10 @@
                             sizeOptions.appendChild(label);
                         });
                     }
+    
+                    // Update session data in the client side (for demonstration, you would actually do this on the server side)
+                    document.querySelector('input[name="monitorSize"]').value = size;
+                    document.querySelector('input[name="refreshRate"]').value = refreshRate;
                 }
             })
             .catch(error => {
@@ -243,7 +258,7 @@
         // Add event listeners to trigger sendSelection on size or refresh rate selection
         sizeOptions.addEventListener('change', sendSelection);
         refreshRateOptions.addEventListener('change', sendSelection);
-    });
+    });    
 </script>
 
 {% endblock %}

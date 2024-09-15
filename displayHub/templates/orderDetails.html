@@ -1,7 +1,6 @@
 {% extends "account.html" %}
 {% block accountContent %}
 {% load static %}
-
 <style>
     .order-details-card {
         background-color: #fff;
@@ -62,8 +61,22 @@
             font-size: 1rem;
         }
     }
+
+    /* Modal Styling */
+    .modal-content {
+        border-radius: 10px;
+    }
     
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        border-top: none;
+        justify-content: center;
+    }
 </style>
+
 <div class="container mt-5">
     <div class="card p-4 order-details-card">
         <h2 class="text-center mb-4">Order Details</h2>
@@ -102,6 +115,11 @@
             <div class="col-md-6 text-md-end">
                 <p><strong>Payment Method:</strong> {{order.paymentMethod}}</p>
             </div>
+            {% if order.orderStatus == 'canceled' %}
+            <div class="col-md-6">
+                <p><strong>Cancel Reason : </strong>{{ order.cancelReason }}</p>
+            </div>
+            {% endif %}
         </div>
 
         <div class="row mb-3">
@@ -138,35 +156,128 @@
             </tbody>
         </table>
         {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' %}
-        <div class="row mt-3">
-            <div class="col-md-12 text-center">
-                <form id="cancelOrderForm" method="POST" action="{% url 'cancelOrder' orderPk %}">
-                    {% csrf_token %}
-                    <button type="button" onclick="confirmCancelation();" class="cancel-btn">Cancel Order</button>
-                </form>
+            <div class="row mt-3">
+                <div class="col-md-12 text-center">
+                    <form id="cancelOrderForm" method="POST">
+                        {% csrf_token %}
+                        <button type="button" id="cancelOrder" onclick="confirmCancellation(event);" class="cancel-btn">Cancel Order</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Modal structure -->
+        <div class="modal fade" id="ajaxModal" tabindex="-1" aria-labelledby="ajaxModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered"> <!-- Add modal-dialog-centered class -->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ajaxModalLabel">Cancel Order</h5>
+                    </div>
+                    <div class="modal-body" id="ajaxModalBody">
+                        <!-- Options for cancellation reasons -->
+                        <form id="cancelReasonForm">
+                            <div class="mb-3">
+                                <label for="cancelReason" class="form-label">Reason for Cancellation:</label>
+                                <select class="form-select" id="cancelReason">
+                                    <option value="" selected>Select a reason</option>
+                                    <option value="changed_mind">Changed my mind</option>
+                                    <option value="found_cheaper">Found a cheaper option</option>
+                                    <option value="delayed_shipping">Shipping took too long</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 d-none" id="otherReasonContainer">
+                                <label for="otherReason" class="form-label">Other Reason:</label>
+                                <input type="text" class="form-control" id="otherReason" placeholder="Please specify">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submitCancelReason">Submit</button>
+                    </div>
+                </div>
             </div>
         </div>
-    {% endif %}
+
     </div>
 </div>
 
+<!-- Add jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<!-- Add Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Add SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
 <script>
-    function confirmCancelation() {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You are about to cancel this order!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, cancel it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('cancelOrderForm').submit();
+// Confirm cancellation function
+function confirmCancellation(event) {
+    // Prevent form submission
+    event.preventDefault();
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You are about to cancel this order!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, cancel it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Load modal with reasons
+            $('#ajaxModal').modal('show');
+        }
+    });
+}
+
+$(document).ready(function() {
+    // Show or hide the "Other" input field based on selection
+    $('#cancelReason').on('change', function() {
+        if ($(this).val() === 'other') {
+            $('#otherReasonContainer').removeClass('d-none');
+        } else {
+            $('#otherReasonContainer').addClass('d-none');
+        }
+    });
+
+    // Submit cancellation reason form
+    $('#submitCancelReason').on('click', function() {
+        var reason = $('#cancelReason').val();
+        var otherReason = $('#otherReason').val();
+
+        if (!reason) {
+            Swal.fire('Error', 'Please select a reason for cancellation.', 'error');
+            return;
+        }
+
+        if (reason === 'other' && !otherReason.trim()) {
+            Swal.fire('Error', 'Please provide the reason for cancellation.', 'error');
+            return;
+        }
+
+        // Submit the form with the reason
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'cancelOrder' orderPk %}",
+            data: {
+                'reason': reason === 'other' ? otherReason : reason,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                Swal.fire('Success', 'Your order has been canceled.', 'success').then(() => {
+                    location.reload();
+                });
+            },
+            error: function(xhr) {
+                Swal.fire('Error', 'There was a problem cancelling the order.', 'error');
             }
         });
-    }
+    });
+});
 </script>
 
 {% endblock %}
