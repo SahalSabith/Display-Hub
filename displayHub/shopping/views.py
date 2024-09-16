@@ -68,30 +68,27 @@ def updateQuantity(request):
 @login_required(login_url='/signIn')
 def addToCart(request, pId):
     if request.method == 'POST':
-        # Fetch the session data
-        session_data = request.session.get('product_data', None)
+        
+        variant_id = request.POST.get('variant_id')
 
-        if not session_data or 'variant_id' not in session_data:
+        if not variant_id:
             messages.error(request, "No variant selected or data missing.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-        variant_id = session_data.get('variant_id')
         quantity = int(request.POST.get('quantity', 1))
 
         try:
-            # Get the selected variant from the session
             variant = Varients.objects.get(id=variant_id)
         except Varients.DoesNotExist:
             messages.error(request, "Selected product variant does not exist.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-        # Check stock before adding to cart
+        
         if variant.stock >= quantity:
             user = request.user
-            # Get or create the user's cart
             cart, created = Cart.objects.get_or_create(userId=user)
 
-            # Get or create the cart item
+            
             cart_item, created = CartItem.objects.get_or_create(
                 productId=variant.product,
                 varientId=variant,
@@ -99,15 +96,11 @@ def addToCart(request, pId):
                 defaults={'quantity': quantity}
             )
 
-            # If the cart item exists, update the quantity
+            
             if not created:
                 cart_item.quantity += quantity
                 cart_item.save()
 
-            # Clear the session product data
-            request.session.pop('product_data', None)
-
-            # Success message
             messages.success(request, "Product successfully added to cart.")
             return redirect('cart')
         else:
@@ -127,17 +120,13 @@ def removeCart(request, cId):
 
 @never_cache
 def products(request):
-    # Get the search query
     query = request.GET.get('q')
-
-    # Get all products
     productsList = Products.objects.all()
 
-    # Filter products based on search query
     if query:
-        productsList = productsList.filter(name__icontains=query)  # Case-insensitive search on product name
+        productsList = productsList.filter(name__icontains=query)
 
-    # Sorting logic
+
     sort = request.GET.get('sort')
     productsList = productsList.annotate(min_price=Min('varient__price'))
 
@@ -152,13 +141,13 @@ def products(request):
     elif sort == 'za':
         productsList = productsList.order_by('-name')
 
-    # Filter size, refresh rates, and categories (with counts)
+    
     sizes = Size.objects.values('size').annotate(count=Count('size')).order_by('size')
     refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=Count('refreshRate')).order_by('refreshRate')
     categories = Products.objects.values('category').annotate(count=Count('category')).order_by('category')
 
     # Pagination
-    paginator = Paginator(productsList, 6)  # 6 products per page
+    paginator = Paginator(productsList, 6)
     page_number = request.GET.get('page')
 
     try:
@@ -166,7 +155,6 @@ def products(request):
     except:
         products_final = paginator.page(paginator.num_pages)
 
-    # Context for template
     context = {
         'products': products_final,
         'categories': Category.objects.all(),
@@ -174,7 +162,7 @@ def products(request):
         'sizes': sizes,
         'category': categories,
         'refresh_rates': refreshRates,
-        'query': query,  # Pass the search query to the template
+        'query': query,
     }
 
     return render(request, 'shop.html', context)
@@ -184,6 +172,8 @@ def productInfo(request, pId):
     product = Products.objects.get(id=pId)
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
+    if 'product_data' in request.session:
+        del request.session['product_data']
 
     if request.method == 'POST':
         try:
@@ -335,6 +325,7 @@ def checkOut(request):
     context = {
         'products': cartItems,
         'addresses': addresses,
+        'cart':carts
     }
     return render(request, 'checkout.html', context)
 

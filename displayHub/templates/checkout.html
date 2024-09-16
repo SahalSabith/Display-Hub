@@ -25,7 +25,7 @@
           <div class="row">
               <!-- Product Table (now at the top) -->
               <div class="col-md-12 mb-4">
-                  <h3 class="h4 text-black mb-3">Your Order</h3>
+                  <h3 class="h4 text-black mb-3">Your Products</h3>
                   <div class="p-3 p-lg-5 border">
                       <table class="table site-block-order-table mb-5">
                           <thead>
@@ -41,18 +41,6 @@
                                   <td>₹{{item.cartItemTotal}}</td>
                               </tr>
                               {% endfor %}
-                              <tr>
-                                  <td class="text-black font-weight-bold"><strong>Cart Subtotal</strong></td>
-                                  <td class="text-black">₹{{cart.cartTotal}}</td>
-                              </tr>
-                              <tr>
-                                  <td class="text-black font-weight-bold"><strong>Delivery Charge</strong></td>
-                                  <td class="text-black"> </td>
-                              </tr>
-                              <tr>
-                                  <td class="text-black font-weight-bold"><strong>Order Total</strong></td>
-                                  <td class="text-black font-weight-bold">$</td>
-                              </tr>
                             </tbody>
                       </table>
                   </div>
@@ -109,19 +97,19 @@
                       <ul class="list-group mb-4">
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Total Amount
-                              <span>$ </span>
+                              <span>₹{{cart.cartTotal}}</span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Delivery Charge
-                              <span> </span>
+                              <span class="text-success">Free Delivery</span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Coupon Discount
-                              <span>$ </span>
+                              <span class="text-danger">No Coupons Where Applied</span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Final Total
-                              <strong>$ </strong>
+                              <strong>₹{{cart.cartTotal}}</strong>
                           </li>
                       </ul>
 
