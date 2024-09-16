@@ -54,7 +54,7 @@
           {% if products %}
             {% for product in products %}
             <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="block-4 text-center border" style="width:250px; height:465px;">
+                <div class="block-4 text-center border" style="width:250px; height:430px;">
                     {% if not product.status or not product.brand.status or not product.category.status %}
                     <figure class="block-4-image">
                         <img src="{{ product.image1.url }}" class="img-fluid opacity-50">
