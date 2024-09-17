@@ -26,4 +26,5 @@ urlpatterns = [
     path('',include('adminHome.urls')),
     path("accounts/",include("allauth.urls")),
     path('',include('adminManagements.urls')),
+    path('',include('discounts.urls')),
 ]

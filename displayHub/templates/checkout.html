@@ -87,13 +87,14 @@
               <div class="col-md-12 mb-4">
                   <div class="p-3 p-lg-5 border">
                       <h3 class="h4 text-black mb-3">Apply Coupon</h3>
+                      <form method="post">
                       <div class="input-group w-75 mb-3">
-                          <input type="text" class="form-control" id="coupon_code" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
+                          <input name="couponCode" type="text" class="form-control" id="coupon_code" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
                           <div class="input-group-append">
-                              <button class="btn btn-primary btn-sm" type="button" id="apply_coupon_btn">Apply</button>
+                              <button class="btn btn-primary btn-sm" type="button" id="apply_coupon_btn"><a href="{% url "applyCoupon" cart.cartTotal %}">Apply</a></button>
                           </div>
                       </div>
-
+                      </form>
                       <ul class="list-group mb-4">
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Total Amount

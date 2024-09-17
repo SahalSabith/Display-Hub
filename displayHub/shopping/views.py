@@ -17,6 +17,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
+from discounts.models import Coupon
 
 # Create your views here.
 @never_cache
@@ -375,3 +376,11 @@ def cancelOrder(request, oId):
 
     return JsonResponse({'error': 'Order cannot be canceled'}, status=400)
 
+@never_cache
+def applyCoupon(request,total):
+    if request.POST:
+        couponCode = request.POST.get('couponCode')
+        coupon = Coupon.objects.get(couponCode=couponCode)
+        print(coupon.couponCode)
+        print(total)
+    return render(request,'checkout.html')

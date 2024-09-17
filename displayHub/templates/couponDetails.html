@@ -1,0 +1,125 @@
+{% extends "adminBase.html" %}
+{% load static %}
+{% block adminContents %}
+<style>
+    .coupon-card {
+        max-width: 800px;
+        margin: 50px auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+    }
+    
+    .coupon-card h3 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .coupon-card p {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+    
+    .coupon-card strong {
+        display: block;
+        font-weight: 600;
+        color: #555;
+    }
+    
+    .status-active {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .status-inactive {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+    
+    ul li {
+        padding: 5px 0;
+    }
+    
+    @media (max-width: 768px) {
+        .coupon-card {
+            padding: 15px;
+            margin: 20px;
+        }
+        
+        .coupon-card p {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<main id="main" class="main">
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="container mt-5">
+                    <div class="coupon-card">
+                        <h3 class="text-center">Coupon Details</h3>
+                        <p><strong>Coupon Code:</strong> {{ coupon.couponCode }}</p>
+                        <p><strong>Valid From:</strong> {{ coupon.validFrom }}</p>
+                        <p><strong>Valid To:</strong> {{ coupon.validTo }}</p>
+                        <p><strong>Discount Type:</strong> {{ coupon.get_discountType_display }}</p>
+                        <p><strong>Discount Value:</strong> {% if coupon.discountType == 'fixed' %}{{ coupon.fixedDiscountValue }}{% else %}{{ coupon.discountValue }}{% endif %}</p>
+                        <p><strong>Min Purchase Amount:</strong> {{ coupon.minPurchaseAmount }}</p>
+                        <p><strong>Max Discount Amount:</strong> {{ coupon.maxDiscountAmount }}</p>
+                        <p><strong>Usage Limit:</strong> {{ coupon.usageLimit }}</p>
+                        <p><strong>Used Count:</strong> {{ coupon.usedCount }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="{% if coupon.status %}status-active{% else %}status-inactive{% endif %}">
+                                {% if coupon.status %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </p>
+                        
+                        <p><strong>Applicable Products:</strong>
+                        {% if coupon.applicableProducts.all %}
+                            <ul>
+                            {% for product in coupon.applicableProducts.all %}
+                                <li>{{ product.name }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            None
+                        {% endif %}
+                        </p>
+                        
+                        <p><strong>Applicable Categories:</strong>
+                        {% if coupon.applicableCategory.all %}
+                            <ul>
+                            {% for category in coupon.applicableCategory.all %}
+                                <li>{{ category.name }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            None
+                        {% endif %}
+                        </p>
+                        
+                        <p><strong>Applicable Brands:</strong>
+                        {% if coupon.applicableBrand.all %}
+                            <ul>
+                            {% for brand in coupon.applicableBrand.all %}
+                                <li>{{ brand.name }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            None
+                        {% endif %}
+                        </p>
+                    </div>                
+                </div>
+            </div>
+        </div>
+    </section>
+</main>      
+{% endblock %}

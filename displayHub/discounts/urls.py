@@ -19,14 +19,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('cart/',views.cart,name='cart'),
-    path('shop/',views.products,name='shop'),
-    path('product/<int:pId>/',views.productInfo,name='productInfo'),
-    path('product/addToCart/<int:pId>/',views.addToCart,name="addToCart"),
-    path('removeItem/<int:cId>/',views.removeCart,name='remove'),
-    path('cart/checkout',views.checkOut,name='checkOut'),
-    path('account/orderDetails/<int:oId>',views.orderDetails,name='orderDetails'),
-    path('account/cancel/<int:oId>/',views.cancelOrder,name='cancelOrder'),
-    path('cart/quantityUpdate',views.updateQuantity,name='updateQuantity'),
-    path('cart/applyCoupon/<total>/',views.applyCoupon,name='applyCoupon')
+    path('admin/coupon/',views.addCoupon,name='addCoupon'),
+    path('admin/couponDetails/<int:cId>',views.couponDetail,name='couponDetail'),
+    path('admin/editCoupon/<int:cId>',views.editCoupon,name='editCoupon'),
+    path('admin/deleteCoupon/<int:cId>',views.deleteCoupon,name='deleteCoupon')
 ]
