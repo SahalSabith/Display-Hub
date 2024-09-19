@@ -190,68 +190,17 @@ button:hover {
                     <label for="couponCode">Coupon Code:</label>
                     <input type="text" id="couponCode" name="couponCode" value="{{ coupon.couponCode }}"><br><br>
 
-                    <label for="validFrom">Valid From:</label>
-                    <input type="date" id="validFrom" name="validFrom" value="{{ coupon.validFrom|date:'Y-m-d' }}"><br><br>
-
                     <label for="validTo">Valid To:</label>
                     <input type="date" id="validTo" name="validTo" value="{{ coupon.validTo|date:'Y-m-d' }}"><br><br>
 
-                    <label for="discountType">Discount Type:</label>
-                    <select id="discountType" name="discountType" required>
-                        <option value="fixed" {% if coupon.discountType == 'fixed' %}selected{% endif %}>Fixed</option>
-                        <option value="percentage" {% if coupon.discountType == 'percentage' %}selected{% endif %}>Percentage</option>
-                    </select><br><br>
-
-                    <label for="discountValue">Discount Value (Percentage):</label>
+                    <label for="discountValue">Discount Value:</label>
                     <input type="number" id="discountValue" name="discountValue" step="0.01" value="{{ coupon.discountValue }}"><br><br>
-
-                    <label for="fixedDiscountValue">Fixed Discount Value:</label>
-                    <input type="number" id="fixedDiscountValue" name="fixedDiscountValue" step="0.01" value="{{ coupon.fixedDiscountValue }}"><br><br>
 
                     <label for="minPurchaseAmount">Min Purchase Amount:</label>
                     <input type="number" id="minPurchaseAmount" name="minPurchaseAmount" step="0.01" value="{{ coupon.minPurchaseAmount }}"><br><br>
 
-                    <label for="maxDiscountAmount">Max Discount Amount:</label>
-                    <input type="number" id="maxDiscountAmount" name="maxDiscountAmount" step="0.01" value="{{ coupon.maxDiscountAmount }}"><br><br>
-
-                    <label for="usageLimit">Usage Limit:</label>
-                    <input type="number" id="usageLimit" name="usageLimit" value="{{ coupon.usageLimit }}"><br><br>
-
-                    <div class="form-group">
-                        <label for="applicableProducts" class="form-label">Applicable Products</label>
-                        <select class="form-select" id="applicableProducts" name="applicableProducts" multiple>
-                            {% for product in products %}
-                            <option value="{{ product.id }}"
-                                {% if product in coupon.applicableProducts.all %}selected{% endif %}>
-                                {{ product.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="applicableCategory" class="form-label">Applicable Category</label>
-                        <select class="form-select" id="applicableCategory" name="applicableCategory" multiple>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}"
-                                {% if category in coupon.applicableCategory.all %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="applicableBrand" class="form-label">Applicable Brand</label>
-                        <select class="form-select" id="applicableBrand" name="applicableBrand" multiple>
-                            {% for brand in brands %}
-                            <option value="{{ brand.id }}"
-                                {% if brand in coupon.applicableBrand.all %}selected{% endif %}>
-                                {{ brand.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>   
+                    <label for="maxPurchaseAmount">Max Discount Amount:</label>
+                    <input type="number" id="maxPurchaseAmount" name="maxPurchaseAmount" step="0.01" value="{{ coupon.maxPurchaseAmount }}"><br><br>
 
                     <button type="submit">Save</button>
                 </form>

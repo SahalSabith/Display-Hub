@@ -69,52 +69,13 @@
                         <p><strong>Coupon Code:</strong> {{ coupon.couponCode }}</p>
                         <p><strong>Valid From:</strong> {{ coupon.validFrom }}</p>
                         <p><strong>Valid To:</strong> {{ coupon.validTo }}</p>
-                        <p><strong>Discount Type:</strong> {{ coupon.get_discountType_display }}</p>
-                        <p><strong>Discount Value:</strong> {% if coupon.discountType == 'fixed' %}{{ coupon.fixedDiscountValue }}{% else %}{{ coupon.discountValue }}{% endif %}</p>
+                        <p><strong>Discount Value:</strong>{{ coupon.discountValue }}</p>
                         <p><strong>Min Purchase Amount:</strong> {{ coupon.minPurchaseAmount }}</p>
-                        <p><strong>Max Discount Amount:</strong> {{ coupon.maxDiscountAmount }}</p>
-                        <p><strong>Usage Limit:</strong> {{ coupon.usageLimit }}</p>
-                        <p><strong>Used Count:</strong> {{ coupon.usedCount }}</p>
+                        <p><strong>Max Discount Amount:</strong> {{ coupon.maxPurchaseAmount }}</p>
                         <p><strong>Status:</strong> 
                             <span class="{% if coupon.status %}status-active{% else %}status-inactive{% endif %}">
                                 {% if coupon.status %}Active{% else %}Inactive{% endif %}
                             </span>
-                        </p>
-                        
-                        <p><strong>Applicable Products:</strong>
-                        {% if coupon.applicableProducts.all %}
-                            <ul>
-                            {% for product in coupon.applicableProducts.all %}
-                                <li>{{ product.name }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            None
-                        {% endif %}
-                        </p>
-                        
-                        <p><strong>Applicable Categories:</strong>
-                        {% if coupon.applicableCategory.all %}
-                            <ul>
-                            {% for category in coupon.applicableCategory.all %}
-                                <li>{{ category.name }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            None
-                        {% endif %}
-                        </p>
-                        
-                        <p><strong>Applicable Brands:</strong>
-                        {% if coupon.applicableBrand.all %}
-                            <ul>
-                            {% for brand in coupon.applicableBrand.all %}
-                                <li>{{ brand.name }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            None
-                        {% endif %}
                         </p>
                     </div>                
                 </div>

@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/coupon/',views.addCoupon,name='addCoupon'),
     path('admin/couponDetails/<int:cId>',views.couponDetail,name='couponDetail'),
     path('admin/editCoupon/<int:cId>',views.editCoupon,name='editCoupon'),
-    path('admin/deleteCoupon/<int:cId>',views.deleteCoupon,name='deleteCoupon')
+    path('admin/deleteCoupon/<int:cId>',views.deleteCoupon,name='deleteCoupon'),
+    path('cart/checkout/applyCoupon/',views.applyCoupon,name="applyCoupon")
 ]

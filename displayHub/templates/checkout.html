@@ -16,7 +16,7 @@
   </div>
 </div>
 
-<form method="post">
+<form>
   {% csrf_token %}
   <div class="site-section">
       <div class="container">
@@ -71,13 +71,13 @@
                     <label class="text-black">Choose a Payment Method:</label>
                     <div class="form-group">
                         <label class="radio-inline mr-3">
-                            <input type="radio" name="paymentMethod" value="wallet"> Wallet
+                            <input class="paymentMethod" type="radio" name="paymentMethod" value="wallet"> Wallet
                         </label>
                         <label class="radio-inline mr-3">
-                            <input type="radio" name="paymentMethod" value="cashOnDelivery"> Cash on Delivery
+                            <input class="paymentMethod" type="radio" name="paymentMethod" value="cashOnDelivery"> Cash on Delivery
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="paymentMethod" value="internetBanking"> Online Banking
+                            <input class="paymentMethod" type="radio" name="paymentMethod" value="internetBanking"> Online Banking
                         </label>
                     </div>
                 </div>
@@ -87,34 +87,32 @@
               <div class="col-md-12 mb-4">
                   <div class="p-3 p-lg-5 border">
                       <h3 class="h4 text-black mb-3">Apply Coupon</h3>
-                      <form method="post">
                       <div class="input-group w-75 mb-3">
-                          <input name="couponCode" type="text" class="form-control" id="coupon_code" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
+                          <input name="couponCode" type="text" class="form-control" id="couponCode" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
                           <div class="input-group-append">
-                              <button class="btn btn-primary btn-sm" type="button" id="apply_coupon_btn"><a href="{% url "applyCoupon" cart.cartTotal %}">Apply</a></button>
+                              <button class="btn btn-primary btn-sm" type="button" id="applyCouponBtn">Apply</button>
                           </div>
                       </div>
-                      </form>
                       <ul class="list-group mb-4">
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Total Amount
-                              <span>₹{{cart.cartTotal}}</span>
+                              <span id="totalAmount">{{cart.cartTotal}}</span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Delivery Charge
                               <span class="text-success">Free Delivery</span>
                           </li>
-                          <li class="list-group-item d-flex justify-content-between align-items-center">
+                          <li class="list-group-item d-flex justify-content-between align-items-center" style="display: none !important;" id="couponDiv">
                               Coupon Discount
-                              <span class="text-danger">No Coupons Where Applied</span>
+                              <span id="coupontag" class="text-succes"></span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Final Total
-                              <strong>₹{{cart.cartTotal}}</strong>
+                              <strong id="finalTotal">₹{{cart.cartTotal}}</strong>
                           </li>
                       </ul>
 
-                      <button type="submit" class="btn btn-primary btn-lg py-3 btn-block">Place Order</button>
+                      <button id="checkOutBtn" type="button" class="btn btn-primary btn-lg py-3 btn-block">Place Order</button>
                   </div>
               </div>
           </div>
@@ -130,7 +128,7 @@
             icon: 'error',
             title: 'Oops...',
             text: 'You Should Choose one Payment Methode',
-            timer: 2000, // Duration in milliseconds
+            timer: 2000,
             timerProgressBar: true,
             didOpen: () => {
                 Swal.showLoading();
@@ -141,7 +139,6 @@
         });
     }
 
-    // Check for the error flag or message
     document.addEventListener('DOMContentLoaded', (event) => {
         {% if messages %}
             {% for message in messages %}
@@ -156,6 +153,115 @@
                 {% endwith %}
             {% endif %}
         {% endif %}
+    })
+
+    const couponBtn = document.getElementById('applyCouponBtn');
+    couponBtn.addEventListener('click', () => {
+    const couponCode = document.getElementById('couponCode').value.trim();
+    const stringTotal = document.getElementById('totalAmount').textContent
+    const totalAmount = Number(stringTotal)
+    const finalTotalTag = document.getElementById('finalTotal')
+    const coupontag = document.getElementById('coupontag')
+    const couponDiv = document.getElementById('couponDiv')
+        
+        fetch("{% url 'applyCoupon' %}", {
+            method: 'POST',
+            body: JSON.stringify({ couponCode }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || "Network response was not ok");
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response:", totalAmount);
+
+            discountAmount = totalAmount * data.discountValue / 100
+            finalTotal = totalAmount - discountAmount
+            finalTotalTag.textContent = '₹'+finalTotal
+
+            couponDiv.style.display = 'block'
+            coupontag.style.display = 'block'
+            coupontag.textContent = '-₹'+discountAmount
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+            });
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || "Something went wrong!", // Corrected to display error.message
+            });
+        });
+    });
+    const checkOutBtn = document.getElementById('checkOutBtn');
+    checkOutBtn.addEventListener('click', () => {
+        const finalTotalTag = document.getElementById('finalTotal').textContent;
+        const paymentMethods = document.getElementsByClassName('paymentMethod');
+
+        let selectedPaymentMethod;
+        for (let method of paymentMethods) {
+            if (method.checked) {
+                selectedPaymentMethod = method.value;
+                break;
+            }
+        }
+
+        const selectAddress = document.getElementById('select_address');
+        const selectedValue = selectAddress.value;
+
+        const checkOutData = {
+            finalTotal: finalTotalTag,
+            paymentMethod: selectedPaymentMethod,
+            address: selectedValue
+        };
+
+        fetch("{% url 'checkOut' %}", {
+            method: 'POST',
+            body: JSON.stringify(checkOutData),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || "Network response was not ok");
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response:", totalAmount);
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+            });
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || "Something went wrong!",
+            });
+        });
     });
 </script>
 

@@ -69,14 +69,13 @@ def updateQuantity(request):
 @login_required(login_url='/signIn')
 def addToCart(request, pId):
     if request.method == 'POST':
-        # Retrieve session data
-        session_data = request.session.get('product_data', None)
-        if not session_data:
-            messages.error(request, "No product data in session.")
+        
+        variant_id = request.POST.get('variant_id')
+
+        if not variant_id:
+            messages.error(request, "No variant selected or data missing.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-        # Retrieve product variant info from session
-        variant_id = session_data.get('variant_id')
         quantity = int(request.POST.get('quantity', 1))
 
         try:
@@ -85,12 +84,12 @@ def addToCart(request, pId):
             messages.error(request, "Selected product variant does not exist.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
+        
         if variant.stock >= quantity:
             user = request.user
-            # Get or create the user's cart
             cart, created = Cart.objects.get_or_create(userId=user)
 
-            # Check if the item already exists in the cart
+            
             cart_item, created = CartItem.objects.get_or_create(
                 productId=variant.product,
                 varientId=variant,
@@ -98,8 +97,8 @@ def addToCart(request, pId):
                 defaults={'quantity': quantity}
             )
 
+            
             if not created:
-                # If the item already exists, update the quantity
                 cart_item.quantity += quantity
                 cart_item.save()
 
@@ -110,6 +109,7 @@ def addToCart(request, pId):
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
     return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+
 
 @never_cache
 @login_required(login_url='/signIn')
@@ -173,6 +173,8 @@ def productInfo(request, pId):
     product = Products.objects.get(id=pId)
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
+    if 'product_data' in request.session:
+        del request.session['product_data']
 
     if request.method == 'POST':
         try:
@@ -180,10 +182,8 @@ def productInfo(request, pId):
             size = data.get('size')
             refreshRate = data.get('refreshRate')
 
-            # Initialize response data
             responseData = {}
 
-            # Get refresh rates related to the selected size
             if size:
                 refreshRatesForSize = Varients.objects.filter(
                     size_id=size,
@@ -192,7 +192,6 @@ def productInfo(request, pId):
 
                 responseData['refreshRates'] = list(refreshRatesForSize)
 
-            # Get sizes related to the selected refresh rate
             if refreshRate:
                 sizesForRefreshRate = Varients.objects.filter(
                     refreshRate_id=refreshRate,
@@ -201,7 +200,6 @@ def productInfo(request, pId):
 
                 responseData['size'] = list(sizesForRefreshRate)
 
-            # Get the variant based on size and refresh rate (if both are selected)
             if size and refreshRate:
                 selectedVarient = Varients.objects.filter(
                     size_id=size,
@@ -218,7 +216,6 @@ def productInfo(request, pId):
                         'variantId': selectedVarient.id
                     })
                     
-                    # Save the selected variant data to the session
                     request.session['product_data'] = {
                         'product_id': pId,
                         'variant_id': selectedVarient.id,
@@ -235,10 +232,8 @@ def productInfo(request, pId):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid request format'}, status=400)
 
-    # For GET requests, return initial data
     session_data = request.session.get('product_data', None)
     if session_data:
-        # If there's existing session data, use it
         context = {
             'product': product,
             'varientSize': varientSize,
@@ -246,7 +241,6 @@ def productInfo(request, pId):
             'session_data': session_data
         }
     else:
-        # If no session data, use default variant data
         default_variant = product.varient.first()
         if default_variant:
             request.session['product_data'] = {
@@ -286,9 +280,11 @@ def checkOut(request):
         return redirect('cart')
 
     if request.POST:
-        addressId = request.POST.get('address')
+        data = json.loads(request.body.decode('utf-8'))
+        finalTotal = data.get('finalTotal')
+        addressId = data.get('address')
         address = Address.objects.get(id=addressId)
-        paymentMethod = request.POST.get('paymentMethod')
+        paymentMethod = data.get('paymentMethod')
 
         if not paymentMethod:
             messages.error(request, 'Please select a payment method.')
@@ -304,7 +300,7 @@ def checkOut(request):
             addressId=address,
             paymentMethod=paymentMethod,
             orderNo=orderNumber,
-            totalPrice=carts.cartTotal()
+            totalPrice=finalTotal
         )
 
         for item in cartItems:
