@@ -31,7 +31,6 @@ def cart(request):
     }
     
     return render(request, 'cart.html', context)
-
 @require_POST
 @never_cache
 @login_required(login_url='/signIn')
@@ -64,18 +63,18 @@ def updateQuantity(request):
         return JsonResponse({'success': False, 'error': 'Item not found'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-
 @never_cache
 @login_required(login_url='/signIn')
 def addToCart(request, pId):
     if request.method == 'POST':
-        
-        variant_id = request.POST.get('variant_id')
-
-        if not variant_id:
-            messages.error(request, "No variant selected or data missing.")
+        # Retrieve session data
+        session_data = request.session.get('product_data', None)
+        if not session_data:
+            messages.error(request, "No product data in session.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
+        # Retrieve product variant info from session
+        variant_id = session_data.get('variant_id')
         quantity = int(request.POST.get('quantity', 1))
 
         try:
@@ -84,12 +83,12 @@ def addToCart(request, pId):
             messages.error(request, "Selected product variant does not exist.")
             return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-        
         if variant.stock >= quantity:
             user = request.user
+            # Get or create the user's cart
             cart, created = Cart.objects.get_or_create(userId=user)
 
-            
+            # Check if the item already exists in the cart
             cart_item, created = CartItem.objects.get_or_create(
                 productId=variant.product,
                 varientId=variant,
@@ -97,8 +96,8 @@ def addToCart(request, pId):
                 defaults={'quantity': quantity}
             )
 
-            
             if not created:
+                # If the item already exists, update the quantity
                 cart_item.quantity += quantity
                 cart_item.save()
 
@@ -110,7 +109,6 @@ def addToCart(request, pId):
 
     return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-
 @never_cache
 @login_required(login_url='/signIn')
 def removeCart(request, cId):
@@ -121,20 +119,19 @@ def removeCart(request, cId):
 
 @never_cache
 def products(request):
-    query = request.GET.get('q')
     productsList = Products.objects.all()
-
-    if query:
-        productsList = productsList.filter(name__icontains=query)
-
-
     sort = request.GET.get('sort')
+
+    sizes = Size.objects.values('size').annotate(count=models.Count('size')).order_by('size')
+    refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=models.Count('refreshRate')).order_by('refreshRate')
+    categories = Products.objects.values('category').annotate(count=models.Count('category')).order_by('category')
     productsList = productsList.annotate(min_price=Min('varient__price'))
 
+
     if sort == 'price_asc':
-        productsList = productsList.order_by('min_price')
-    elif sort == 'price_desc':
         productsList = productsList.order_by('-min_price')
+    elif sort == 'price_desc':
+        productsList = productsList.order_by('min_price')
     elif sort == 'new_arrivals':
         productsList = productsList.order_by('-createdAt')
     elif sort == 'az':
@@ -142,12 +139,8 @@ def products(request):
     elif sort == 'za':
         productsList = productsList.order_by('-name')
 
-    
-    sizes = Size.objects.values('size').annotate(count=Count('size')).order_by('size')
-    refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=Count('refreshRate')).order_by('refreshRate')
-    categories = Products.objects.values('category').annotate(count=Count('category')).order_by('category')
 
-    # Pagination
+    category = Category.objects.all()
     paginator = Paginator(productsList, 6)
     page_number = request.GET.get('page')
 
@@ -158,14 +151,12 @@ def products(request):
 
     context = {
         'products': products_final,
-        'categories': Category.objects.all(),
+        'categories': category,
         'sort': sort,
         'sizes': sizes,
-        'category': categories,
+        'category':categories,
         'refresh_rates': refreshRates,
-        'query': query,
     }
-
     return render(request, 'shop.html', context)
 
 @never_cache
@@ -173,8 +164,6 @@ def productInfo(request, pId):
     product = Products.objects.get(id=pId)
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
-    if 'product_data' in request.session:
-        del request.session['product_data']
 
     if request.method == 'POST':
         try:
@@ -182,8 +171,10 @@ def productInfo(request, pId):
             size = data.get('size')
             refreshRate = data.get('refreshRate')
 
+            # Initialize response data
             responseData = {}
 
+            # Get refresh rates related to the selected size
             if size:
                 refreshRatesForSize = Varients.objects.filter(
                     size_id=size,
@@ -192,6 +183,7 @@ def productInfo(request, pId):
 
                 responseData['refreshRates'] = list(refreshRatesForSize)
 
+            # Get sizes related to the selected refresh rate
             if refreshRate:
                 sizesForRefreshRate = Varients.objects.filter(
                     refreshRate_id=refreshRate,
@@ -200,6 +192,7 @@ def productInfo(request, pId):
 
                 responseData['size'] = list(sizesForRefreshRate)
 
+            # Get the variant based on size and refresh rate (if both are selected)
             if size and refreshRate:
                 selectedVarient = Varients.objects.filter(
                     size_id=size,
@@ -216,6 +209,7 @@ def productInfo(request, pId):
                         'variantId': selectedVarient.id
                     })
                     
+                    # Save the selected variant data to the session
                     request.session['product_data'] = {
                         'product_id': pId,
                         'variant_id': selectedVarient.id,
@@ -232,8 +226,10 @@ def productInfo(request, pId):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid request format'}, status=400)
 
+    # For GET requests, return initial data
     session_data = request.session.get('product_data', None)
     if session_data:
+        # If there's existing session data, use it
         context = {
             'product': product,
             'varientSize': varientSize,
@@ -241,6 +237,7 @@ def productInfo(request, pId):
             'session_data': session_data
         }
     else:
+        # If no session data, use default variant data
         default_variant = product.varient.first()
         if default_variant:
             request.session['product_data'] = {
@@ -337,46 +334,38 @@ def checkOut(request):
 @login_required(login_url='/signIn')
 def orderDetails(request, oId):
     order = Order.objects.get(id=oId)
-    orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
 
     context = {
         'order': order,
         'orders': orderItems,
-        'orderPk':orderPk
     }
     return render(request, 'orderDetails.html', context)
 
-@require_POST
 @never_cache
 @login_required(login_url='/signIn')
-def cancelOrder(request, oId):
-    try:
-        order = Order.objects.get(id=oId)
-        if order.orderStatus not in ['canceled', 'delivered', 'refunded']:
-            reason = request.POST.get('reason', '')
-            if reason == 'other':
-                other_reason = request.POST.get('other_reason', '')
-                if other_reason:
-                    reason = other_reason
-                else:
-                    return JsonResponse({'error': 'Please provide a reason for cancellation.'}, status=400)
-            
-            order.cancelReason = reason
-            order.save()
+def cancelOrder(request, oId, oiId):
+    if request.method == 'POST':
+        try:
+            order = Order.objects.get(id=oId)
+            orderItem = OrderItem.objects.get(id=oiId)
 
             order.orderStatus = 'canceled'
             order.save()
 
-            return JsonResponse({'success': True})
+            variant = orderItem.varientId
+            variant.stock += orderItem.quantity
+            variant.save()
 
-    except Order.DoesNotExist:
-        return JsonResponse({'error': 'Order does not exist'}, status=404)
-    except OrderItem.DoesNotExist:
-        return JsonResponse({'error': 'Order item does not exist'}, status=404)
+            return HttpResponseRedirect(reverse('order'))
 
-    return JsonResponse({'error': 'Order cannot be canceled'}, status=400)
+        except Order.DoesNotExist:
+            pass
+        except OrderItem.DoesNotExist:
+            pass
+
+    return redirect('order')
 
 @never_cache
 def applyCoupon(request,total):
