@@ -70,15 +70,11 @@
                 <div class="p-3 p-lg-5 border">
                     <label class="text-black">Choose a Payment Method:</label>
                     <div class="form-group">
-                        <label class="radio-inline mr-3">
-                            <input class="paymentMethod" type="radio" name="paymentMethod" value="wallet"> Wallet
-                        </label>
-                        <label class="radio-inline mr-3">
-                            <input class="paymentMethod" type="radio" name="paymentMethod" value="cashOnDelivery"> Cash on Delivery
-                        </label>
-                        <label class="radio-inline">
-                            <input class="paymentMethod" type="radio" name="paymentMethod" value="internetBanking"> Online Banking
-                        </label>
+                        <select name="paymentMethod" class="form-control" id="paymentMethod">
+                            <option value="wallet">Wallet</option>
+                            <option value="cashOnDelivery">Cash on Delivery</option>
+                            <option value="internetBanking">Online Banking</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -104,7 +100,7 @@
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center" style="display: none !important;" id="couponDiv">
                               Coupon Discount
-                              <span id="coupontag" class="text-succes"></span>
+                              <span id="coupontag" class="text-success"></span>
                           </li>
                           <li class="list-group-item d-flex justify-content-between align-items-center">
                               Final Total
