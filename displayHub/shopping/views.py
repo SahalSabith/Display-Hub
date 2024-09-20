@@ -267,33 +267,46 @@ def productInfo(request, pId):
 @login_required(login_url='/signIn')
 def orderDetails(request, oId):
     order = Order.objects.get(id=oId)
+    orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
 
     context = {
         'order': order,
         'orders': orderItems,
+        'orderPk':orderPk
     }
     return render(request, 'orderDetails.html', context)
 
+@require_POST
 @never_cache
 @login_required(login_url='/signIn')
 def cancelOrder(request, oId):
-    if request.method == 'POST':
-        try:
-            order = Order.objects.get(id=oId)
+    try:
+        order = Order.objects.get(id=oId)
+        if order.orderStatus not in ['canceled', 'delivered', 'refunded']:
+            reason = request.POST.get('reason', '')
+            if reason == 'other':
+                other_reason = request.POST.get('other_reason', '')
+                if other_reason:
+                    reason = other_reason
+                else:
+                    return JsonResponse({'error': 'Please provide a reason for cancellation.'}, status=400)
+            
+            order.cancelReason = reason
+            order.save()
 
             order.orderStatus = 'canceled'
             order.save()
 
-            return HttpResponseRedirect(reverse('order'))
+            return JsonResponse({'success': True})
 
-        except Order.DoesNotExist:
-            pass
-        except OrderItem.DoesNotExist:
-            pass
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order does not exist'}, status=404)
+    except OrderItem.DoesNotExist:
+        return JsonResponse({'error': 'Order item does not exist'}, status=404)
 
-    return redirect('order')
+    return JsonResponse({'error': 'Order cannot be canceled'}, status=400)
 
 @never_cache
 @login_required(login_url='/signIn')
