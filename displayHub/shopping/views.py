@@ -278,18 +278,13 @@ def orderDetails(request, oId):
 
 @never_cache
 @login_required(login_url='/signIn')
-def cancelOrder(request, oId, oiId):
+def cancelOrder(request, oId):
     if request.method == 'POST':
         try:
             order = Order.objects.get(id=oId)
-            orderItem = OrderItem.objects.get(id=oiId)
 
             order.orderStatus = 'canceled'
             order.save()
-
-            variant = orderItem.varientId
-            variant.stock += orderItem.quantity
-            variant.save()
 
             return HttpResponseRedirect(reverse('order'))
 

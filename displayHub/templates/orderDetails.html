@@ -262,7 +262,7 @@ $(document).ready(function() {
         // Submit the form with the reason
         $.ajax({
             type: 'POST',
-            url: "{% url 'cancelOrder' order.pk orders.pk %}",
+            url: "{% url 'cancelOrder' order.pk %}",
             data: {
                 'reason': reason === 'other' ? otherReason : reason,
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
