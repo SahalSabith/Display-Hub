@@ -16,107 +16,104 @@
   </div>
 </div>
 
-<form>
-  {% csrf_token %}
-  <div class="site-section">
-      <div class="container">
-          <h2 class="h3 mb-4 text-black">Check Out</h2>
+{% csrf_token %}
+<div class="site-section">
+    <div class="container">
+        <h2 class="h3 mb-4 text-black">Check Out</h2>
 
-          <div class="row">
-              <!-- Product Table (now at the top) -->
-              <div class="col-md-12 mb-4">
-                  <h3 class="h4 text-black mb-3">Your Products</h3>
-                  <div class="p-3 p-lg-5 border">
-                      <table class="table site-block-order-table mb-5">
-                          <thead>
-                              <tr>
-                                  <th>Product</th>
-                                  <th>Total</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              {% for item in products %}
-                              <tr>
-                                  <td>{{ item.productId.name }} <strong class="mx-2">x</strong> {{ item.quantity }}</td>
-                                  <td>₹{{item.cartItemTotal}}</td>
-                              </tr>
-                              {% endfor %}
-                            </tbody>
-                      </table>
-                  </div>
-              </div>
-
-              <!-- Address Selection -->
-              <div class="col-md-6 mb-4">
-                <h3 class="h4 text-black mb-3">Shipping Address</h3>
+        <div class="row">
+            <!-- Product Table (now at the top) -->
+            <div class="col-md-12 mb-4">
+                <h3 class="h4 text-black mb-3">Your Products</h3>
                 <div class="p-3 p-lg-5 border">
-                    <div class="form-group">
-                        <label for="select_address">Select Address</label>
-                        <select name="address" class="form-control" id="select_address">
-                            {% for address in addresses %}
-                            <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
+                    <table class="table site-block-order-table mb-5">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in products %}
+                            <tr>
+                                <td>{{ item.productId.name }} <strong class="mx-2">x</strong> {{ item.quantity }}</td>
+                                <td>₹{{item.cartItemTotal}}</td>
+                            </tr>
                             {% endfor %}
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-lg py-3 btn-block" id="add_address_btn">
-                        <a href="{% url 'addAddress' %}" class="text-white">Add New Address</a>
-                    </button>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Payment Options -->
+            <!-- Address Selection -->
             <div class="col-md-6 mb-4">
-                <h3 class="h4 text-black mb-3">Payment Options</h3>
-                <div class="p-3 p-lg-5 border">
-                    <label class="text-black">Choose a Payment Method:</label>
-                    <div class="form-group">
-                        <select name="paymentMethod" class="form-control" id="paymentMethod">
-                            <option value="wallet">Wallet</option>
-                            <option value="cashOnDelivery">Cash on Delivery</option>
-                            <option value="internetBanking">Online Banking</option>
-                        </select>
-                    </div>
+            <h3 class="h4 text-black mb-3">Shipping Address</h3>
+            <div class="p-3 p-lg-5 border">
+                <div class="form-group">
+                    <label for="select_address">Select Address</label>
+                    <select name="selectAddress" class="form-control" id="selectAddress">
+                        {% for address in addresses %}
+                        <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg py-3 btn-block" id="add_address_btn">
+                    <a href="{% url 'addAddress' %}" class="text-white">Add New Address</a>
+                </button>
+            </div>
+        </div>
+
+        <!-- Payment Options -->
+        <div class="col-md-6 mb-4">
+            <h3 class="h4 text-black mb-3">Payment Options</h3>
+            <div class="p-3 p-lg-5 border">
+                <label class="text-black">Choose a Payment Method:</label>
+                <div class="form-group">
+                    <select name="paymentMethod" class="form-control" id="paymentMethod">
+                        <option value="wallet">Wallet</option>
+                        <option value="cashOnDelivery">Cash on Delivery</option>
+                        <option value="internetBanking">Online Banking</option>
+                    </select>
                 </div>
             </div>
+        </div>
 
-              <!-- Coupon Section (now below the product table) -->
-              <div class="col-md-12 mb-4">
-                  <div class="p-3 p-lg-5 border">
-                      <h3 class="h4 text-black mb-3">Apply Coupon</h3>
-                      <div class="input-group w-75 mb-3">
-                          <input name="couponCode" type="text" class="form-control" id="couponCode" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
-                          <div class="input-group-append">
-                              <button class="btn btn-primary btn-sm" type="button" id="applyCouponBtn">Apply</button>
-                          </div>
-                      </div>
-                      <ul class="list-group mb-4">
-                          <li class="list-group-item d-flex justify-content-between align-items-center">
-                              Total Amount
-                              <span id="totalAmount">{{cart.cartTotal}}</span>
-                          </li>
-                          <li class="list-group-item d-flex justify-content-between align-items-center">
-                              Delivery Charge
-                              <span class="text-success">Free Delivery</span>
-                          </li>
-                          <li class="list-group-item d-flex justify-content-between align-items-center" style="display: none !important;" id="couponDiv">
-                              Coupon Discount
-                              <span id="coupontag" class="text-success"></span>
-                          </li>
-                          <li class="list-group-item d-flex justify-content-between align-items-center">
-                              Final Total
-                              <strong id="finalTotal">₹{{cart.cartTotal}}</strong>
-                          </li>
-                      </ul>
+            <!-- Coupon Section (now below the product table) -->
+            <div class="col-md-12 mb-4">
+                <div class="p-3 p-lg-5 border">
+                    <h3 class="h4 text-black mb-3">Apply Coupon</h3>
+                    <div class="input-group w-75 mb-3">
+                        <input name="couponCode" type="text" class="form-control" id="couponCode" placeholder="Enter Coupon Code" aria-label="Coupon Code" aria-describedby="button-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm" type="button" id="applyCouponBtn">Apply</button>
+                        </div>
+                    </div>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Amount
+                            <span id="totalAmount">{{cart.cartTotal}}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Delivery Charge
+                            <span class="text-success">Free Delivery</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center" style="display: none !important;" id="couponDiv">
+                            Coupon Discount
+                            <span id="coupontag" class="text-success"></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Final Total
+                            <strong id="finalTotal">₹{{cart.cartTotal}}</strong>
+                        </li>
+                    </ul>
 
-                      <button id="checkOutBtn" type="button" class="btn btn-primary btn-lg py-3 btn-block">Place Order</button>
-                  </div>
-              </div>
-          </div>
+                    <button id="checkOutBtn" type="button" class="btn btn-primary btn-lg py-3 btn-block">Place Order</button>
+                </div>
+            </div>
+        </div>
 
-      </div>
-  </div>
-</form>
-
+    </div>
+</div>
 
 <script>
     function showError() {
@@ -199,35 +196,25 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: error.message || "Something went wrong!", // Corrected to display error.message
+                text: error.message || "Something went wrong!",
             });
         });
     });
     const checkOutBtn = document.getElementById('checkOutBtn');
     checkOutBtn.addEventListener('click', () => {
-        const finalTotalTag = document.getElementById('finalTotal').textContent;
-        const paymentMethods = document.getElementsByClassName('paymentMethod');
+        const selectAddress = document.getElementById('selectAddress')
+        const selectedAddress = selectAddress.value
 
-        let selectedPaymentMethod;
-        for (let method of paymentMethods) {
-            if (method.checked) {
-                selectedPaymentMethod = method.value;
-                break;
-            }
-        }
+        const paymentMethod = document.getElementById('paymentMethod')
+        const selectedPayment = paymentMethod.value
 
-        const selectAddress = document.getElementById('select_address');
-        const selectedValue = selectAddress.value;
-
-        const checkOutData = {
-            finalTotal: finalTotalTag,
-            paymentMethod: selectedPaymentMethod,
-            address: selectedValue
-        };
+        const finalOrderString = document.getElementById('finalTotal').textContent
+        const finalOrderNumber = finalOrderString.replace('₹','');
+        const finalOrderPrice = Number(finalOrderNumber)
 
         fetch("{% url 'checkOut' %}", {
             method: 'POST',
-            body: JSON.stringify(checkOutData),
+            body: JSON.stringify({selectedAddress,selectedPayment,finalOrderPrice}),
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',
                 'Content-Type': 'application/json',
@@ -243,12 +230,8 @@
             return response.json();
         })
         .then(data => {
-            console.log("Response:", totalAmount);
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: data.message,
-            });
+            console.log("Response:", data);
+            window.location.href = "{% url 'order' %}";
         })
         .catch(error => {
             console.error("Error:", error);
@@ -260,7 +243,4 @@
         });
     });
 </script>
-
-
-
 {% endblock %}

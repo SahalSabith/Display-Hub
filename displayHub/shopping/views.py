@@ -263,73 +263,6 @@ def productInfo(request, pId):
 
     return render(request, 'productInfo.html', context)
 
-
-@never_cache
-@login_required(login_url='/signIn')
-def checkOut(request):
-    user = request.user
-    addresses = Address.objects.filter(userId=user)
-    carts = Cart.objects.get(userId=user)
-    cartItems = CartItem.objects.filter(cartId=carts)
-
-    if not cartItems.exists():
-        messages.error(request, 'Please add items to the cart')
-        return redirect('cart')
-
-    if request.POST:
-        data = json.loads(request.body.decode('utf-8'))
-        finalTotal = data.get('finalTotal')
-        addressId = data.get('address')
-        address = Address.objects.get(id=addressId)
-        paymentMethod = data.get('paymentMethod')
-
-        if not paymentMethod:
-            messages.error(request, 'Please select a payment method.')
-            request.session['show_error'] = True
-            return redirect('checkOut')
-        
-        characters = string.ascii_letters + string.digits
-        orderNumber = ''.join(random.choice(characters) for _ in range(10))
-        print("Order Id is " + orderNumber)
-
-        order = Order.objects.create(
-            userId=user,
-            addressId=address,
-            paymentMethod=paymentMethod,
-            orderNo=orderNumber,
-            totalPrice=finalTotal
-        )
-
-        for item in cartItems:
-            product = Products.objects.get(id=item.productId.id)
-            varient = Varients.objects.get(id=item.varientId.id)
-            orderItem = OrderItem.objects.create(
-                orderItemId=order,
-                productId=product,
-                varientId=varient,
-                quantity=item.quantity,
-                totalPrice=item.cartItemTotal()
-            )
-
-            varient.stock -= item.quantity
-            varient.save()
-
-        cartItems.delete()
-        carts.delete()
-
-        return redirect('order')
-
-    if request.session.get('show_error'):
-        del request.session['show_error']
-
-    context = {
-        'products': cartItems,
-        'addresses': addresses,
-        'cart':carts
-    }
-    return render(request, 'checkout.html', context)
-
-
 @never_cache
 @login_required(login_url='/signIn')
 def orderDetails(request, oId):
@@ -368,10 +301,76 @@ def cancelOrder(request, oId, oiId):
     return redirect('order')
 
 @never_cache
-def applyCoupon(request,total):
-    if request.POST:
-        couponCode = request.POST.get('couponCode')
-        coupon = Coupon.objects.get(couponCode=couponCode)
-        print(coupon.couponCode)
-        print(total)
-    return render(request,'checkout.html')
+@login_required(login_url='/signIn')
+def checkOut(request):
+    user = request.user
+    addresses = Address.objects.filter(userId=user)
+    carts = Cart.objects.get(userId=user)
+    cartItems = CartItem.objects.filter(cartId=carts)
+
+    if not cartItems.exists():
+        messages.error(request, 'Please add items to the cart')
+        return redirect('cart')
+
+    if request.method == 'POST':
+        try:
+            addressId = json.loads(request.body).get('selectedAddress')
+            address = Address.objects.get(id=addressId)
+            paymentMethod = json.loads(request.body).get('selectedPayment')
+            finalOrderPrice = json.loads(request.body).get('finalOrderPrice')
+
+            if not paymentMethod:
+                messages.error(request, 'Please select a payment method.')
+                errorData = {
+                'message': 'No Payment Selected',
+                'status': 'error',
+                }
+                return JsonResponse(errorData, status=400)
+            
+            characters = string.ascii_letters + string.digits
+            orderNumber = ''.join(random.choice(characters) for _ in range(10))
+            print("Order Id is " + orderNumber)
+
+            order = Order.objects.create(
+                userId=user,
+                addressId=address,
+                paymentMethod=paymentMethod,
+                orderNo=orderNumber,
+                totalPrice=finalOrderPrice
+            )
+
+            for item in cartItems:
+                product = Products.objects.get(id=item.productId.id)
+                varient = Varients.objects.get(id=item.varientId.id)
+                orderItem = OrderItem.objects.create(
+                    orderItemId=order,
+                    productId=product,
+                    varientId=varient,
+                    quantity=item.quantity,
+                    totalPrice=item.cartItemTotal()
+                )
+
+                varient.stock -= item.quantity
+                varient.save()
+
+            cartItems.delete()
+            carts.delete()
+            responseData = {
+                'message': 'Order Successfull',
+                'status': 'success',
+            }
+            return JsonResponse(responseData, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+
+    if request.session.get('show_error'):
+        del request.session['show_error']
+
+    context = {
+        'products': cartItems,
+        'addresses': addresses,
+        'cart':carts
+    }
+    return render(request, 'checkout.html', context)
