@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status</title>
+</head>
+<body>
+    <h1>Payment {{ status }}</h1>
+    {% if status == 'success' %}
+        <p>Your payment was successful. Thank you for your order!</p>
+    {% else %}
+        <p>There was an issue with your payment. Please try again or contact support.</p>
+    {% endif %}
+</body>
+</html>

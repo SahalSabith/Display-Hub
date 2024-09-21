@@ -45,7 +45,9 @@ class Order(models.Model):
         ('canceled', 'Canceled'),
         ('returned', 'Returned'),
         ('awaiting_payment', 'Awaiting Payment'),
-        ('refunded', 'Refunded')
+        ('refunded', 'Refunded'),
+        ('SUCCESS','SUCCESS'),
+        ('FAILURE','FAILURE'),
     ]
     orderStatus = models.CharField(max_length=20,choices=statusChoices,default='dispatched')
     orderedAt = models.DateTimeField(auto_now=True)
@@ -60,6 +62,9 @@ class Order(models.Model):
     orderNo = models.CharField(max_length=10,unique=True)
     totalPrice = models.IntegerField(default=0)
     cancelReason = models.TextField()
+    pamentId = models.CharField(null=False,blank=False)
+    signatreId = models.CharField(null=False,blank=False)
+    provider_order_id = models.CharField(max_length=255,unique=True)
 
 class OrderItem(models.Model):
     id = models.AutoField(primary_key=True)

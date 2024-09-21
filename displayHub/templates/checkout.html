@@ -184,6 +184,7 @@
   </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
       function showError() {
           Swal.fire({
@@ -285,47 +286,66 @@
           });
       });
       const checkOutBtn = document.getElementById('checkOutBtn');
-      checkOutBtn.addEventListener('click', () => {
-          const selectAddress = document.getElementById('selectAddress')
-          const selectedAddress = selectAddress.value
+checkOutBtn.addEventListener('click', () => {
+    const selectedAddress = document.getElementById('selectAddress').value;
+    const selectedPayment = document.getElementById('paymentMethod').value;
+    const finalOrderPrice = Number(document.getElementById('finalTotal').textContent.replace('₹', ''));
 
-          const paymentMethod = document.getElementById('paymentMethod')
-          const selectedPayment = paymentMethod.value
-
-          const finalOrderString = document.getElementById('finalTotal').textContent
-          const finalOrderNumber = finalOrderString.replace('₹','');
-          const finalOrderPrice = Number(finalOrderNumber)
-
-          fetch("{% url 'checkOut' %}", {
-              method: 'POST',
-              body: JSON.stringify({selectedAddress,selectedPayment,finalOrderPrice}),
-              headers: {
-                  'X-CSRFToken': '{{ csrf_token }}',
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-              },
-          })
-          .then(response => {
-              if (!response.ok) {
-                  return response.json().then(data => {
-                      throw new Error(data.message || "Network response was not ok");
-                  });
-              }
-              return response.json();
-          })
-          .then(data => {
-              console.log("Response:", data);
-              window.location.href = "{% url 'order' %}";
-          })
-          .catch(error => {
-              console.error("Error:", error);
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Oops...',
-                  text: error.message || "Something went wrong!",
-              });
-          });
-      });
+    fetch("{% url 'checkOut' %}", {
+        method: 'POST',
+        body: JSON.stringify({ selectedAddress, selectedPayment, finalOrderPrice }),
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (selectedPayment === 'internetBanking') {
+                // Trigger Razorpay payment if selectedPayment is 'internetBanking'
+                const options = {
+                    key: data.razorpay_key,
+                    amount: data.final_order_price * 100, // Amount in paise
+                    currency: "INR",
+                    name: data.order_name,
+                    description: "Order Payment",
+                    image: "https://example.com/logo", // Optional, your site logo
+                    order_id: data.razorpay_order_id, // Razorpay order ID
+                    callback_url: data.callback_url, // Your callback URL
+                    prefill: {
+                        name: "{{user.first_name}} {{ user.last_name }}",
+                        email: "{{ user.email }}",
+                        contact: data.selectedAddress  // Placeholder, update with user contact info
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                // Redirect to the order confirmation page for non-internet banking payments
+                window.location.href = "{% url 'order' %}";
+            }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message,
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.message || "Something went wrong!",
+        });
+    });
+});
   const removeCouponBtn = document.getElementById('removeCouponBtn')
   removeCouponBtn.addEventListener('click', () => {
     const totalAmount = {{cart.cartTotal}}
@@ -335,6 +355,9 @@
     finalTotalTag.textContent = '₹'+totalAmount
     couponDiv.style.display = 'none'
     coupontag.style.display = 'none'
+  })
+  checkOutBtn.addEventListener('click', () => {
+
   })
 </script>
 {% endblock %}

@@ -18,8 +18,16 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from discounts.models import Coupon
+from django.conf import settings
+import razorpay
+from django.views.decorators.csrf import csrf_exempt
+from decouple import config
 
 # Create your views here.
+
+RAZOR_KEY_ID = config('RAZOR_KEY_ID')
+RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
+
 @never_cache
 @login_required(login_url='/signIn')
 def cart(request):
@@ -311,74 +319,136 @@ def cancelOrder(request, oId):
 @never_cache
 @login_required(login_url='/signIn')
 def checkOut(request):
-    user = request.user
-    addresses = Address.objects.filter(userId=user)
-    carts = Cart.objects.get(userId=user)
-    cartItems = CartItem.objects.filter(cartId=carts)
+    userId = request.user
+    addresses = Address.objects.filter(userId=userId)
+    cart = Cart.objects.get(userId=userId)
+    cart_items = CartItem.objects.filter(cartId=cart)
 
-    if not cartItems.exists():
+    if not cart_items.exists():
         messages.error(request, 'Please add items to the cart')
         return redirect('cart')
 
     if request.method == 'POST':
         try:
-            addressId = json.loads(request.body).get('selectedAddress')
+            # Get address and payment information
+            data = json.loads(request.body)
+            addressId = data.get('selectedAddress')
             address = Address.objects.get(id=addressId)
-            paymentMethod = json.loads(request.body).get('selectedPayment')
-            finalOrderPrice = json.loads(request.body).get('finalOrderPrice')
+            payment_method = data.get('selectedPayment')
+            final_order_price = data.get('finalOrderPrice')
 
-            if not paymentMethod:
+            # Razorpay payment integration for 'internetBanking'
+            razorpay_order = None
+            if payment_method == 'internetBanking':
+                client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+                razorpay_order = client.order.create(
+                    {"amount": int(final_order_price) * 100, "currency": "INR", "payment_capture": "1"}
+                )
+
+            if not payment_method:
                 messages.error(request, 'Please select a payment method.')
-                errorData = {
-                'message': 'No Payment Selected',
-                'status': 'error',
-                }
-                return JsonResponse(errorData, status=400)
-            
-            characters = string.ascii_letters + string.digits
-            orderNumber = ''.join(random.choice(characters) for _ in range(10))
-            print("Order Id is " + orderNumber)
+                return JsonResponse({'message': 'No Payment Selected', 'status': 'error'}, status=400)
 
+            # Generate a random order number
+            characters = string.ascii_letters + string.digits
+            order_number = ''.join(random.choice(characters) for _ in range(10))
+
+            # Create the order in the system
             order = Order.objects.create(
-                userId=user,
+                userId=userId,
                 addressId=address,
-                paymentMethod=paymentMethod,
-                orderNo=orderNumber,
-                totalPrice=finalOrderPrice
+                paymentMethod=payment_method,
+                orderNo=order_number,
+                totalPrice=final_order_price,
+                provider_order_id=razorpay_order['id'] if razorpay_order else None  # Save Razorpay order ID
             )
 
-            for item in cartItems:
+            # Create order items and update stock
+            for item in cart_items:
                 product = Products.objects.get(id=item.productId.id)
-                varient = Varients.objects.get(id=item.varientId.id)
-                orderItem = OrderItem.objects.create(
+                variant = Varients.objects.get(id=item.varientId.id)
+                OrderItem.objects.create(
                     orderItemId=order,
                     productId=product,
-                    varientId=varient,
+                    varientId=variant,
                     quantity=item.quantity,
                     totalPrice=item.cartItemTotal()
                 )
+                variant.stock -= item.quantity
+                variant.save()
 
-                varient.stock -= item.quantity
-                varient.save()
+            # Clear cart after order is placed
+            # cart_items.delete()
+            # cart.delete()
 
-            cartItems.delete()
-            carts.delete()
-            responseData = {
-                'message': 'Order Successfull',
-                'status': 'success',
-            }
-            return JsonResponse(responseData, status=200)
-        except json.JSONDecodeError:
-            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+            # Prepare data for Razorpay payment page if payment method is Razorpay
+            if payment_method == 'internetBanking':
+                response_data = {
+                    'message': 'Order Successful',
+                    'status': 'success',
+                    'selectedAddress':address.phone,
+                    'razorpay_order_id': razorpay_order['id'],
+                    'razorpay_key': RAZOR_KEY_ID,
+                    'callback_url': 'http://127.0.0.1:8000/razorpay/callback/',
+                    'order_name': order_number,
+                    'final_order_price': final_order_price
+                }
+                return JsonResponse(response_data, status=200)
+
+            # Return success for non-Razorpay payment method
+            return JsonResponse({'message': 'Order Successful', 'status': 'success'}, status=200)
+
         except Exception as e:
             return JsonResponse({'message': str(e)}, status=500)
 
-    if request.session.get('show_error'):
-        del request.session['show_error']
-
-    context = {
-        'products': cartItems,
-        'addresses': addresses,
-        'cart':carts
-    }
+    context = {'products': cart_items, 'addresses': addresses, 'cart': cart}
     return render(request, 'checkout.html', context)
+
+@csrf_exempt
+def razorpay_callback(request):
+    def verify_signature(response_data):
+        client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+        try:
+            client.utility.verify_payment_signature(response_data)
+            return True
+        except:
+            return False
+
+    if request.method == "POST":
+        if "razorpay_signature" in request.POST:
+            # Extract Razorpay details from POST request
+            payment_id = request.POST.get("razorpay_payment_id", "")
+            provider_order_id = request.POST.get("razorpay_order_id", "")
+            signature_id = request.POST.get("razorpay_signature", "")
+
+            # Fetch the corresponding order in your system
+            order = Order.objects.get(provider_order_id=provider_order_id)
+            order.payment_id = payment_id
+            order.signature_id = signature_id
+
+            # Verify the signature
+            if verify_signature(request.POST):
+                # Signature is valid, mark payment as successful
+                order.order_status = "SUCCESS"
+                order.save()
+                return render(request, "callback.html", context={"status": "success"})
+            else:
+                # Invalid signature, mark payment as failed
+                order.order_status = "FAILURE"
+                order.save()
+                return render(request, "callback.html", context={"status": "failure"})
+        else:
+            # Handle Razorpay error response
+            error_metadata = json.loads(request.POST.get("error[metadata]"))
+            payment_id = error_metadata.get("payment_id", "")
+            provider_order_id = error_metadata.get("order_id", "")
+
+            # Fetch the corresponding order
+            order = Order.objects.get(provider_order_id=provider_order_id)
+            order.payment_id = payment_id
+            order.order_status = "FAILURE"
+            order.save()
+
+            return render(request, "callback.html", context={"status": "failure"})
+
+    return render(request, "callback.html", context={"status": "error"})

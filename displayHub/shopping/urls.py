@@ -28,4 +28,5 @@ urlpatterns = [
     path('account/orderDetails/<int:oId>',views.orderDetails,name='orderDetails'),
     path('account/cancel/<int:oId>/',views.cancelOrder,name='cancelOrder'),
     path('cart/quantityUpdate',views.updateQuantity,name='updateQuantity'),
+    path("razorpay/callback/", views.razorpay_callback, name="razorpay_callback"),
 ]
