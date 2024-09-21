@@ -404,6 +404,8 @@ def checkOut(request):
     context = {'products': cart_items, 'addresses': addresses, 'cart': cart}
     return render(request, 'checkout.html', context)
 
+
+
 @csrf_exempt
 def razorpay_callback(request):
     def verify_signature(response_data):

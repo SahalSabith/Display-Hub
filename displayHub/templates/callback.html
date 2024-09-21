@@ -5,6 +5,122 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease;
+        }
+
+        p {
+            color: #555;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: gold;
+            border-radius: 50%;
+            animation: fall 2s forwards, spin 1s infinite linear;
+        }
+
+        @keyframes fall {
+            0% { top: -50px; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+            animation: confettiFall 1s forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(100vh); }
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .button {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Payment {{ status }}</h1>
@@ -13,5 +129,56 @@
     {% else %}
         <p>There was an issue with your payment. Please try again or contact support.</p>
     {% endif %}
+    <a href="#" id="viewOrder" class="button">
+        &larr; View Order
+    </a>
+
+    <div class="confetti" id="confettiContainer"></div>
+
+    <script>
+        // Function to create coins
+        function createCoin() {
+            const coin = document.createElement('div');
+            coin.classList.add('coin');
+            coin.style.left = `${Math.random() * 100}vw`;
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 2000); // Match this with animation duration
+        }
+
+        // Function to create confetti
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confettiContainer');
+            for (let i = 0; i < 50; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.classList.add('confetti-piece');
+                confettiPiece.style.backgroundColor = ['red', 'blue', 'green', 'yellow'][Math.floor(Math.random() * 4)];
+                confettiPiece.style.left = `${Math.random() * 100}vw`;
+                confettiPiece.style.top = `${Math.random() * 50}vh`;
+                confettiContainer.appendChild(confettiPiece);
+                // Animate the confetti falling
+                confettiPiece.style.animation = `confettiFall 1s forwards`;
+            }
+        }
+
+        // Trigger confetti and coin animation on page load
+        window.onload = () => {
+            for (let i = 0; i < 30; i++) {
+                createCoin();
+            }
+            createConfetti();
+        };
+
+        // Button click animation
+        document.getElementById('viewOrder').addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default anchor behavior
+            const orderUrl = "{% url 'order' %}";
+
+            // Button animation
+            event.target.style.animation = 'pop 0.5s ease forwards';
+            setTimeout(() => {
+                window.location.href = orderUrl;
+            }, 500);
+        });
+    </script>
 </body>
 </html>

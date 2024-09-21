@@ -304,30 +304,66 @@ checkOutBtn.addEventListener('click', () => {
     .then(data => {
         if (data.status === 'success') {
             if (selectedPayment === 'internetBanking') {
-                // Trigger Razorpay payment if selectedPayment is 'internetBanking'
-                const options = {
-                    key: data.razorpay_key,
-                    amount: data.final_order_price * 100, // Amount in paise
-                    currency: "INR",
-                    name: data.order_name,
-                    description: "Order Payment",
-                    image: "https://example.com/logo", // Optional, your site logo
-                    order_id: data.razorpay_order_id, // Razorpay order ID
-                    callback_url: data.callback_url, // Your callback URL
-                    prefill: {
-                        name: "{{user.first_name}} {{ user.last_name }}",
-                        email: "{{ user.email }}",
-                        contact: data.selectedAddress  // Placeholder, update with user contact info
-                    },
-                    theme: {
-                        color: "#3399cc"
+                // SweetAlert confirmation for internet banking
+                Swal.fire({
+                    title: 'Confirm Online Banking?',
+                    text: "You will be redirected to the online banking page.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, proceed!',
+                    cancelButtonText: 'No, cancel!',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Proceed with Razorpay payment
+                        const options = {
+                            key: data.razorpay_key,
+                            amount: data.final_order_price * 100, // Amount in paise
+                            currency: "INR",
+                            name: data.order_name,
+                            description: "Order Payment",
+                            image: "https://example.com/logo", // Optional, your site logo
+                            order_id: data.razorpay_order_id, // Razorpay order ID
+                            callback_url: data.callback_url, // Your callback URL
+                            prefill: {
+                                name: "{{user.first_name}} {{ user.last_name }}",
+                                email: "{{ user.email }}",
+                                contact: data.selectedAddress  // Placeholder, update with user contact info
+                            },
+                            theme: {
+                                color: "#3399cc"
+                            }
+                        };
+                        const rzp = new Razorpay(options);
+                        rzp.open();
                     }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-            } else {
-                // Redirect to the order confirmation page for non-internet banking payments
+                });
+            } else if (selectedPayment === 'wallet') {
+                // Redirect to the order confirmation page for wallet and cash on delivery payments
+                Swal.fire({
+                  title: 'Confirm Wallet Payment?',
+                  text: "You will Place The Order.",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonText: 'Yes, proceed!',
+                  cancelButtonText: 'No, cancel!',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = "{% url 'order' %}";
+                }
+              })
+            } else if (selectedPayment === 'cashOnDelivery'){
+              Swal.fire({
+                title: 'Confirm Wallet Payment?',
+                text: "You will Place The Order by Cash On Delivery.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'No, cancel!',
+            }).then((result) => {
+              if (result.isConfirmed) {
                 window.location.href = "{% url 'order' %}";
+              }
+            })
             }
         } else {
             Swal.fire({

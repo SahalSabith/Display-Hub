@@ -64,7 +64,7 @@ class Order(models.Model):
     cancelReason = models.TextField()
     pamentId = models.CharField(null=False,blank=False)
     signatreId = models.CharField(null=False,blank=False)
-    provider_order_id = models.CharField(max_length=255,unique=True)
+    provider_order_id = models.CharField(max_length=255,unique=True,null=True)
 
 class OrderItem(models.Model):
     id = models.AutoField(primary_key=True)
