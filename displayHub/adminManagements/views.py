@@ -175,7 +175,7 @@ def addVarient(request, vId):
 def allVerients(request,vId):
     if not request.user.is_superuser:
         return redirect('home')
-    varients = Varients.objects.filter(product=vId)
+    varients = Varients.objects.filter(product=vId).order_by('-id')
     context = {
         'varients':varients,
         'vId':vId
@@ -188,7 +188,7 @@ def allVerients(request,vId):
 def allProducts(request):
     if not request.user.is_superuser:
         return redirect('home')
-    products = Products.objects.all()
+    products = Products.objects.all().order_by('-id')
     context = {
         'products':products
     }
@@ -200,7 +200,7 @@ def allProducts(request):
 def allCategory(request):
     if not request.user.is_superuser:
         return redirect('home')
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by('-id')
     return render(request,'allCategory.html',{'categories':categories})
 
 
@@ -209,7 +209,7 @@ def allCategory(request):
 def allBrand(request):
     if not request.user.is_superuser:
         return redirect('home')
-    brands = Brand.objects.all()
+    brands = Brand.objects.all().order_by('-id')
     return render(request,'allBrand.html',{'brands':brands})
 
 
@@ -396,7 +396,7 @@ def editBrand(request,bId):
 def listOrders(request):
     if not request.user.is_superuser:
         return redirect('home')
-    orders = Order.objects.all()
+    orders = Order.objects.all().order_by('-id')
     context = {
         'orders': orders
     }

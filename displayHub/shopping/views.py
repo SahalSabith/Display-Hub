@@ -33,7 +33,7 @@ RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
 def cart(request):
     user = request.user
     cart, created = Cart.objects.get_or_create(userId=user)
-    cartItems = CartItem.objects.filter(cartId=cart)
+    cartItems = CartItem.objects.filter(cartId=cart).order_by('-id')
     context = {
         'items': cartItems
     }
@@ -322,7 +322,7 @@ def checkOut(request):
     userId = request.user
     addresses = Address.objects.filter(userId=userId)
     cart = Cart.objects.get(userId=userId)
-    cart_items = CartItem.objects.filter(cartId=cart)
+    cart_items = CartItem.objects.filter(cartId=cart).order_by('-id')
 
     if not cart_items.exists():
         messages.error(request, 'Please add items to the cart')

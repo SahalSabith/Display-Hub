@@ -17,5 +17,5 @@ def dashboard(request):
 def allUsers(request):
     if not request.user.is_superuser:
         return redirect('home')
-    allUsers = User.objects.all()
+    allUsers = User.objects.all().order_by('-id')
     return render(request,'users.html',{'allUsers':allUsers})

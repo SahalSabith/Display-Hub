@@ -36,7 +36,7 @@ def order(request):
         return redirect('admin')
 
     user_id = request.user.id
-    orders = Order.objects.filter(userId=user_id)
+    orders = Order.objects.filter(userId=user_id).order_by('-id')
 
     context = {
         'orders': orders,
