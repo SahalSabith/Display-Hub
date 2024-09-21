@@ -12,6 +12,44 @@
   .remove-coupon-btn:hover {
     color: darkred;
   }
+  .available-coupons {
+    max-height: 200px; /* Adjust height as needed */
+    overflow-y: auto;
+    border: 1px solid #dee2e6; /* Bootstrap's default border color */
+    border-radius: 0.25rem; /* Rounded corners */
+    background-color: #f8f9fa; /* Light background */
+    padding: 15px;
+    
+    /* Hide scrollbar for webkit browsers */
+    scrollbar-width: none; /* For Firefox */
+}
+
+/* Hide scrollbar for webkit browsers */
+.available-coupons::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+}
+
+.coupon-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.coupon-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6; /* Border between items */
+}
+
+.coupon-item:last-child {
+    border-bottom: none; /* Remove bottom border for last item */
+}
+
+.coupon-item .apply-coupon {
+    margin-left: 10px;
+}
+  
 </style>
 
 <div class="bg-light py-3">
@@ -132,6 +170,21 @@
               </button>
             </div>
           </div>
+
+          <div class="available-coupons mb-3">
+            <h4 class="h5 text-black mb-3">Available Coupons</h4>
+            <div class="coupon-list">
+              {% for coupon in coupons %}
+                <div class="coupon-item">
+                  <span>{{ coupon.couponCode }} - %{{ coupon.discountValue }}</span>
+                  <button type="button" class="btn btn-sm btn-primary apply-coupon" data-code="{{ coupon.couponCode }}">
+                    Apply
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          </div>          
+
           <ul class="list-group mb-4">
             <li
               class="list-group-item d-flex justify-content-between align-items-center"
@@ -392,8 +445,15 @@ checkOutBtn.addEventListener('click', () => {
     couponDiv.style.display = 'none'
     coupontag.style.display = 'none'
   })
-  checkOutBtn.addEventListener('click', () => {
+const applyCouponButtons = document.querySelectorAll('.apply-coupon');
 
-  })
+applyCouponButtons.forEach(button => {
+  button.addEventListener('click', function() {
+    const couponCode = this.getAttribute('data-code');
+    console.log(couponCode);
+    const couponCodeInput = document.getElementById('couponCode')
+    couponCodeInput.value = couponCode
+  });
+});
 </script>
 {% endblock %}

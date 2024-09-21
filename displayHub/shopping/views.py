@@ -22,6 +22,7 @@ from django.conf import settings
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
 from decouple import config
+from datetime import datetime
 
 # Create your views here.
 
@@ -323,6 +324,14 @@ def checkOut(request):
     addresses = Address.objects.filter(userId=userId)
     cart = Cart.objects.get(userId=userId)
     cart_items = CartItem.objects.filter(cartId=cart).order_by('-id')
+    coupon = Coupon.objects.all()
+
+    for coupon in coupon:
+        if coupon.validTo < datetime.now().date():
+            coupon.status = False
+            coupon.save()
+
+    coupons = Coupon.objects.filter(status=True)
 
     if not cart_items.exists():
         messages.error(request, 'Please add items to the cart')
@@ -401,7 +410,7 @@ def checkOut(request):
         except Exception as e:
             return JsonResponse({'message': str(e)}, status=500)
 
-    context = {'products': cart_items, 'addresses': addresses, 'cart': cart}
+    context = {'products': cart_items, 'addresses': addresses, 'cart': cart,'coupons':coupons}
     return render(request, 'checkout.html', context)
 
 

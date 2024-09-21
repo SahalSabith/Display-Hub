@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect,HttpResponse
 from .models import Coupon
 from django.views.decorators.cache import never_cache
 from .models import Coupon
-from datetime import datetime
 from django.http import JsonResponse
 import json
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,10 +26,15 @@ def addCoupon(request):
 
         return redirect('addCoupon')
     
-    coupon = Coupon.objects.all()
+    coupons = Coupon.objects.all().order_by('-id')
+
+    for coupon in coupons:
+        if coupon.validTo < datetime.now().date():
+            coupon.status = False
+            coupon.save()
 
     context = {
-        'coupon': coupon
+        'coupon': coupons
     }
 
     return render(request, 'couponManagement.html', context)
