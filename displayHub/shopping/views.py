@@ -378,8 +378,8 @@ def checkOut(request):
                 variant.save()
 
             # Clear cart after order is placed
-            # cart_items.delete()
-            # cart.delete()
+            cart_items.delete()
+            cart.delete()
 
             # Prepare data for Razorpay payment page if payment method is Razorpay
             if payment_method == 'internetBanking':
