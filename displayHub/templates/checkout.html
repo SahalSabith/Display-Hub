@@ -1,240 +1,197 @@
-{% extends "base.html" %} {% block baseContents %} {% load static %}
+{% extends "base.html" %}
+{% block baseContents %}
+{% load static %}
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">\
 <style>
-  .remove-coupon-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: red;
-    cursor: pointer;
-  }
-
-  .remove-coupon-btn:hover {
-    color: darkred;
-  }
-  .available-coupons {
-    max-height: 200px; /* Adjust height as needed */
-    overflow-y: auto;
-    border: 1px solid #dee2e6; /* Bootstrap's default border color */
-    border-radius: 0.25rem; /* Rounded corners */
-    background-color: #f8f9fa; /* Light background */
+  .checkout-container {
+    max-width: 1000px;
+    margin: 0 auto;
     padding: 15px;
-    
-    /* Hide scrollbar for webkit browsers */
-    scrollbar-width: none; /* For Firefox */
+    font-family: 'Roboto', sans-serif;
+    background-color: #f7f9fc;
 }
 
-/* Hide scrollbar for webkit browsers */
-.available-coupons::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+.checkout-header {
+    background-color: #9A94EF;
+    padding: 10px;
+    margin-bottom: 20px;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
 }
 
-.coupon-list {
-    display: flex;
-    flex-direction: column;
+.checkout-header h2 {
+    font-size: 1.6em;
 }
 
-.coupon-item {
+.checkout-step {
+    background-color: #fff;
+    border: 1px solid #e3e6f0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-step h3 {
+    padding-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.product-summary, .order-summary {
+    background-color: #f1f4f8;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #dce1e8;
+}
+
+.product-item {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.coupon-section {
+    display: flex;
     align-items: center;
+    margin-bottom: 15px;
+}
+
+.coupon-input {
+    flex-grow: 1;
+    margin-right: 10px;
     padding: 10px;
-    border-bottom: 1px solid #dee2e6; /* Border between items */
+    border: 1px solid #ccc;
+    border-radius: 6px;
 }
 
-.coupon-item:last-child {
-    border-bottom: none; /* Remove bottom border for last item */
+.apply-coupon {
+    padding: 5px 10px;
+    background-color: #9A94EF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
 }
 
-.coupon-item .apply-coupon {
-    margin-left: 10px;
+.apply-coupon:hover {
+    background-color: #847ee0;
 }
-  
+
+.order-total {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.place-order-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+}
+
+.place-order-btn:hover {
+    background-color: #218838;
+}
+
+#couponDiv {
+    display: none;
+}
+
+#coupontag {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.final-total {
+    font-size: 1.3em;
+    color: #9A94EF;
+}
 </style>
 
-<div class="bg-light py-3">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 mb-0">
-        <a href="{% url 'home' %}">Home</a>
-        <span class="mx-2 mb-0">/</span>
-        <a href="{% url 'cart' %}">Cart</a>
-        <span class="mx-2 mb-0">/</span>
-        <strong class="text-black">Checkout</strong>
+<div class="checkout-container">
+  <div class="checkout-header">
+    <h2>Checkout</h2>
+  </div>
+
+  <div class="checkout-step">
+    <h3>1. Shipping Address</h3>
+    <select name="selectAddress" class="form-control" id="selectAddress">
+      {% for address in addresses %}
+        <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
+      {% endfor %}
+    </select>
+    <a href="{% url 'addAddress' %}" class="btn mt-3 text-white" style="background:#9A94EF;">Add New Address</a>
+  </div>
+
+  <div class="checkout-step">
+    <h3>2. Payment Method</h3>
+    <select name="paymentMethod" class="form-control" id="paymentMethod">
+      <option value="wallet">Wallet</option>
+      <option value="cashOnDelivery">Cash on Delivery</option>
+      <option value="internetBanking">Online Banking</option>
+    </select>
+  </div>
+
+  <div class="checkout-step">
+    <h3>3. Review Items and Shipping</h3>
+    <div class="product-summary">
+      {% for item in products %}
+        <div class="product-item">
+          <span>{{ item.productId.name }} x {{item.quantity}}</span>
+          <span>₹{{item.cartItemTotal}}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="checkout-step">
+    <h3>4. Coupons</h3>
+    <div class="coupon-section">
+      <input type="text" id="couponCode" class="form-control coupon-input" placeholder="Enter coupon code">
+      <button id="applyCouponBtn" class="btn btn-primary">Apply</button>
+    </div>
+    <div class="available-coupons">
+      <h4>Available Coupons</h4>
+      {% for coupon in coupons %}
+        <div class="coupon-item">
+          <span>{{ coupon.couponCode }} - {{ coupon.discountValue }}% off</span>
+          <button class="btn btn-sm btn-outline-primary apply-coupon" data-code="{{ coupon.couponCode }}">Apply</button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="checkout-step">
+    <h3>5. Order Summary</h3>
+    <div class="order-summary">
+      <div class="product-item">
+        <span>Items:</span>
+        <span id="totalAmount">₹{{cart.cartTotal}}</span>
+      </div>
+      <div class="product-item">
+        <span>Delivery:</span>
+        <span class="text-success">Free</span>
+      </div>
+      <div class="product-item" id="couponDiv" style="display: none;">
+        <span>Coupon Discount:</span>
+        <span id="coupontag" class="text-success"></span>
+        <i class="fas fa-times remove-coupon" id="removeCouponBtn" style="cursor: pointer; margin-left: 5px;"></i>
+      </div>
+      <div class="product-item order-total">
+        <span>Order Total:</span>
+        <strong id="finalTotal">₹{{cart.cartTotal}}</strong>
       </div>
     </div>
   </div>
-</div>
 
-{% csrf_token %}
-<div class="site-section">
-  <div class="container">
-    <h2 class="h3 mb-4 text-black">Check Out</h2>
-
-    <div class="row">
-      <!-- Product Table (now at the top) -->
-      <div class="col-md-12 mb-4">
-        <h3 class="h4 text-black mb-3">Your Products</h3>
-        <div class="p-3 p-lg-5 border">
-          <table class="table site-block-order-table mb-5">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in products %}
-              <tr>
-                <td>
-                  {{ item.productId.name }} <strong class="mx-2">x</strong> {{item.quantity}}
-                </td>
-                <td>₹{{item.cartItemTotal}}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Address Selection -->
-      <div class="col-md-6 mb-4">
-        <h3 class="h4 text-black mb-3">Shipping Address</h3>
-        <div class="p-3 p-lg-5 border">
-          <div class="form-group">
-            <label for="select_address">Select Address</label>
-            <select
-              name="selectAddress"
-              class="form-control"
-              id="selectAddress"
-            >
-              {% for address in addresses %}
-              <option value="{{ address.id }}">
-                {{ address.name }}, {{ address.city }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <button
-            type="button"
-            class="btn btn-primary btn-lg py-3 btn-block"
-            id="add_address_btn"
-          >
-            <a href="{% url 'addAddress' %}" class="text-white"
-              >Add New Address</a
-            >
-          </button>
-        </div>
-      </div>
-
-      <!-- Payment Options -->
-      <div class="col-md-6 mb-4">
-        <h3 class="h4 text-black mb-3">Payment Options</h3>
-        <div class="p-3 p-lg-5 border">
-          <label class="text-black">Choose a Payment Method:</label>
-          <div class="form-group">
-            <select
-              name="paymentMethod"
-              class="form-control"
-              id="paymentMethod"
-            >
-              <option value="wallet">Wallet</option>
-              <option value="cashOnDelivery">Cash on Delivery</option>
-              <option value="internetBanking">Online Banking</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Coupon Section (now below the product table) -->
-      <div class="col-md-12 mb-4">
-        <div class="p-3 p-lg-5 border">
-          <h3 class="h4 text-black mb-3">Apply Coupon</h3>
-          <div class="input-group w-75 mb-3">
-            <input
-              name="couponCode"
-              type="text"
-              class="form-control"
-              id="couponCode"
-              placeholder="Enter Coupon Code"
-              aria-label="Coupon Code"
-              aria-describedby="button-addon2"
-            />
-            <div class="input-group-append">
-              <button
-                class="btn btn-primary btn-sm"
-                type="button"
-                id="applyCouponBtn"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-
-          <div class="available-coupons mb-3">
-            <h4 class="h5 text-black mb-3">Available Coupons</h4>
-            <div class="coupon-list">
-              {% for coupon in coupons %}
-                <div class="coupon-item">
-                  <span>{{ coupon.couponCode }} - %{{ coupon.discountValue }}</span>
-                  <button type="button" class="btn btn-sm btn-primary apply-coupon" data-code="{{ coupon.couponCode }}">
-                    Apply
-                  </button>
-                </div>
-              {% endfor %}
-            </div>
-          </div>          
-
-          <ul class="list-group mb-4">
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              Total Amount
-              <span id="totalAmount">{{cart.cartTotal}}</span>
-            </li>
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              Delivery Charge
-              <span class="text-success">Free Delivery</span>
-            </li>
-            <li
-              class="list-group-item"
-              id="couponDiv"
-              style="display: none !important"
-            >
-              Coupon Discount
-              <div class="d-flex flex-column align-items-end">
-                <span id="coupontag" class="text-success"></span>
-                <button
-                  type="button"
-                  id="removeCouponBtn"
-                  class="remove-coupon-btn mt-2"
-                  aria-label="Remove Coupon"
-                >
-                  &times;
-                </button>
-              </div>
-            </li>
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              Final Total
-              <strong id="finalTotal">₹{{cart.cartTotal}}</strong>
-            </li>
-          </ul>
-
-          <button
-            id="checkOutBtn"
-            type="button"
-            class="btn btn-primary btn-lg py-3 btn-block"
-          >
-            Place Order
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <button id="checkOutBtn" class="place-order-btn">Place Your Order</button>
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -271,73 +228,89 @@
           {% endif %}
       })
 
-      const couponBtn = document.getElementById('applyCouponBtn');
-      couponBtn.addEventListener('click', () => {
-      const couponCode = document.getElementById('couponCode').value.trim();
-      const totalAmount = {{cart.cartTotal}}
-      const finalTotalTag = document.getElementById('finalTotal')
-      const coupontag = document.getElementById('coupontag')
-      const couponDiv = document.getElementById('couponDiv')
-
-          fetch("{% url 'applyCoupon' %}", {
-              method: 'POST',
-              body: JSON.stringify({ couponCode }),
-              headers: {
-                  'X-CSRFToken': '{{ csrf_token }}',
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-              },
-          })
-          .then(response => {
-              if (!response.ok) {
-                  return response.json().then(data => {
-                      throw new Error(data.message || "Network response was not ok");
-                  });
-              }
-              return response.json();
-          })
-          .then(data => {
-              console.log("Response:", data);
-              if(totalAmount<data.minPurchaseAmount){
-                  return Swal.fire({
-                  icon: 'error',
-                  title: 'error!',
-                  text: `You should Buy Minimum ${data.minPurchaseAmount} Of Products` ,
-              });
-              }
-              if(totalAmount>data.maxPurchaseAmount){
-                  return Swal.fire({
-                  icon: 'error',
-                  title: 'error!',
-                  text: `Total amount exeeded ${data.maxPurchaseAmount}`,
-              });
-              }
-              if (totalAmount >= data.minPurchaseAmount && totalAmount <= data.maxPurchaseAmount) {
-                  discountAmount = totalAmount * data.discountValue / 100
-                  finalTotal = totalAmount - discountAmount
-                  finalTotalTag.textContent = '₹'+finalTotal
-
-                  couponDiv.style.display = 'block'
-                  coupontag.style.display = 'block'
-                  coupontag.textContent = '-₹'+discountAmount
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Success!',
-                  text: data.message,
-              });
-              }
-
-
-          })
-          .catch(error => {
-              console.error("Error:", error);
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Oops...',
-                  text: error.message || "Something went wrong!",
-              });
-          });
-      });
+      document.addEventListener('DOMContentLoaded', () => {
+        // Handle manual coupon code input
+        const couponBtn = document.getElementById('applyCouponBtn');
+        couponBtn.addEventListener('click', applyCoupon);
+    
+        // Handle "Apply" button click from available coupons
+        const applyCouponButtons = document.querySelectorAll('.apply-coupon');
+        applyCouponButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const couponCode = this.getAttribute('data-code');
+                const couponCodeInput = document.getElementById('couponCode');
+                couponCodeInput.value = couponCode;
+                applyCoupon();
+            });
+        });
+    });
+    
+    function applyCoupon() {
+        const couponCode = document.getElementById('couponCode').value.trim();
+        const totalAmount = {{cart.cartTotal}};
+        const finalTotalTag = document.getElementById('finalTotal');
+        const coupontag = document.getElementById('coupontag');
+        const couponDiv = document.getElementById('couponDiv');
+    
+        if (!couponCode) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No Coupon Code',
+                text: 'Please enter or select a coupon code.',
+            });
+            return;
+        }
+    
+        fetch("{% url 'applyCoupon' %}", {
+            method: 'POST',
+            body: JSON.stringify({ couponCode }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Validate coupon limits
+            if (totalAmount < data.minPurchaseAmount) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Minimum Purchase Required',
+                    text: `You need to spend at least ₹${data.minPurchaseAmount}.`,
+                });
+                return;
+            }
+            if (totalAmount > data.maxPurchaseAmount) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Maximum Purchase Exceeded',
+                    text: `You can apply this coupon for up to ₹${data.maxPurchaseAmount}.`,
+                });
+                return;
+            }
+    
+            // Apply discount
+            const discountAmount = totalAmount * data.discountValue / 100;
+            const finalTotal = totalAmount - discountAmount;
+    
+            finalTotalTag.textContent = '₹' + finalTotal.toFixed(2);
+            couponDiv.style.display = 'block';
+            coupontag.textContent = '-₹' + discountAmount.toFixed(2);
+    
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon Applied',
+                text: data.message,
+            });
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to apply the coupon.',
+            });
+        });
+    }    
       const checkOutBtn = document.getElementById('checkOutBtn');
 checkOutBtn.addEventListener('click', () => {
     const selectedAddress = document.getElementById('selectAddress').value;
@@ -391,7 +364,6 @@ checkOutBtn.addEventListener('click', () => {
                     }
                 });
             } else if (selectedPayment === 'wallet') {
-                // Redirect to the order confirmation page for wallet and cash on delivery payments
                 Swal.fire({
                   title: 'Confirm Wallet Payment?',
                   text: "You will Place The Order.",
@@ -445,15 +417,5 @@ checkOutBtn.addEventListener('click', () => {
     couponDiv.style.display = 'none'
     coupontag.style.display = 'none'
   })
-const applyCouponButtons = document.querySelectorAll('.apply-coupon');
-
-applyCouponButtons.forEach(button => {
-  button.addEventListener('click', function() {
-    const couponCode = this.getAttribute('data-code');
-    console.log(couponCode);
-    const couponCodeInput = document.getElementById('couponCode')
-    couponCodeInput.value = couponCode
-  });
-});
 </script>
 {% endblock %}

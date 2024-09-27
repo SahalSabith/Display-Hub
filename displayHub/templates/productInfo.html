@@ -2,6 +2,32 @@
 {% block baseContents %}
 {% load static %}
 <link rel="stylesheet" href="{% static "css/productInfo.css" %}">
+<style>
+    .wishlist-btn {
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.3s ease;
+        outline: none; /* Remove default outline */
+    }
+    .wishlist-btn:focus {
+        outline: none; /* Remove outline on focus */
+    }
+    .wishlist-btn:focus-visible {
+        /* Optional: Add a custom focus style for keyboard navigation */
+        box-shadow: 0 0 0 2px rgba(255,0,0,0.5);
+    }
+    .heart-icon {
+        fill: transparent;
+        stroke: red;
+        stroke-width: 2;
+        transition: all 0.3s ease;
+    }
+    .wishlist-btn.active .heart-icon {
+        fill: red;
+    }
+</style>
 <div class="site-section">
     <div class="container">
         <div class="row">
@@ -68,6 +94,12 @@
                     <i class="bi bi-star" data-value="4"></i>
                     <i class="bi bi-star" data-value="5"></i>
                 </div>
+
+                <button class="wishlist-btn" id="wishlistBtn" aria-label="Add to Wishlist">
+                    <svg class="heart-icon" viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </button>
               
                 <!-- Buttons -->
                 <div class="d-flex mt-4">
@@ -244,6 +276,28 @@
         sizeOptions.addEventListener('change', sendSelection);
         refreshRateOptions.addEventListener('change', sendSelection);
     });
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    wishlistBtn.addEventListener('click', function() {
+        this.classList.toggle('active');
+    
+        fetch('{% url "addToWishlist" %}', {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Redirect to wishlist page after adding/removing
+                window.location.href = '{% url "wishlist" %}';
+            } else {
+                console.error('Error in the response');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });    
 </script>
 
 {% endblock %}

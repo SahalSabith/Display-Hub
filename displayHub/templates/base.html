@@ -50,7 +50,7 @@
                   {% else %}
                   <li><a href=" {% url "signIn" %} "><span class="icon icon-person"></span></a></li>
                   {% endif %}
-                  <li><a href="#"><span class="icon icon-heart-o"></span></a></li>
+                  <li><a href="{% url "wishlist" %}"><span class="icon icon-heart-o"></span></a></li>
                   <li>
                     <a href="{% url "cart" %}" class="site-cart">
                       <span class="icon icon-shopping_cart"></span>
@@ -68,14 +68,9 @@
       <nav class="site-navigation text-right text-md-center" role="navigation">
         <div class="container">
           <ul class="site-menu js-clone-nav d-none d-md-block">
-            <li class="has-children active">
-              <a href="{% url "home" %}">Home</a>
-            </li>
-            <li class="has-children">
-              <a href="">About</a>
-            </li>
+            <li class="active"><a href="{% url "home" %}">Home</a></li>
+            <li><a href="">About</a></li>
             <li><a href="{% url "shop" %}">Shop</a></li>
-            <li><a href="#">Catagory</a></li>
             <li><a href="{% url "contact" %}">Contact</a></li>
           </ul>
         </div>

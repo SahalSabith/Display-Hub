@@ -23,6 +23,7 @@ import razorpay
 from django.views.decorators.csrf import csrf_exempt
 from decouple import config
 from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 
@@ -38,7 +39,6 @@ def cart(request):
     context = {
         'items': cartItems
     }
-    
     return render(request, 'cart.html', context)
 @require_POST
 @never_cache
@@ -322,7 +322,10 @@ def cancelOrder(request, oId):
 def checkOut(request):
     userId = request.user
     addresses = Address.objects.filter(userId=userId)
-    cart = Cart.objects.get(userId=userId)
+    try:
+        cart = Cart.objects.get(userId=userId)
+    except ObjectDoesNotExist:
+        return redirect('cart')
     cart_items = CartItem.objects.filter(cartId=cart).order_by('-id')
     coupon = Coupon.objects.all()
 
@@ -362,15 +365,21 @@ def checkOut(request):
             characters = string.ascii_letters + string.digits
             order_number = ''.join(random.choice(characters) for _ in range(10))
 
-            # Create the order in the system
+            if payment_method == 'internetBanking':
+                order_status = 'FAILURE'
+            else:
+                order_status = 'dispatched' 
+
             order = Order.objects.create(
                 userId=userId,
                 addressId=address,
                 paymentMethod=payment_method,
                 orderNo=order_number,
                 totalPrice=final_order_price,
-                provider_order_id=razorpay_order['id'] if razorpay_order else None  # Save Razorpay order ID
+                orderStatus=order_status,
+                provider_order_id=razorpay_order['id'] if razorpay_order else None 
             )
+
 
             # Create order items and update stock
             for item in cart_items:

@@ -47,11 +47,11 @@ class Order(models.Model):
         ('awaiting_payment', 'Awaiting Payment'),
         ('refunded', 'Refunded'),
         ('SUCCESS','SUCCESS'),
-        ('FAILURE','FAILURE'),
+        ('FAILURE','Failed'),
     ]
     orderStatus = models.CharField(max_length=20,choices=statusChoices,default='dispatched')
     orderedAt = models.DateTimeField(auto_now=True)
-    userId = models.ForeignKey(User,related_name='userId',on_delete=models.CASCADE)
+    userId = models.ForeignKey(User,on_delete=models.CASCADE)
     addressId = models.ForeignKey(Address,on_delete=models.CASCADE)
     payments = [
         ('cashOnDelivery','CashOnDelivey'),
