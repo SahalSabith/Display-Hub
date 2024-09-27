@@ -6,6 +6,9 @@ from django.http import JsonResponse
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
+from .models import ProductOffer,BrandOffer
+from adminManagements.models import Brand,Products
+from django.contrib import messages
 
 @never_cache
 def addCoupon(request):
@@ -117,3 +120,76 @@ def applyCoupon(request):
             return JsonResponse({'message': str(e)}, status=500)
     
     return JsonResponse({'message': 'Invalid Request'}, status=400)
+
+@never_cache
+def offers(request):
+    productOffer = ProductOffer.objects.all().order_by('-id')
+    brandOffer = BrandOffer.objects.all().order_by('-id')
+    brands = Brand.objects.all().order_by('-id')
+    products = Products.objects.all().order_by('-id')
+    context = {
+        'productOffers':productOffer,
+        'brandOffers':brandOffer,
+        'brands':brands,
+        'products':products
+    }
+    return render(request,'offers.html',context)
+
+from django.shortcuts import render
+
+@never_cache
+def addBrandOffer(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        discountValue = request.POST.get('discountValue')
+        startDate = request.POST.get('startDate')
+        endDate = request.POST.get('endDate')
+        applicableBrandId = request.POST.get('applicableBrand')
+        
+        applicableBrand = Brand.objects.get(id=applicableBrandId)
+
+        newOffer = BrandOffer.objects.create(
+            name=name,
+            discountValue=discountValue,
+            startDate=startDate,
+            endDate=endDate,
+            applicableBrand=applicableBrand
+        )
+        return redirect('offers')
+    return redirect('offers')
+
+@never_cache
+def addProductOffer(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        discountValue = request.POST.get('discountValue')
+        startDate = request.POST.get('startDate')
+        endDate = request.POST.get('endDate')
+        applicableProductId = request.POST.get('applicableProducts')
+        
+        applicableProduct = Products.objects.get(id=applicableProductId)
+
+        newOffer = ProductOffer.objects.create(
+            name=name,
+            discountValue=discountValue,
+            startDate=startDate,
+            endDate=endDate,
+            applicableProducts=applicableProduct
+        )
+        return redirect('offers')
+    return redirect('offers')
+
+@never_cache
+def removeOffer(request, oId):
+    try:
+        product_offer = ProductOffer.objects.get(id=oId)
+        product_offer.delete()
+    except ProductOffer.DoesNotExist:
+        try:
+            brand_offer = BrandOffer.objects.get(id=oId)
+            brand_offer.delete()
+        except BrandOffer.DoesNotExist:
+            messages.error(request, "Offer not found.")
+            return redirect('offers')
+    
+    return redirect('offers')

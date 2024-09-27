@@ -49,7 +49,7 @@ class Products(models.Model):
     image4 = models.ImageField(upload_to='media/',null=True, blank=True)
 
     def __str__(self):
-        return str(self.pk)
+        return self.name
     
 class Varients(models.Model):
     id = models.AutoField(primary_key=True)

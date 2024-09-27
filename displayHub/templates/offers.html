@@ -1,0 +1,309 @@
+{% extends "adminBase.html" %}
+
+{% load static %}
+
+{% block adminContents %}
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .button-group {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            background-color: #9A94EF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #7A74CF;
+        }
+        .offers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .offers-table th, .offers-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .offers-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .edit-icon, .delete-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        input, select {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        @media (max-width: 768px) {
+            .offers-table {
+                font-size: 14px;
+            }
+            .btn {
+                display: block;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+
+<main id="main" class="main">
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+        <h1>Offers Management</h1>
+        <div class="button-group">
+            <button id="addProductOfferBtn" class="btn">Add Product Offer</button>
+            <button id="addBrandOfferBtn" class="btn">Add Brand Offer</button>
+        </div>
+
+        <table class="offers-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Discount Value</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Applicable To</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="offersList">
+                <!-- Example row (to be replaced with dynamic content) -->
+                 {% for productOffer in productOffers  %}
+                <tr>
+                    <td>{{productOffer.name}}</td>
+                    <td>{{productOffer.discountValue}}</td>
+                    <td>{{productOffer.startDate}}</td>
+                    <td>{{productOffer.endDate}}</td>
+                    <td>{{productOffer.applicableProducts}}</td>
+                    {% if productOffer.status %}
+                    <td class="text-success">Active</td>
+                    {% else %}
+                    <td class="text-danger">Inactive</td>
+                    {% endif %}
+                    <td>
+                        <button class="edit-icon">✏️</button>
+                        <button class="delete-icon"><a onclick="confirmDelete('{% url "removeOffer" productOffer.id %}'); return false;" href="#">🗑️</a></button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for brandOffer in brandOffers  %}
+                <tr>
+                    <td>{{brandOffer.name}}</td>
+                    <td>{{brandOffer.discountValue}}</td>
+                    <td>{{brandOffer.startDate}}</td>
+                    <td>{{brandOffer.endDate}}</td>
+                    <td>{{brandOffer.applicableBrand}}</td>
+                    {% if brandOffer.status %}
+                    <td class="text-success">Active</td>
+                    {% else %}
+                    <td class="text-danger">Inactive</td>
+                    {% endif %}
+                    <td>
+                        <button class="edit-icon">✏️</button>
+                        <button class="delete-icon"><a onclick="confirmDelete('{% url "removeOffer" brandOffer.id %}'); return false;" href="#">🗑️</a></button>
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Add dynamic rows here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for Product Offer -->
+    <div id="productOfferModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeProductModal">&times;</span>
+            <h2>Add Product Offer</h2>
+            <form method="post" action="{% url 'addProductOffer' %}" id="productOfferForm">
+                {% csrf_token %}
+                <label for="productName">Name:</label>
+                <input type="text" id="productName" name="name" required>
+                
+                <label for="productDiscountValue">Discount Value (%):</label>
+                <input type="number" id="productDiscountValue" name="discountValue" step="0.01" required>
+
+                <label for="productStartDate">Start Date:</label>
+                <input type="datetime-local" id="productStartDate" name="startDate" required>
+
+                <label for="productEndDate">End Date:</label>
+                <input type="datetime-local" id="productEndDate" name="endDate" required>
+
+                <label for="applicableProducts">Applicable Product:</label>
+                <select id="applicableProducts" name="applicableProducts" required>
+                    {% for product in products %}
+                    <option value="{{product.id}}">{{product.name}}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn">Add Offer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Brand Offer -->
+    <div id="brandOfferModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeBrandModal">&times;</span>
+            <h2>Add Brand Offer</h2>
+            <form method="post" action="{% url 'addBrandOffer' %}" id="brandOfferForm">
+                {% csrf_token %}
+                <label for="brandName">Name:</label>
+                <input type="text" id="brandName" name="name" required>
+                
+                <label for="brandDiscountValue">Discount Value (%):</label>
+                <input type="number" id="brandDiscountValue" name="discountValue" step="0.01" required>
+
+                <label for="brandStartDate">Start Date:</label>
+                <input type="datetime-local" id="brandStartDate" name="startDate" required>
+
+                <label for="brandEndDate">End Date:</label>
+                <input type="datetime-local" id="brandEndDate" name="endDate" required>
+
+                <label for="applicableBrand">Applicable Brand:</label>
+                <select id="applicableBrand" name="applicableBrand" required>
+                    {% for brand in brands %}
+                    <option value="{{brand.id}}">{{brand.name}}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Add Offer</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+</section>
+</main>
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function editOffer(offerId) {
+            // Implement edit functionality
+            console.log("Editing offer with ID:", offerId);
+        }
+
+        function deleteOffer(offerId) {
+            // Implement delete functionality
+            console.log("Deleting offer with ID:", offerId);
+        }
+
+        document.getElementById("addProductOfferBtn").onclick = function() {
+            openModal("productOfferModal");
+        };
+
+        document.getElementById("addBrandOfferBtn").onclick = function() {
+            openModal("brandOfferModal");
+        };
+
+        document.getElementById("closeProductModal").onclick = function() {
+            closeModal("productOfferModal");
+        };
+
+        document.getElementById("closeBrandModal").onclick = function() {
+            closeModal("brandOfferModal");
+        };
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.className === "modal") {
+                event.target.style.display = "none";
+            }
+        }
+        function confirmDelete(url) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to Delete this Offer!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+    </script>
+    {% endblock %}
