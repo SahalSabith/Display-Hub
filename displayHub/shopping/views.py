@@ -72,51 +72,41 @@ def updateQuantity(request):
         return JsonResponse({'success': False, 'error': 'Item not found'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
-@never_cache
-@login_required(login_url='/signIn')
-def addToCart(request, pId):
-    if request.method == 'POST':
-        # Retrieve session data
-        session_data = request.session.get('product_data', None)
-        if not session_data:
-            messages.error(request, "No product data in session.")
-            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
 
-        # Retrieve product variant info from session
-        variant_id = session_data.get('variant_id')
-        quantity = int(request.POST.get('quantity', 1))
+@login_required
+@require_POST
+def addToCart(request):
+    data = json.loads(request.body)
+    variant_id = data.get('variant_id')
+    quantity = data.get('quantity', 1)
 
-        try:
-            variant = Varients.objects.get(id=variant_id)
-        except Varients.DoesNotExist:
-            messages.error(request, "Selected product variant does not exist.")
-            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
-
+    try:
+        variant = Varients.objects.get(id=variant_id)
         if variant.stock >= quantity:
-            user = request.user
-            # Get or create the user's cart
-            cart, created = Cart.objects.get_or_create(userId=user)
-
-            # Check if the item already exists in the cart
+            cart, _ = Cart.objects.get_or_create(userId=request.user)
             cart_item, created = CartItem.objects.get_or_create(
                 productId=variant.product,
                 varientId=variant,
                 cartId=cart,
-                defaults={'quantity': quantity}
+                defaults={'quantity': 0}  # Initialize quantity to 0
             )
-
-            if not created:
-                # If the item already exists, update the quantity
-                cart_item.quantity += quantity
-                cart_item.save()
-
-            messages.success(request, "Product successfully added to cart.")
-            return redirect('cart')
+            cart_item.quantity += quantity  # Add the new quantity
+            cart_item.save()
+            return JsonResponse({'success': True, 'message': 'Product added to cart'})
         else:
-            messages.error(request, "Not enough stock available.")
-            return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+            return JsonResponse({'success': False, 'message': 'Not enough stock available'})
+    except Varients.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Product variant not found'})
 
-    return HttpResponseRedirect(reverse('productInfo', args=[pId]))
+@login_required
+def checkCart(request, variant_id):
+    try:
+        variant = Varients.objects.get(id=variant_id)
+        cart = Cart.objects.get(userId=request.user)
+        in_cart = CartItem.objects.filter(cartId=cart, varientId=variant).exists()
+        return JsonResponse({'inCart': in_cart})
+    except (Varients.DoesNotExist, Cart.DoesNotExist):
+        return JsonResponse({'inCart': False})
 
 @never_cache
 @login_required(login_url='/signIn')
