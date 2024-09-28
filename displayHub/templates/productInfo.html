@@ -28,6 +28,60 @@
         fill: red;
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pId = "{{ pId }}";  // Ensure you pass the correct product ID from Django template
+        
+        fetch(`/product/${pId}/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'  // This ensures Django recognizes it as an AJAX request
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.product) {
+                // Accessing the product and variant data
+                const product = data.product;
+                const firstVariant = product.first_variant || {};  // Fallback in case no variant exists
+    
+                // Update DOM elements for product details
+                document.getElementById('product-name').innerText = product.name || 'N/A';
+                document.getElementById('price').innerText = firstVariant.price ? `₹ ${firstVariant.price}` : 'N/A';
+                document.getElementById('size').innerText = firstVariant.size ? `Size: ${firstVariant.size} inch` : 'N/A';
+                document.getElementById('refreshRate').innerText = firstVariant.refreshRate ? `Refresh Rate: ${firstVariant.refreshRate}Hz` : 'N/A';
+                document.getElementById('stock').innerText = firstVariant.stock ? `Only ${firstVariant.stock} Left` : 'N/A';
+                document.getElementById('resolution').innerText = `${product.resolution}p` || 'N/A';
+    
+                // Populate size options
+                const sizeOptionsContainer = document.getElementById('sizeOptions');
+                sizeOptionsContainer.innerHTML = ''; // Clear previous options
+                data.varientSize.forEach(size => {
+                    sizeOptionsContainer.innerHTML += `
+                        <div class="option-item">
+                            <input type="radio" id="size-${size.size_id}" name="monitorSize" value="${size.size_id}" />
+                            <label for="size-${size.size_id}">${size.size__size} inches</label>
+                        </div>
+                    `;
+                });
+    
+                // Populate refresh rate options
+                const refreshRateOptionsContainer = document.getElementById('refreshRateOptions');
+                refreshRateOptionsContainer.innerHTML = ''; // Clear previous options
+                data.varientRefreshRates.forEach(refreshRate => {
+                    refreshRateOptionsContainer.innerHTML += `
+                        <div class="option-item">
+                            <input type="radio" id="refresh-${refreshRate.refreshRate_id}" name="refreshRate" value="${refreshRate.refreshRate_id}" />
+                            <label for="refresh-${refreshRate.refreshRate_id}">${refreshRate.refreshRate__refreshRate} Hz</label>
+                        </div>
+                    `;
+                });
+            } else {
+                console.error('No product data found.');
+            }
+        })
+        .catch(error => console.error('Error fetching product data:', error));
+    });     
+</script>
 <div class="site-section">
     <div class="container">
         <div class="row">
@@ -54,37 +108,27 @@
 
             <!-- Product Information Section -->
             <div class="col-md-6 product-info-section">
-                <h2 class="productName">{{ product.name }}</h2>
-                <h6><strong id="price" class="text-primary h4">₹ {{ product.varient.first.price }}</strong></p>
-                <h6 id="size">Size: {{ product.varient.first.size.size }} inch</h6>
-                <h6>Resolution: {{ product.resolution }}p</h6>
-                <h6 id="refreshRate">Refresh Rate: {{ product.varient.first.refreshRate.refreshRate }}Hz</h6>
-                    <h6 id="stock">Only {{ product.varient.first.stock }} Left</h6>
+                <h2 class="productName" id="product-name"></h2>
+                <h6><strong id="price" class="text-primary h4"></strong></h6>
+                <h6 id="size"></h6>
+                <h6>Resolution: <span id="resolution"></span></h6>
+                <h6 id="refreshRate"></h6>
+                <h6 id="stock"></h6>                              
 
-                <!-- Variant Selection -->
-                <div class="filter-options horizontal-options">
-                    <legend>Monitor Size</legend>
-                    <div id="sizeOptions" class="option-item">
-                        {% for size in varientSize %}
-                        <div class="option-item">
-                            <input type="radio" id="size-{{ size.size_id }}" name="monitorSize" value="{{size.size_id}}" />
-                            <label for="size-{{ size.size_id }}">{{size.size__size}} inches</label>
-                        </div>
-                        {% endfor %}
-                    </div>
+            <!-- Variant Selection -->
+            <div class="filter-options horizontal-options">
+                <legend>Monitor Size</legend>
+                <div id="sizeOptions" class="option-item">
+                    <!-- Size options will be populated here by JavaScript -->
                 </div>
+            </div>
 
-                <div class="filter-options horizontal-options">
-                    <legend>Refresh Rate</legend>
-                    <div id="refreshRateOptions" class="option-item">
-                        {% for refreshrate in varientRefreshRates %}
-                        <div class="option-item">
-                            <input type="radio" id="refresh-{{ refreshrate.refreshRate_id }}" name="refreshRate" value="{{ refreshrate.refreshRate_id }}" />
-                            <label for="refresh-{{ refreshrate.refreshRate_id }}">{{ refreshrate.refreshRate__refreshRate }} Hz</label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>                          
+            <div class="filter-options horizontal-options">
+                <legend>Refresh Rate</legend>
+                <div id="refreshRateOptions" class="option-item">
+                    <!-- Refresh rate options will be populated here by JavaScript -->
+                </div>
+            </div>
               
                 <!-- Customer Reviews -->
                 <div class="star-rating d-flex">
@@ -227,7 +271,7 @@
         }
     
         function sendSelection() {
-            const pId = "{{ product.id }}";
+            const pId = "{{ pId }}";
     
             fetch(`/product/${pId}/`, {
                 method: 'POST',

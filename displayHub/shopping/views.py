@@ -173,9 +173,42 @@ def products(request):
 
 @never_cache
 def productInfo(request, pId):
-    product = Products.objects.get(id=pId)
+    product = get_object_or_404(Products, id=pId)
+    
+    # Ensure that the first variant exists before accessing it
+    first_variant = product.varient.first()
+
+    # Fetching sizes and refresh rates from the related variants
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
+
+    # Check if the request is AJAX
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if first_variant:
+            productData = {
+                'product': {
+                    'name': product.name,
+                    'resolution': product.resolution,
+                    'first_variant': {
+                        'price': first_variant.price,
+                        'size': first_variant.size.size,
+                        'refreshRate': first_variant.refreshRate.refreshRate,
+                        'stock': first_variant.stock,
+                    }
+                },
+                'varientSize': list(varientSize),
+                'varientRefreshRates': list(varientRefreshRates),
+            }
+        else:
+            productData = {
+                'product': {
+                    'name': product.name,
+                    'resolution': product.resolution,
+                },
+                'varientSize': list(varientSize),
+                'varientRefreshRates': list(varientRefreshRates),
+            }
+        return JsonResponse(productData)
 
     if request.method == 'POST':
         try:
@@ -233,42 +266,7 @@ def productInfo(request, pId):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid request format'}, status=400)
 
-    # For GET requests, return initial data
-    session_data = request.session.get('product_data', None)
-    if session_data:
-        # If there's existing session data, use it
-        context = {
-            'product': product,
-            'varientSize': varientSize,
-            'varientRefreshRates': varientRefreshRates,
-            'session_data': session_data
-        }
-    else:
-        # If no session data, use default variant data
-        default_variant = product.varient.first()
-        if default_variant:
-            request.session['product_data'] = {
-                'product_id': pId,
-                'variant_id': default_variant.id,
-                'price': default_variant.price,
-                'size': default_variant.size.size,
-                'refreshRate': default_variant.refreshRate.refreshRate,
-                'stock': default_variant.stock
-            }
-            context = {
-                'product': product,
-                'varientSize': varientSize,
-                'varientRefreshRates': varientRefreshRates,
-                'session_data': request.session['product_data']
-            }
-        else:
-            context = {
-                'product': product,
-                'varientSize': varientSize,
-                'varientRefreshRates': varientRefreshRates
-            }
-
-    return render(request, 'productInfo.html', context)
+    return render(request, 'productInfo.html',{'pId':pId})
 
 @never_cache
 @login_required(login_url='/signIn')
