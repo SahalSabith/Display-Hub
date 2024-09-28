@@ -9,119 +9,141 @@
         --border-color: #e0e0e0;
         --button-hover-color: #827ce5;
     }
+
     h1 {
         color: var(--primary-color);
         text-align: center;
         margin-bottom: 30px;
     }
-    
+
     .wishlist {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 20px;
+        padding: 0 20px;
     }
-    
+
     .wishlist-item {
-        display: flex;
-        flex-direction: column;
         background-color: var(--secondary-color);
         border: 1px solid var(--border-color);
         border-radius: 10px;
         padding: 15px;
         transition: box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
-    
+
     .wishlist-item:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     .wishlist-item img {
         width: 100%;
         height: auto;
+        max-height: 200px; /* Keeps images from being too tall */
+        object-fit: contain;
         border-radius: 10px;
     }
-    
+
     .product-details {
         text-align: center;
         margin-top: 15px;
     }
-    
+
     .product-details h2 {
+        font-size: 18px;
         margin: 0 0 10px;
     }
-    
+
     .product-details p {
-        margin: 0 0 20px;
-        font-size: 18px;
+        margin: 5px 0;
+        font-size: 16px;
         font-weight: bold;
     }
-    
-    .btn-primary, .btn-remove, .btn-secondary {
+
+    .product-variant {
+        margin: 10px 0;
+        font-size: 14px;
+        color: var(--text-color);
+    }
+
+    .btn-primary,
+    .btn-remove,
+    .btn-secondary {
         padding: 10px 15px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         font-size: 14px;
         transition: background-color 0.3s ease;
+        margin-bottom: 10px;
+        width: 100%;
     }
-    
+
     .btn-primary {
         background-color: var(--primary-color);
         color: var(--secondary-color);
     }
-    
+
     .btn-primary:hover {
         background-color: var(--button-hover-color);
     }
-    
+
     .btn-remove {
         background-color: #ff6b6b;
         color: var(--secondary-color);
-        margin-top: 10px;
     }
-    
+
     .btn-remove:hover {
         background-color: #ff4b4b;
     }
-    
-    .remove-all {
-        text-align: center;
-    }
-    
+
     .btn-secondary {
         background-color: #d3d3d3;
         color: var(--text-color);
+        width: auto;
+        margin: 0 auto;
     }
-    
+
     .btn-secondary:hover {
         background-color: #bfbfbf;
     }
-    
+
     /* Media Queries for smaller devices */
     @media (max-width: 767px) {
         .wishlist-item {
-            flex-direction: column;
+            padding: 10px;
         }
-    
-        .product-details {
-            text-align: center;
+
+        .product-details h2 {
+            font-size: 16px;
         }
-    }    
+
+        .product-details p {
+            font-size: 14px;
+        }
+    }
 </style>
+
 <div class="container mt-4">
     <h1>Your Wishlist</h1>
     <!-- Remove All Button -->
     <div class="remove-all text-center mb-4">
         <button id="removeAll" class="btn-secondary">Remove All</button>
     </div>
-    <div class="row wishlist">
-        <!-- Example Wishlist Item 1 -->
+    <div class="wishlist">
         {% for item in wishlist %}
-        <div class="wishlist-item col-12 col-md-4 mb-4">
+        <div class="wishlist-item">
             <img src="{{ item.varientId.product.image1.url }}" alt="Product Image" class="img-fluid">
             <div class="product-details">
                 <h2>{{ item.varientId.product.name }}</h2>
-                <p>{{ item.varientId.price }}</p>
+                <p>Price: {{ item.varientId.price }}₹</p>
+                <div class="product-variant">
+                    <p>Size: {{ item.varientId.size.size }} Inch</p>
+                    <p>Refresh Rate: {{ item.varientId.refreshRate.refreshRate }} Hz</p>
+                    <p>Stock: {{ item.varientId.stock }}</p>
+                </div>
                 <button class="btn-primary">Add to Cart</button>
                 <button class="btn-remove" data-variant-id="{{ item.varientId.id }}">Remove</button>
             </div>
@@ -129,36 +151,38 @@
         {% endfor %}
     </div>
 </div>
+
 <script>
     // Event listener for removing items
     document.querySelectorAll('.btn-remove').forEach(button => {
-    button.addEventListener('click', function() {
-        const variantId = this.getAttribute('data-variant-id');
-        const url = "{% url 'removeWishlsit' 0 %}".replace('0', variantId); // Replace 0 with variantId
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ variant_id: variantId })
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log("Item successfully removed from wishlist.");
-                location.reload(); // Refreshes the page to show updated wishlist
-            } else {
-                console.error('Error in the response');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        button.addEventListener('click', function() {
+            const variantId = this.getAttribute('data-variant-id');
+            const url = "{% url 'removeWishlsit' 0 %}".replace('0', variantId); 
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Item successfully removed from wishlist.");
+                    location.reload(); // Refresh the page to show updated wishlist
+                } else {
+                    console.error('Error in the response');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
-});
-    // Event listener for the "Remove All" button (optional)
+
+    // Event listener for the "Remove All" button
     document.getElementById('removeAll').addEventListener('click', function() {
-        const url = "{% url 'removeAllFromWishlist' %}"; // Define a URL for removing all items
+        const url = "{% url 'removeAllFromWishlist' %}"; 
         fetch(url, {
             method: 'POST',
             headers: {
@@ -168,7 +192,7 @@
         .then(response => {
             if (response.ok) {
                 console.log("All items removed from wishlist.");
-                location.reload(); // Refresh the page
+                location.reload(); 
             } else {
                 console.error('Error in removing all items');
             }

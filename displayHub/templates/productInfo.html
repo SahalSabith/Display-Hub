@@ -187,242 +187,222 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-    const sizeOptions = document.getElementById('sizeOptions');
-    const refreshRateOptions = document.getElementById('refreshRateOptions');
-    const priceElement = document.getElementById('price');
-    const sizeElement = document.getElementById('size');
-    const refreshRateElement = document.getElementById('refreshRate');
-    const stockElement = document.getElementById('stock');
-    const addToCartBtn = document.querySelector('.btn-primary');
-    const quantityInput = document.querySelector('input[name="quantity"]');
-    const minusBtn = document.querySelector('.js-btn-minus');
-    const plusBtn = document.querySelector('.js-btn-plus');
-    const addToCartForm = document.getElementById('addToCartForm');
-
-    let selectedSize = null;
-    let selectedRefreshRate = null;
-    let currentVariantId = null;
-
-    function updateAddToCartButton(isEnabled, isInCart) {
-    if (isInCart) {
-        addToCartBtn.textContent = 'View Cart';
-        addToCartBtn.onclick = (e) => {
-            e.preventDefault();
-            window.location.href = '/cart/';
-        };
-    } else {
-        addToCartBtn.textContent = 'Add To Cart';
-        addToCartBtn.onclick = null;
-    }
-    addToCartBtn.disabled = !isEnabled; // Disable if not enabled
-    addToCartBtn.classList.toggle('active', isEnabled);
-}
-
-    function updateStockDisplay(stock) {
-        if (stock <= 0) {
-            stockElement.textContent = 'Out of Stock';
-            stockElement.style.color = 'red';
-            updateAddToCartButton(false, false);
-        } else if (stock <= 5) {
-            stockElement.textContent = `Only ${stock} Left`;
-            stockElement.style.color = 'red';
-            updateAddToCartButton(true, false);
-        } else {
-            stockElement.textContent = `Stock Left: ${stock}`;
-            stockElement.style.color = 'black';
-            updateAddToCartButton(true, false);
+        const sizeOptions = document.getElementById('sizeOptions');
+        const refreshRateOptions = document.getElementById('refreshRateOptions');
+        const priceElement = document.getElementById('price');
+        const sizeElement = document.getElementById('size');
+        const refreshRateElement = document.getElementById('refreshRate');
+        const stockElement = document.getElementById('stock');
+        const addToCartBtn = document.querySelector('.btn-primary');
+        const quantityInput = document.querySelector('input[name="quantity"]');
+        const minusBtn = document.querySelector('.js-btn-minus');
+        const plusBtn = document.querySelector('.js-btn-plus');
+        const addToCartForm = document.getElementById('addToCartForm');
+        const wishlistBtn = document.getElementById('wishlistBtn');
+    
+        let selectedSize = null;
+        let selectedRefreshRate = null;
+        let currentVariantId = null;
+    
+        function updateAddToCartButton(isEnabled) {
+            addToCartBtn.textContent = isEnabled ? 'Add To Cart' : 'Out of Stock';
+            addToCartBtn.disabled = !isEnabled; // Disable if not enabled
+            addToCartBtn.classList.toggle('active', isEnabled);
         }
-    }
-
-    function sendSelection() {
-    const pId = "{{ product.id }}";
-
-    fetch(`/product/${pId}/`, {
-        method: 'POST',
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ size: selectedSize, refreshRate: selectedRefreshRate })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            if (data.price) {
-                priceElement.textContent = `₹ ${data.price}`;
-                sizeElement.textContent = `Size: ${data.size} inch`;
-                refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
-                updateStockDisplay(data.stock);
-                currentVariantId = data.variantId;
-                checkIfInCart(currentVariantId);
-            }
-
-            // Ensure that sizes and refresh rates are only updated if available in the response
-            if (data.refreshRates && selectedSize) {
-                updateRefreshRateOptions(data.refreshRates);
-            }
-
-            if (data.sizes) {
-                updateSizeOptions(data.sizes);
+    
+        function updateStockDisplay(stock) {
+            if (stock <= 0) {
+                stockElement.textContent = 'Out of Stock';
+                stockElement.style.color = 'red';
+                updateAddToCartButton(false);
+            } else if (stock <= 5) {
+                stockElement.textContent = `Only ${stock} Left`;
+                stockElement.style.color = 'red';
+                updateAddToCartButton(true);
+            } else {
+                stockElement.textContent = `Stock Left: ${stock}`;
+                stockElement.style.color = 'black';
+                updateAddToCartButton(true);
             }
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-function updateSizeOptions(sizes) {
-    sizeOptions.innerHTML = '';
-    sizes.forEach(size => {
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.id = `size-${size.size_id}`;
-        input.name = 'monitorSize';
-        input.value = size.size_id;
-        input.checked = size.size_id == selectedSize; // Retain the selected size
-
-        const label = document.createElement('label');
-        label.htmlFor = input.id;
-        label.textContent = `${size.size__size} inches`;
-
-        sizeOptions.appendChild(input);
-        sizeOptions.appendChild(label);
-    });
-}
-
-function updateRefreshRateOptions(refreshRates) {
-    refreshRateOptions.innerHTML = '';
-    refreshRates.forEach(rate => {
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.id = `refresh-${rate.refreshRate_id}`;
-        input.name = 'refreshRate';
-        input.value = rate.refreshRate_id;
-        input.checked = rate.refreshRate_id == selectedRefreshRate; // Retain the selected refresh rate
-
-        const label = document.createElement('label');
-        label.htmlFor = input.id;
-        label.textContent = `${rate.refreshRate__refreshRate} Hz`;
-
-        refreshRateOptions.appendChild(input);
-        refreshRateOptions.appendChild(label);
-    });
-}
-
-
-    function handleSizeChange(e) {
-        selectedSize = e.target.value;
-        selectedRefreshRate = null;
-        sendSelection();
-    }
-
-    function handleRefreshRateChange(e) {
-        selectedRefreshRate = e.target.value;
-        if (!selectedSize) {
-            selectedSize = sizeOptions.querySelector('input:checked')?.value;
-        }
-        sendSelection();
-    }
-
-    function checkIfInCart(variantId) {
-        fetch(`/check-cart/${variantId}/`)
+    
+        function sendSelection() {
+            const pId = "{{ product.id }}";
+    
+            fetch(`/product/${pId}/`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ size: selectedSize, refreshRate: selectedRefreshRate })
+            })
             .then(response => response.json())
             .then(data => {
-                updateAddToCartButton(true, data.inCart);
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    if (data.price) {
+                        priceElement.textContent = `₹ ${data.price}`;
+                        sizeElement.textContent = `Size: ${data.size} inch`;
+                        refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
+                        updateStockDisplay(data.stock);
+                        currentVariantId = data.variantId;
+                    }
+    
+                    // Ensure that sizes and refresh rates are only updated if available in the response
+                    if (data.refreshRates && selectedSize) {
+                        updateRefreshRateOptions(data.refreshRates);
+                    }
+    
+                    if (data.sizes) {
+                        updateSizeOptions(data.sizes);
+                    }
+                }
             })
             .catch(error => {
-                console.error('Error checking cart:', error);
+                console.error('Error:', error);
             });
-    }
-
-    function addToCart(event) {
-        event.preventDefault();
-        const quantity = parseInt(quantityInput.value);
-        fetch('/add-to-cart/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                variant_id: currentVariantId,
-                quantity: quantity
+        }
+    
+        function updateSizeOptions(sizes) {
+            sizeOptions.innerHTML = '';
+            sizes.forEach(size => {
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.id = `size-${size.size_id}`;
+                input.name = 'monitorSize';
+                input.value = size.size_id;
+                input.checked = size.size_id == selectedSize; // Retain the selected size
+    
+                const label = document.createElement('label');
+                label.htmlFor = input.id;
+                label.textContent = `${size.size__size} inches`;
+    
+                sizeOptions.appendChild(input);
+                sizeOptions.appendChild(label);
+            });
+        }
+    
+        function updateRefreshRateOptions(refreshRates) {
+            refreshRateOptions.innerHTML = '';
+            refreshRates.forEach(rate => {
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.id = `refresh-${rate.refreshRate_id}`;
+                input.name = 'refreshRate';
+                input.value = rate.refreshRate_id;
+                input.checked = rate.refreshRate_id == selectedRefreshRate; // Retain the selected refresh rate
+    
+                const label = document.createElement('label');
+                label.htmlFor = input.id;
+                label.textContent = `${rate.refreshRate__refreshRate} Hz`;
+    
+                refreshRateOptions.appendChild(input);
+                refreshRateOptions.appendChild(label);
+            });
+        }
+    
+        function handleSizeChange(e) {
+            selectedSize = e.target.value;
+            selectedRefreshRate = null;
+            sendSelection();
+        }
+    
+        function handleRefreshRateChange(e) {
+            selectedRefreshRate = e.target.value;
+            if (!selectedSize) {
+                selectedSize = sizeOptions.querySelector('input:checked')?.value;
+            }
+            sendSelection();
+        }
+    
+        function addToCart(event) {
+            event.preventDefault();
+            const quantity = parseInt(quantityInput.value);
+            fetch('/add-to-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    variant_id: currentVariantId,
+                    quantity: quantity
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    title: 'Added to Cart!',
-                    text: 'Product has been added to your cart.',
-                    icon: 'success',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'View Cart',
-                    cancelButtonText: 'Continue Shopping'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/cart/';
-                    }
-                });
-                updateAddToCartButton(true, true);
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error adding to cart:', error);
-            Swal.fire('Error', 'An error occurred while adding to cart', 'error');
-        });
-    }
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Added to Cart!',
+                        text: 'Product has been added to your cart.',
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'View Cart',
+                        cancelButtonText: 'Continue Shopping'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/cart/';
+                        }
+                    });
+                    updateAddToCartButton(true);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                Swal.fire('Error', 'Select A Varient', 'error');
+            });
+        }
 
-    function updateQuantity(increment) {
-        let quantity = parseInt(quantityInput.value);
-        quantity += increment;
-        if (quantity < 1) quantity = 1;
-        quantityInput.value = quantity;
-    }
-
-    sizeOptions.addEventListener('change', handleSizeChange);
-    refreshRateOptions.addEventListener('change', handleRefreshRateChange);
-    minusBtn.addEventListener('click', () => updateQuantity(-1));
-    plusBtn.addEventListener('click', () => updateQuantity(1));
-    addToCartForm.addEventListener('submit', addToCart);
-
-    const defaultSize = sizeOptions.querySelector('input');
-if (!selectedSize && defaultSize) {
-    defaultSize.checked = true;
-    selectedSize = defaultSize.value;
-    sendSelection(); // Trigger the default selection
-}
-});
+        function addToWishlist(event) {
+            event.preventDefault();
+            this.classList.toggle('active');
+            fetch('{% url "addToWishlist" %}', {
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to wishlist page after adding/removing
+                    window.location.href = '{% url "wishlist" %}';
+                } else {
+                    console.error('Error in the response');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
     
-    const wishlistBtn = document.getElementById('wishlistBtn');
-    wishlistBtn.addEventListener('click', function() {
-        this.classList.toggle('active');
+        function updateQuantity(increment) {
+            let quantity = parseInt(quantityInput.value);
+            quantity += increment;
+            if (quantity < 1) quantity = 1;
+            quantityInput.value = quantity;
+        }
     
-        fetch('{% url "addToWishlist" %}', {
-            method: 'POST',
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}"
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                // Redirect to wishlist page after adding/removing
-                window.location.href = '{% url "wishlist" %}';
-            } else {
-                console.error('Error in the response');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    });    
+        sizeOptions.addEventListener('change', handleSizeChange);
+        refreshRateOptions.addEventListener('change', handleRefreshRateChange);
+        addToCartForm.addEventListener('submit', addToCart);
+        wishlistBtn.addEventListener('click',addToWishlist);
+    
+        // Set default variant
+        const defaultVariantId = "{{ product.variants.first.id }}";
+        currentVariantId = defaultVariantId;
+        const defaultSize = sizeOptions.querySelector('input');
+        if (!selectedSize && defaultSize) {
+            defaultSize.checked = true;
+            selectedSize = defaultSize.value;
+            sendSelection(); // Trigger the default selection
+        }
+    });
 </script>
 
 {% endblock %}

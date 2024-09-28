@@ -24,6 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from decouple import config
 from datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
+from discounts.models import BrandOffer,ProductOffer
 
 # Create your views here.
 
@@ -118,19 +119,24 @@ def removeCart(request, cId):
 
 @never_cache
 def products(request):
-    productsList = Products.objects.all()
-    sort = request.GET.get('sort')
+    # Get the search query
+    query = request.GET.get('q')
 
-    sizes = Size.objects.values('size').annotate(count=models.Count('size')).order_by('size')
-    refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=models.Count('refreshRate')).order_by('refreshRate')
-    categories = Products.objects.values('category').annotate(count=models.Count('category')).order_by('category')
+    # Get all products
+    productsList = Products.objects.all()
+
+    # Filter products based on search query
+    if query:
+        productsList = productsList.filter(name__icontains=query)  # Case-insensitive search on product name
+
+    # Sorting logic
+    sort = request.GET.get('sort')
     productsList = productsList.annotate(min_price=Min('varient__price'))
 
-
     if sort == 'price_asc':
-        productsList = productsList.order_by('-min_price')
-    elif sort == 'price_desc':
         productsList = productsList.order_by('min_price')
+    elif sort == 'price_desc':
+        productsList = productsList.order_by('-min_price')
     elif sort == 'new_arrivals':
         productsList = productsList.order_by('-createdAt')
     elif sort == 'az':
@@ -138,9 +144,13 @@ def products(request):
     elif sort == 'za':
         productsList = productsList.order_by('-name')
 
+    # Filter size, refresh rates, and categories (with counts)
+    sizes = Size.objects.values('size').annotate(count=Count('size')).order_by('size')
+    refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=Count('refreshRate')).order_by('refreshRate')
+    categories = Products.objects.values('category').annotate(count=Count('category')).order_by('category')
 
-    category = Category.objects.all()
-    paginator = Paginator(productsList, 6)
+    # Pagination
+    paginator = Paginator(productsList, 6)  # 6 products per page
     page_number = request.GET.get('page')
 
     try:
@@ -148,14 +158,17 @@ def products(request):
     except:
         products_final = paginator.page(paginator.num_pages)
 
+    # Context for template
     context = {
         'products': products_final,
-        'categories': category,
+        'categories': Category.objects.all(),
         'sort': sort,
         'sizes': sizes,
-        'category':categories,
+        'category': categories,
         'refresh_rates': refreshRates,
+        'query': query,  # Pass the search query to the template
     }
+
     return render(request, 'shop.html', context)
 
 @never_cache
@@ -169,11 +182,7 @@ def productInfo(request, pId):
             data = json.loads(request.body)
             size = data.get('size')
             refreshRate = data.get('refreshRate')
-
-            # Initialize response data
             responseData = {}
-
-            # Get refresh rates related to the selected size
             if size:
                 refreshRatesForSize = Varients.objects.filter(
                     size_id=size,
@@ -182,7 +191,6 @@ def productInfo(request, pId):
 
                 responseData['refreshRates'] = list(refreshRatesForSize)
 
-            # Get sizes related to the selected refresh rate
             if refreshRate:
                 sizesForRefreshRate = Varients.objects.filter(
                     refreshRate_id=refreshRate,
@@ -191,7 +199,6 @@ def productInfo(request, pId):
 
                 responseData['size'] = list(sizesForRefreshRate)
 
-            # Get the variant based on size and refresh rate (if both are selected)
             if size and refreshRate:
                 selectedVarient = Varients.objects.filter(
                     size_id=size,
@@ -200,19 +207,20 @@ def productInfo(request, pId):
                 ).first()
 
                 if selectedVarient:
+                    productAmount= selectedVarient.price
+
                     responseData.update({
-                        'price': selectedVarient.price,
+                        'price': productAmount,
                         'size': selectedVarient.size.size,
                         'refreshRate': selectedVarient.refreshRate.refreshRate,
                         'stock': selectedVarient.stock,
                         'variantId': selectedVarient.id
                     })
                     
-                    # Save the selected variant data to the session
                     request.session['product_data'] = {
                         'product_id': pId,
                         'variant_id': selectedVarient.id,
-                        'price': selectedVarient.price,
+                        'price': productAmount,
                         'size': selectedVarient.size.size,
                         'refreshRate': selectedVarient.refreshRate.refreshRate,
                         'stock': selectedVarient.stock

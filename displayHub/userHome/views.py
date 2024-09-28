@@ -29,41 +29,39 @@ def wishlist(request):
 @never_cache
 @login_required(login_url='/signIn')
 def addToWishlist(request):
-# Ensure the request is a POST request
     if request.method == 'POST':
         user = request.user
         
-        # Retrieve session data
         session_data = request.session.get('product_data', None)
         if not session_data:
             messages.error(request, "No product data in session.")
             return JsonResponse({'error': "No product data in session."}, status=400)
         
-        # Retrieve product variant info from session
         variant_id = session_data.get('variant_id')
         
-        # Check if the variant exists in the database
         try:
             variant = Varients.objects.get(id=variant_id)
         except Varients.DoesNotExist:
             messages.error(request, "Selected product variant does not exist.")
             return JsonResponse({'error': "No product data in session."}, status=400)
 
-        # Create or retrieve the wishlist item for the user
         Wishlist.objects.get_or_create(userId=user, varientId=variant)
+        if 'product_data' in request.session:
+            print(session_data)
+            del request.session['product_data']
+            print('session cleared')
 
         messages.success(request, "Product successfully added to wishlist.")
-        return redirect('wishlist')  # Assuming 'wishlist' is the name of your wishlist page
-
-    # If it's not a POST request, redirect to the product page
+        return redirect('wishlist')
+    
     return JsonResponse({'error': "No product data in session."}, status=405)
 
 @never_cache
 @login_required(login_url='/signIn')
 def removeWishlsit(request,vId):
     if request.method == 'POST':
-        user = request.user# Load JSON data from the request body
-        variant_id = vId  # Get variant_id from the data
+        user = request.user
+        variant_id = vId
         
         try:
             wishlistItem = Wishlist.objects.get(varientId=variant_id, userId=user)
@@ -74,7 +72,6 @@ def removeWishlsit(request,vId):
             messages.error(request, "Selected product variant does not exist in your wishlist.")
             return JsonResponse({'error': "No product found in wishlist."}, status=404)
         
-    # If it's not a POST request, return an error
     return JsonResponse({'error': "Invalid request method."}, status=405)
 
 @never_cache
