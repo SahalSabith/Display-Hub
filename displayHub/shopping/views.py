@@ -175,39 +175,31 @@ def products(request):
 def productInfo(request, pId):
     product = get_object_or_404(Products, id=pId)
     
-    # Ensure that the first variant exists before accessing it
     first_variant = product.varient.first()
-
-    # Fetching sizes and refresh rates from the related variants
     varientSize = product.varient.values('size_id', 'size__size').distinct()
     varientRefreshRates = product.varient.values('refreshRate_id', 'refreshRate__refreshRate').distinct()
 
-    # Check if the request is AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        if first_variant:
-            productData = {
-                'product': {
-                    'name': product.name,
-                    'resolution': product.resolution,
-                    'first_variant': {
-                        'price': first_variant.price,
-                        'size': first_variant.size.size,
-                        'refreshRate': first_variant.refreshRate.refreshRate,
-                        'stock': first_variant.stock,
-                    }
-                },
-                'varientSize': list(varientSize),
-                'varientRefreshRates': list(varientRefreshRates),
-            }
-        else:
-            productData = {
-                'product': {
-                    'name': product.name,
-                    'resolution': product.resolution,
-                },
-                'varientSize': list(varientSize),
-                'varientRefreshRates': list(varientRefreshRates),
-            }
+        productData = {
+            'product': {
+                'name': product.name,
+                'resolution': product.resolution,
+                'images': [
+                    product.image1.url if product.image1 else None,
+                    product.image2.url if product.image2 else None,
+                    product.image3.url if product.image3 else None,
+                    product.image4.url if product.image4 else None
+                ],
+                'first_variant': {
+                    'price': first_variant.price,
+                    'size': first_variant.size.size,
+                    'refreshRate': first_variant.refreshRate.refreshRate,
+                    'stock': first_variant.stock,
+                } if first_variant else None
+            },
+            'varientSize': list(varientSize),
+            'varientRefreshRates': list(varientRefreshRates),
+        }
         return JsonResponse(productData)
 
     if request.method == 'POST':

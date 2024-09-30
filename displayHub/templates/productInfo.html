@@ -3,6 +3,13 @@
 {% load static %}
 <link rel="stylesheet" href="{% static "css/productInfo.css" %}">
 <style>
+    .main-image {
+        overflow: hidden;
+    }
+    
+    .zoomable {
+        transition: transform 0.5s ease;
+    }
     .wishlist-btn {
         background-color: transparent;
         border: none;
@@ -28,81 +35,16 @@
         fill: red;
     }
 </style>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const pId = "{{ pId }}";  // Ensure you pass the correct product ID from Django template
-        
-        fetch(`/product/${pId}/`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'  // This ensures Django recognizes it as an AJAX request
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.product) {
-                // Accessing the product and variant data
-                const product = data.product;
-                const firstVariant = product.first_variant || {};  // Fallback in case no variant exists
-    
-                // Update DOM elements for product details
-                document.getElementById('product-name').innerText = product.name || 'N/A';
-                document.getElementById('price').innerText = firstVariant.price ? `₹ ${firstVariant.price}` : 'N/A';
-                document.getElementById('size').innerText = firstVariant.size ? `Size: ${firstVariant.size} inch` : 'N/A';
-                document.getElementById('refreshRate').innerText = firstVariant.refreshRate ? `Refresh Rate: ${firstVariant.refreshRate}Hz` : 'N/A';
-                document.getElementById('stock').innerText = firstVariant.stock ? `Only ${firstVariant.stock} Left` : 'N/A';
-                document.getElementById('resolution').innerText = `${product.resolution}p` || 'N/A';
-    
-                // Populate size options
-                const sizeOptionsContainer = document.getElementById('sizeOptions');
-                sizeOptionsContainer.innerHTML = ''; // Clear previous options
-                data.varientSize.forEach(size => {
-                    sizeOptionsContainer.innerHTML += `
-                        <div class="option-item">
-                            <input type="radio" id="size-${size.size_id}" name="monitorSize" value="${size.size_id}" />
-                            <label for="size-${size.size_id}">${size.size__size} inches</label>
-                        </div>
-                    `;
-                });
-    
-                // Populate refresh rate options
-                const refreshRateOptionsContainer = document.getElementById('refreshRateOptions');
-                refreshRateOptionsContainer.innerHTML = ''; // Clear previous options
-                data.varientRefreshRates.forEach(refreshRate => {
-                    refreshRateOptionsContainer.innerHTML += `
-                        <div class="option-item">
-                            <input type="radio" id="refresh-${refreshRate.refreshRate_id}" name="refreshRate" value="${refreshRate.refreshRate_id}" />
-                            <label for="refresh-${refreshRate.refreshRate_id}">${refreshRate.refreshRate__refreshRate} Hz</label>
-                        </div>
-                    `;
-                });
-            } else {
-                console.error('No product data found.');
-            }
-        })
-        .catch(error => console.error('Error fetching product data:', error));
-    });     
-</script>
 <div class="site-section">
     <div class="container">
         <div class="row">
             <!-- Thumbnails and Main Image -->
             <div class="col-md-6 d-flex">
                 <div class="thumbnails col-3 d-flex flex-column">
-                    {% if product.image1 %}
-                        <img src="{{ product.image1.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image1.url }}')">
-                    {% endif %}
-                    {% if product.image2 %}
-                        <img src="{{ product.image2.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image2.url }}')">
-                    {% endif %}
-                    {% if product.image3 %}
-                        <img src="{{ product.image3.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image3.url }}')">
-                    {% endif %}
-                    {% if product.image4 %}
-                        <img src="{{ product.image4.url }}" class="thumbnail-img mb-2" onclick="updateMainImage('{{ product.image4.url }}')">
-                    {% endif %}
+                    <!-- Thumbnails will be populated by JavaScript -->
                 </div>
                 <div class="main-image col-9">
-                    <img id="mainImage" src="{{ product.image1.url }}" alt="Product Image" class="img-fluid zoomable" onmousemove="zoomImage(event)" onmouseleave="resetZoom()">
+                    <img id="mainImage" src="" alt="Product Image" class="img-fluid zoomable" onmousemove="zoomImage(event)" onmouseleave="resetZoom(event)">
                 </div>
             </div>
 
@@ -113,22 +55,22 @@
                 <h6 id="size"></h6>
                 <h6>Resolution: <span id="resolution"></span></h6>
                 <h6 id="refreshRate"></h6>
-                <h6 id="stock"></h6>                              
+                <h6 id="stock"></h6>
 
-            <!-- Variant Selection -->
-            <div class="filter-options horizontal-options">
-                <legend>Monitor Size</legend>
-                <div id="sizeOptions" class="option-item">
-                    <!-- Size options will be populated here by JavaScript -->
+                <!-- Variant Selection -->
+                <div class="filter-options horizontal-options">
+                    <legend>Monitor Size</legend>
+                    <div id="sizeOptions" class="option-item">
+                        <!-- Size options will be populated here by JavaScript -->
+                    </div>
                 </div>
-            </div>
 
-            <div class="filter-options horizontal-options">
-                <legend>Refresh Rate</legend>
-                <div id="refreshRateOptions" class="option-item">
-                    <!-- Refresh rate options will be populated here by JavaScript -->
+                <div class="filter-options horizontal-options">
+                    <legend>Refresh Rate</legend>
+                    <div id="refreshRateOptions" class="option-item">
+                        <!-- Refresh rate options will be populated here by JavaScript -->
+                    </div>
                 </div>
-            </div>
               
                 <!-- Customer Reviews -->
                 <div class="star-rating d-flex">
@@ -215,238 +157,319 @@
 </div>
 
 <script>
-    function updateMainImage(src) {
-        const mainImage = document.getElementById('mainImage');
-        mainImage.src = src;
+        function updateMainImage(imageUrl) {
+        document.getElementById('mainImage').src = imageUrl;
     }
-
+    
+    // Zoom functionality
     function zoomImage(event) {
-        const img = event.target;
-        img.classList.add('zoomed');
+        const image = event.currentTarget;
+        const zoomer = event.currentTarget.parentElement;
+        const offsetX = event.offsetX;
+        const offsetY = event.offsetY;
+        const x = offsetX / zoomer.offsetWidth * 100;
+        const y = offsetY / zoomer.offsetHeight * 100;
+        image.style.transformOrigin = `${x}% ${y}%`;
+        image.style.transform = "scale(2)";
     }
-
-    function resetZoom() {
-        const img = document.getElementById('mainImage');
-        img.classList.remove('zoomed');
+    
+    function resetZoom(event) {
+        const image = event.currentTarget;
+        image.style.transformOrigin = "center center";
+        image.style.transform = "scale(1)";
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const sizeOptions = document.getElementById('sizeOptions');
-        const refreshRateOptions = document.getElementById('refreshRateOptions');
-        const priceElement = document.getElementById('price');
-        const sizeElement = document.getElementById('size');
-        const refreshRateElement = document.getElementById('refreshRate');
-        const stockElement = document.getElementById('stock');
-        const addToCartBtn = document.querySelector('.btn-primary');
-        const quantityInput = document.querySelector('input[name="quantity"]');
-        const minusBtn = document.querySelector('.js-btn-minus');
-        const plusBtn = document.querySelector('.js-btn-plus');
-        const addToCartForm = document.getElementById('addToCartForm');
-        const wishlistBtn = document.getElementById('wishlistBtn');
-    
-        let selectedSize = null;
-        let selectedRefreshRate = null;
-        let currentVariantId = null;
-    
-        function updateAddToCartButton(isEnabled) {
-            addToCartBtn.textContent = isEnabled ? 'Add To Cart' : 'Out of Stock';
-            addToCartBtn.disabled = !isEnabled; // Disable if not enabled
-            addToCartBtn.classList.toggle('active', isEnabled);
+    const pId = "{{ pId }}";
+    const sizeOptions = document.getElementById('sizeOptions');
+    const refreshRateOptions = document.getElementById('refreshRateOptions');
+    const priceElement = document.getElementById('price');
+    const sizeElement = document.getElementById('size');
+    const refreshRateElement = document.getElementById('refreshRate');
+    const stockElement = document.getElementById('stock');
+    const addToCartBtn = document.querySelector('.btn-primary');
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    const minusBtn = document.querySelector('.js-btn-minus');
+    const plusBtn = document.querySelector('.js-btn-plus');
+    const addToCartForm = document.getElementById('addToCartForm');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+
+    let selectedSize = null;
+    let selectedRefreshRate = null;
+    let currentVariantId = null;
+    let currentStock = 0;
+
+    function updateAddToCartButton(isEnabled) {
+        addToCartBtn.textContent = isEnabled ? 'Add To Cart' : 'Out of Stock';
+        addToCartBtn.disabled = !isEnabled;
+        addToCartBtn.classList.toggle('active', isEnabled);
+    }
+
+    function updateStockDisplay(stock) {
+        currentStock = stock;
+        if (stock <= 0) {
+            stockElement.textContent = 'Out of Stock';
+            stockElement.style.color = 'red';
+            updateAddToCartButton(false);
+        } else if (stock <= 5) {
+            stockElement.textContent = `Only ${stock} Left`;
+            stockElement.style.color = 'red';
+            updateAddToCartButton(true);
+        } else {
+            stockElement.textContent = `Stock Left: ${stock}`;
+            stockElement.style.color = 'black';
+            updateAddToCartButton(true);
         }
-    
-        function updateStockDisplay(stock) {
-            if (stock <= 0) {
-                stockElement.textContent = 'Out of Stock';
-                stockElement.style.color = 'red';
-                updateAddToCartButton(false);
-            } else if (stock <= 5) {
-                stockElement.textContent = `Only ${stock} Left`;
-                stockElement.style.color = 'red';
-                updateAddToCartButton(true);
+    }
+
+    function sendSelection() {
+        fetch(`/product/${pId}/`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ size: selectedSize, refreshRate: selectedRefreshRate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                Swal.fire('Error', data.error, 'error');
             } else {
-                stockElement.textContent = `Stock Left: ${stock}`;
-                stockElement.style.color = 'black';
-                updateAddToCartButton(true);
-            }
-        }
-    
-        function sendSelection() {
-            const pId = "{{ pId }}";
-    
-            fetch(`/product/${pId}/`, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({ size: selectedSize, refreshRate: selectedRefreshRate })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    if (data.price) {
-                        priceElement.textContent = `₹ ${data.price}`;
-                        sizeElement.textContent = `Size: ${data.size} inch`;
-                        refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
-                        updateStockDisplay(data.stock);
-                        currentVariantId = data.variantId;
-                    }
-    
-                    // Ensure that sizes and refresh rates are only updated if available in the response
-                    if (data.refreshRates && selectedSize) {
-                        updateRefreshRateOptions(data.refreshRates);
-                    }
-    
-                    if (data.sizes) {
-                        updateSizeOptions(data.sizes);
-                    }
+                if (data.price) {
+                    priceElement.textContent = `₹ ${data.price}`;
+                    sizeElement.textContent = `Size: ${data.size} inch`;
+                    refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
+                    updateStockDisplay(data.stock);
+                    currentVariantId = data.variantId;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    
-        function updateSizeOptions(sizes) {
-            sizeOptions.innerHTML = '';
-            sizes.forEach(size => {
-                const input = document.createElement('input');
-                input.type = 'radio';
-                input.id = `size-${size.size_id}`;
-                input.name = 'monitorSize';
-                input.value = size.size_id;
-                input.checked = size.size_id == selectedSize; // Retain the selected size
-    
-                const label = document.createElement('label');
-                label.htmlFor = input.id;
-                label.textContent = `${size.size__size} inches`;
-    
-                sizeOptions.appendChild(input);
-                sizeOptions.appendChild(label);
-            });
-        }
-    
-        function updateRefreshRateOptions(refreshRates) {
-            refreshRateOptions.innerHTML = '';
-            refreshRates.forEach(rate => {
-                const input = document.createElement('input');
-                input.type = 'radio';
-                input.id = `refresh-${rate.refreshRate_id}`;
-                input.name = 'refreshRate';
-                input.value = rate.refreshRate_id;
-                input.checked = rate.refreshRate_id == selectedRefreshRate; // Retain the selected refresh rate
-    
-                const label = document.createElement('label');
-                label.htmlFor = input.id;
-                label.textContent = `${rate.refreshRate__refreshRate} Hz`;
-    
-                refreshRateOptions.appendChild(input);
-                refreshRateOptions.appendChild(label);
-            });
-        }
-    
-        function handleSizeChange(e) {
-            selectedSize = e.target.value;
-            selectedRefreshRate = null;
-            sendSelection();
-        }
-    
-        function handleRefreshRateChange(e) {
-            selectedRefreshRate = e.target.value;
-            if (!selectedSize) {
-                selectedSize = sizeOptions.querySelector('input:checked')?.value;
-            }
-            sendSelection();
-        }
-    
-        function addToCart(event) {
-            event.preventDefault();
-            const quantity = parseInt(quantityInput.value);
-            fetch('/add-to-cart/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    variant_id: currentVariantId,
-                    quantity: quantity
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        title: 'Added to Cart!',
-                        text: 'Product has been added to your cart.',
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'View Cart',
-                        cancelButtonText: 'Continue Shopping'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '/cart/';
-                        }
-                    });
-                    updateAddToCartButton(true);
-                } else {
-                    Swal.fire('Error', data.message, 'error');
+
+                if (data.refreshRates && selectedSize) {
+                    updateRefreshRateOptions(data.refreshRates);
                 }
-            })
-            .catch(error => {
-                console.error('Error adding to cart:', error);
-                Swal.fire('Error', 'Select A Varient', 'error');
-            });
+
+                if (data.sizes) {
+                    updateSizeOptions(data.sizes);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred while fetching product data', 'error');
+        });
+    }
+
+    function updateSizeOptions(sizes) {
+        sizeOptions.innerHTML = '';
+        sizes.forEach(size => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.id = `size-${size.size_id}`;
+            input.name = 'monitorSize';
+            input.value = size.size_id;
+            input.checked = size.size_id == selectedSize;
+
+            const label = document.createElement('label');
+            label.htmlFor = input.id;
+            label.textContent = `${size.size__size} inches`;
+
+            div.appendChild(input);
+            div.appendChild(label);
+            sizeOptions.appendChild(div);
+        });
+    }
+
+    function updateRefreshRateOptions(refreshRates) {
+        refreshRateOptions.innerHTML = '';
+        refreshRates.forEach(rate => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.id = `refresh-${rate.refreshRate_id}`;
+            input.name = 'refreshRate';
+            input.value = rate.refreshRate_id;
+            input.checked = rate.refreshRate_id == selectedRefreshRate;
+
+            const label = document.createElement('label');
+            label.htmlFor = input.id;
+            label.textContent = `${rate.refreshRate__refreshRate} Hz`;
+
+            div.appendChild(input);
+            div.appendChild(label);
+            refreshRateOptions.appendChild(div);
+        });
+    }
+
+    function handleSizeChange(e) {
+        selectedSize = e.target.value;
+        selectedRefreshRate = null;
+        sendSelection();
+    }
+
+    function handleRefreshRateChange(e) {
+        selectedRefreshRate = e.target.value;
+        sendSelection();
+    }
+
+    function addToCart(event) {
+        event.preventDefault();
+        const quantity = parseInt(quantityInput.value);
+        
+        if (quantity > currentStock) {
+            Swal.fire('Error', 'Requested quantity exceeds available stock', 'error');
+            return;
+        }
+        
+        if (!currentVariantId) {
+            Swal.fire('Error', 'Please select a variant', 'error');
+            return;
         }
 
-        function addToWishlist(event) {
-            event.preventDefault();
-            this.classList.toggle('active');
-            fetch('{% url "addToWishlist" %}', {
-                method: 'POST',
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}"
-                }
+        fetch('/add-to-cart/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                variant_id: currentVariantId,
+                quantity: quantity
             })
-            .then(response => {
-                if (response.ok) {
-                    // Redirect to wishlist page after adding/removing
-                    window.location.href = '{% url "wishlist" %}';
-                } else {
-                    console.error('Error in the response');
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Added to Cart!',
+                    text: 'Product has been added to your cart.',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'View Cart',
+                    cancelButtonText: 'Continue Shopping'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/cart/';
+                    }
+                });
+                updateAddToCartButton(true);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            Swal.fire('Error', 'An error occurred while adding to cart', 'error');
+        });
+    }
+
+    function addToWishlist(event) {
+        event.preventDefault();
+        this.classList.toggle('active');
+        fetch('{% url "addToWishlist" %}', {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '{% url "wishlist" %}';
+            } else {
+                console.error('Error in the response');
+                Swal.fire('Error', 'Select A Varient', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred while adding to wishlist', 'error');
+        });
+    }
+
+    function updateQuantity(increment) {
+        let quantity = parseInt(quantityInput.value);
+        if (quantity < 1) quantity = 1;
+        if (quantity >= currentStock) {
+            Swal.fire('Warning', 'Requested quantity exceeds available stock', 'warning');
+            quantity = quantity-1;
+        }
+        quantityInput.value = quantity;
+    }
+
+    sizeOptions.addEventListener('change', handleSizeChange);
+    refreshRateOptions.addEventListener('change', handleRefreshRateChange);
+    addToCartForm.addEventListener('submit', addToCart);
+    wishlistBtn.addEventListener('click', addToWishlist);
+    minusBtn.addEventListener('click', () => updateQuantity(-1));
+    plusBtn.addEventListener('click', () => updateQuantity(1));
+
+    // Set default variant
+    const defaultSize = sizeOptions.querySelector('input');
+    if (defaultSize) {
+        defaultSize.checked = true;
+        selectedSize = defaultSize.value;
+        sendSelection();
+    }
+
+    // Initial product data fetch
+    fetch(`/product/${pId}/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.product) {
+            const product = data.product;
+            const firstVariant = product.first_variant || {};
+
+            document.getElementById('product-name').innerText = product.name || 'N/A';
+            priceElement.innerText = firstVariant.price ? `₹ ${firstVariant.price}` : 'N/A';
+            sizeElement.innerText = firstVariant.size ? `Size: ${firstVariant.size} inch` : 'N/A';
+            refreshRateElement.innerText = firstVariant.refreshRate ? `Refresh Rate: ${firstVariant.refreshRate}Hz` : 'N/A';
+            updateStockDisplay(firstVariant.stock || 0);
+            document.getElementById('resolution').innerText = `${product.resolution}p` || 'N/A';
+
+            updateSizeOptions(data.varientSize);
+            updateRefreshRateOptions(data.varientRefreshRates);
+
+            const thumbnailContainer = document.querySelector('.thumbnails');
+            thumbnailContainer.innerHTML = '';
+            const mainImage = document.getElementById('mainImage');
+
+            product.images.forEach((imageUrl, index) => {
+                if (imageUrl) {
+                    const thumbnail = document.createElement('img');
+                    thumbnail.src = imageUrl;
+                    thumbnail.className = 'thumbnail-img mb-2';
+                    thumbnail.onclick = () => updateMainImage(imageUrl);
+                    thumbnailContainer.appendChild(thumbnail);
+
+                    if (index === 0) {
+                        mainImage.src = imageUrl;
+                    }
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
+        } else {
+            console.error('No product data found.');
+            Swal.fire('Error', 'No product data found', 'error');
         }
-    
-        function updateQuantity(increment) {
-            let quantity = parseInt(quantityInput.value);
-            quantity += increment;
-            if (quantity < 1) quantity = 1;
-            quantityInput.value = quantity;
-        }
-    
-        sizeOptions.addEventListener('change', handleSizeChange);
-        refreshRateOptions.addEventListener('change', handleRefreshRateChange);
-        addToCartForm.addEventListener('submit', addToCart);
-        wishlistBtn.addEventListener('click',addToWishlist);
-    
-        // Set default variant
-        const defaultVariantId = "{{ product.variants.first.id }}";
-        currentVariantId = defaultVariantId;
-        const defaultSize = sizeOptions.querySelector('input');
-        if (!selectedSize && defaultSize) {
-            defaultSize.checked = true;
-            selectedSize = defaultSize.value;
-            sendSelection(); // Trigger the default selection
-        }
+    })
+    .catch(error => {
+        console.error('Error fetching product data:', error);
+        Swal.fire('Error', 'An error occurred while fetching product data', 'error');
     });
+});
+
+function updateMainImage(imageUrl) {
+    document.getElementById('mainImage').src = imageUrl;
+}
 </script>
 
 {% endblock %}
