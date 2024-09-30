@@ -396,73 +396,73 @@
                         rzp.open();
                     }
                 });
-          } else if (selectedPayment === 'wallet') {
-            fetchWalletBalance()
-              .then(balance => showWalletModal(balance, finalOrderPrice))
-              .then(() => {
-                // Wallet payment approved
-                return fetch("{% url 'process_wallet_payment' %}", {
-                  method: 'POST',
-                  body: JSON.stringify({ finalOrderPrice }),
-                  headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                  },
-                });
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.status === 'success') {
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Successful',
-                    text: 'Your order has been placed successfully!',
-                  }).then(() => {
-                    window.location.href = "{% url 'order' %}";
+            } else if (selectedPayment === 'wallet') {
+              fetchWalletBalance()
+                .then(balance => showWalletModal(balance, finalOrderPrice))
+                .then(() => {
+                  // Wallet payment approved
+                  return fetch("{% url 'process_wallet_payment' %}", {
+                    method: 'POST',
+                    body: JSON.stringify({ finalOrderPrice }),
+                    headers: {
+                      'X-CSRFToken': '{{ csrf_token }}',
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                    },
                   });
-                } else {
-                  throw new Error(data.message);
-                }
-              })
-              .catch(error => {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Oops...',
-                  text: error.message || "Something went wrong with the wallet payment!",
+                })
+                .then(response => response.json())
+                .then(data => {
+                  if (data.status === 'success') {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Payment Successful',
+                      text: 'Your order has been placed successfully!',
+                    }).then(() => {
+                      window.location.href = "{% url 'order' %}";
+                    });
+                  } else {
+                    throw new Error(data.message);
+                  }
+                })
+                .catch(error => {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.message || "Something went wrong with the wallet payment!",
+                  });
                 });
+            } else if (selectedPayment === 'cashOnDelivery') {
+              Swal.fire({
+                title: 'Confirm Cash on Delivery?',
+                text: "You will place the order for Cash on Delivery.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'No, cancel!',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = "{% url 'order' %}";
+                }
               });
-          } else if (selectedPayment === 'cashOnDelivery') {
+            }
+          } else {
             Swal.fire({
-              title: 'Confirm Cash on Delivery?',
-              text: "You will place the order for Cash on Delivery.",
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonText: 'Yes, proceed!',
-              cancelButtonText: 'No, cancel!',
-            }).then((result) => {
-              if (result.isConfirmed) {
-                window.location.href = "{% url 'order' %}";
-              }
+              icon: 'error',
+              title: 'Oops...',
+              text: data.message,
             });
           }
-        } else {
+        })
+        .catch(error => {
+          console.error("Error:", error);
           Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            text: data.message,
+            text: error.message || "Something went wrong!",
           });
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: error.message || "Something went wrong!",
         });
       });
-    });
   const removeCouponBtn = document.getElementById('removeCouponBtn')
   removeCouponBtn.addEventListener('click', () => {
     const totalAmount = {{cart.cartTotal}}

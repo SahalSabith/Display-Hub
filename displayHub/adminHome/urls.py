@@ -21,4 +21,5 @@ from . import views
 urlpatterns = [
     path('admin/',views.dashboard,name='admin'),
     path('admin/users',views.allUsers,name='allUsers'),
+    path('sales-report/',views.generate_sales_report, name='generate_sales_report'),
 ]

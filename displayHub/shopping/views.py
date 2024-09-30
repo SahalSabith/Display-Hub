@@ -185,13 +185,24 @@ def productInfo(request, pId):
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         productAmount = first_variant.price
+        current_time = timezone.now()
         try:
             try:  
-                offer = ProductOffer.objects.get(applicableProducts=pId)
+                offer = ProductOffer.objects.get(
+                    applicableProducts=pId,
+                    startDate__lte=current_time,
+                    endDate__gte=current_time,
+                    status=True
+                    )
                 offerValue = offer.discountValue
             except ObjectDoesNotExist:
                 brand = first_variant.product.brand
-                offer = BrandOffer.objects.get(applicableBrand=brand)
+                offer = BrandOffer.objects.get(
+                    applicableBrand=brand,
+                    startDate__lte=current_time,
+                    endDate__gte=current_time,
+                    status=True
+                )
                 offerValue = offer.discountValue
                 print(brand)
 
@@ -280,11 +291,21 @@ def productInfo(request, pId):
                     try:
                         try:
                             brand = selectedVarient.product.brand
-                            offer = BrandOffer.objects.get(applicableBrand=brand)
+                            offer = BrandOffer.objects.get(
+                                applicableBrand=brand,
+                                startDate__lte=current_time,
+                                endDate__gte=current_time,
+                                status=True
+                                )
                             offerValue = offer.discountValue
                             print(brand)
                         except ObjectDoesNotExist:
-                            offer = ProductOffer.objects.get(applicableProducts=pId)
+                            offer = ProductOffer.objects.get(
+                                applicableProducts=pId,
+                                startDate__lte=current_time,
+                                endDate__gte=current_time,
+                                status=True
+                                )
                             offerValue = offer.discountValue
 
                         offerAmount = (productAmount * offerValue) / 100
@@ -539,18 +560,18 @@ def razorpay_callback(request):
 
             # Fetch the corresponding order in your system
             order = Order.objects.get(provider_order_id=provider_order_id)
-            order.payment_id = payment_id
-            order.signature_id = signature_id
+            order.pamentId = payment_id
+            order.signatreId = signature_id
 
             # Verify the signature
             if verify_signature(request.POST):
                 # Signature is valid, mark payment as successful
-                order.order_status = "SUCCESS"
+                order.orderStatus = "SUCCESS"
                 order.save()
                 return render(request, "callback.html", context={"status": "success"})
             else:
                 # Invalid signature, mark payment as failed
-                order.order_status = "FAILURE"
+                order.orderStatus = "FAILURE"
                 order.save()
                 return render(request, "callback.html", context={"status": "failure"})
         else:
@@ -561,8 +582,8 @@ def razorpay_callback(request):
 
             # Fetch the corresponding order
             order = Order.objects.get(provider_order_id=provider_order_id)
-            order.payment_id = payment_id
-            order.order_status = "FAILURE"
+            order.pamentId = payment_id
+            order.orderStatus = "FAILURE"
             order.save()
 
             return render(request, "callback.html", context={"status": "failure"})
