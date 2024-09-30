@@ -45,7 +45,7 @@
                 </td>
                 <td class="product-refreshrate">{{ item.varientId.refreshRate.refreshRate }}Hz</td>
                 <td class="product-size">{{ item.varientId.size.size }}Inch</td>
-                <td class="product-price">₹{{ item.varientId.price }}</td>
+                <td class="product-price">₹{{ item.price }}</td>
                 <td>
                   <div class="input-group mb-3" style="max-width: 120px;">
                     <div class="input-group-prepend">
@@ -166,7 +166,7 @@
           quantity = stock;
         }
       } else if (event.target.classList.contains('js-btn-minus')) {
-        if (quantity > 1) {
+        if (quantity >= 1) {
           
         } else {
           Swal.fire({

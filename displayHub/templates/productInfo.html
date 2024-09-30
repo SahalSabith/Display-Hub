@@ -51,7 +51,10 @@
             <!-- Product Information Section -->
             <div class="col-md-6 product-info-section">
                 <h2 class="productName" id="product-name"></h2>
-                <h6><strong id="price" class="text-primary h4"></strong></h6>
+                <div class="d-flex">
+                    <h6><strong id="price" class="text-primary h4"></strong></h6>
+                    <h6><p class="text-primary mx-3 h4 text-danger"><s id="orginalPrice">jgh</s></p></h6>
+                </div>
                 <h6 id="size"></h6>
                 <h6>Resolution: <span id="resolution"></span></h6>
                 <h6 id="refreshRate"></h6>
@@ -330,6 +333,9 @@
             return;
         }
 
+        const priceContent = priceElement.textContent;
+        finalPrice = parseFloat(priceContent.replace('₹','').trim());
+
         fetch('/add-to-cart/', {
             method: 'POST',
             headers: {
@@ -338,7 +344,8 @@
             },
             body: JSON.stringify({
                 variant_id: currentVariantId,
-                quantity: quantity
+                quantity: quantity,
+                price:finalPrice
             })
         })
         .then(response => response.json())
@@ -376,7 +383,10 @@
             method: 'POST',
             headers: {
                 "X-CSRFToken": "{{ csrf_token }}"
-            }
+            },
+            body: JSON.stringify({
+                variant_id: currentVariantId,
+            })
         })
         .then(response => {
             if (response.ok) {
@@ -428,6 +438,13 @@
         if (data.product) {
             const product = data.product;
             const firstVariant = product.first_variant || {};
+            orginalPrice = document.getElementById('orginalPrice')
+
+            if (product.offerStatus === true) {
+                orginalPrice.innerText = `₹ ${firstVariant.orginalAmount}`
+            } else {
+                orginalPrice.style.display = 'none'
+            };
 
             document.getElementById('product-name').innerText = product.name || 'N/A';
             priceElement.innerText = firstVariant.price ? `₹ ${firstVariant.price}` : 'N/A';

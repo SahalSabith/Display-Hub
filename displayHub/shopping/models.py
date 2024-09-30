@@ -27,9 +27,10 @@ class CartItem(models.Model):
     varientId = models.ForeignKey(Varients,on_delete=models.CASCADE)
     quantity = models.IntegerField()
     cartId = models.ForeignKey(Cart,on_delete=models.CASCADE)
+    price = models.FloatField()
 
     def cartItemTotal(self):
-        total = self.varientId.price * self.quantity
+        total = self.price * self.quantity
         return total
     
     def __str__(self):
@@ -58,7 +59,7 @@ class Order(models.Model):
         ('wallet','Wallet'),
         ('internetBanking','InternetBanking')
     ]
-    paymentMethod = models.CharField(max_length=20,choices=payments,default='cashOnDelivery')
+    paymentMethod = models.CharField(max_length=20,choices=payments)
     orderNo = models.CharField(max_length=10,unique=True)
     totalPrice = models.IntegerField(default=0)
     cancelReason = models.TextField()

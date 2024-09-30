@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login as authlogin,authenticate,update_session_auth_hash
 from . models import Address
 from shopping.models import Order,OrderItem
+from .models import Transaction,Wallet
 
 # Create your views here.
 @never_cache
@@ -56,7 +57,14 @@ def coupon(request):
 def wellat(request):
     if request.user.is_superuser:
         return redirect('admin')
-    return render(request,'wellat.html')
+    user = request.user
+    wallet, created = Wallet.objects.get_or_create(userId=user)  # Returns a tuple (wallet instance, created boolean)
+    transactions = Transaction.objects.filter(walletId=wallet.id)  # Use wallet.id to reference the primary key
+    context = {
+        'wallet':wallet,
+        'trasactions':transactions,
+    }
+    return render(request,'wellat.html',context)
 
 @never_cache
 @login_required(login_url='/signIn')

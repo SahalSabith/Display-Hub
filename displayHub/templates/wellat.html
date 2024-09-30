@@ -8,7 +8,7 @@
             <button type="button" class="btn btn-outline-success btn-block">Add Cash</button>
         </div>
         <div class="col-12 mb-4">
-            <h4 class="mb-4">Available Balance: ₹34,000</h4>
+            <h4 class="mb-4">Available Balance: ₹{{wallet.balance}}</h4>
         </div>
         <div class="col-12">
             <div class="table-responsive">
@@ -17,33 +17,19 @@
                         <tr>
                             <th scope="col">No</th>
                             <th scope="col">Transaction</th>
-                            <th scope="col">Status</th>
                             <th scope="col">Amount</th>
                             <th scope="col">Date</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for trasaction in trasactions %}
                         <tr>
                             <th scope="row">1</th>
-                            <td>Refund of order #5sghw73</td>
-                            <td>Pending</td>
-                            <td>₹4,500</td>
-                            <td>12/05/2024</td>
+                            <td>{{trasaction.transactionType}}</td>
+                            <td>{{trasaction.amount}}</td>
+                            <td>{{trasaction.createdAt.day}}/{{trasaction.createdAt.month}}/{{trasaction.createdAt.year}}</td>
                         </tr>
-                        <tr>
-                            <th scope="row">2</th>
-                            <td>Refund of order #5sghw73</td>
-                            <td>Completed</td>
-                            <td>₹4,500</td>
-                            <td>12/05/2024</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">3</th>
-                            <td>Refund of order #5sghw73</td>
-                            <td>Completed</td>
-                            <td>₹4,500</td>
-                            <td>12/05/2024</td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

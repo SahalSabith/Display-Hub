@@ -8,6 +8,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from decouple import config
+from userProfile.models import Wallet,Transaction
 
 # Create your views here.
 @never_cache
@@ -156,10 +157,6 @@ def verifyPassword(request):
             return redirect('emailVerification')
     return render(request,'forgotPassword.html')
 
-from django.http import JsonResponse
-from django.contrib.auth.models import User
-from django.views.decorators.cache import never_cache
-
 @never_cache
 def verifyEmail(request):
     if request.method == 'POST':
@@ -175,6 +172,7 @@ def verifyEmail(request):
                 lastName = request.session.get('lastName')
                 newUser = User.objects.create_user(username=username, email=email, password=password, first_name=firstName, last_name=lastName)
                 newUser.save()
+                Wallet.objects.create(userId=newUser)
                 return JsonResponse({'success': True, 'redirect_url': '/signIn/'})
             else:
                 return JsonResponse({'success': True, 'redirect_url': '/signIn/resetPassword/'})

@@ -311,25 +311,58 @@
             });
         });
     }    
-      const checkOutBtn = document.getElementById('checkOutBtn');
-checkOutBtn.addEventListener('click', () => {
-    const selectedAddress = document.getElementById('selectAddress').value;
-    const selectedPayment = document.getElementById('paymentMethod').value;
-    const finalOrderPrice = Number(document.getElementById('finalTotal').textContent.replace('₹', ''));
-
-    fetch("{% url 'checkOut' %}", {
+    const checkOutBtn = document.getElementById('checkOutBtn');
+    checkOutBtn.addEventListener('click', () => {
+      const selectedAddress = document.getElementById('selectAddress').value;
+      const selectedPayment = document.getElementById('paymentMethod').value;
+      const finalOrderPrice = Number(document.getElementById('finalTotal').textContent.replace('₹', ''));
+  
+      // Function to fetch wallet balance
+      function fetchWalletBalance() {
+        return fetch("{% url 'get_wallet_balance' %}")
+          .then(response => response.json())
+          .then(data => data.balance);
+      }
+  
+      // Function to show wallet modal
+      function showWalletModal(balance, finalOrderPrice) {
+        return new Promise((resolve, reject) => {
+          Swal.fire({
+            title: 'Wallet Payment',
+            html: `
+              <p>Available Balance: ₹${balance.toFixed(2)}</p>
+              <p>Order Total: ₹${finalOrderPrice.toFixed(2)}</p>
+              ${balance < finalOrderPrice ? '<p class="text-danger">Insufficient balance!</p>' : ''}
+            `,
+            icon: balance < finalOrderPrice ? 'error' : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Approve Payment',
+            cancelButtonText: 'Reject',
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed && balance >= finalOrderPrice) {
+              resolve(true);
+            } else {
+              reject('Payment cancelled or insufficient balance');
+            }
+          });
+        });
+      }
+  
+      // Main checkout process
+      fetch("{% url 'checkOut' %}", {
         method: 'POST',
         body: JSON.stringify({ selectedAddress, selectedPayment, finalOrderPrice }),
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-    })
-    .then(response => response.json())
-    .then(data => {
+      })
+      .then(response => response.json())
+      .then(data => {
         if (data.status === 'success') {
-            if (selectedPayment === 'internetBanking') {
+          if (selectedPayment === 'internetBanking') {
                 // SweetAlert confirmation for internet banking
                 Swal.fire({
                     title: 'Confirm Online Banking?',
@@ -363,50 +396,73 @@ checkOutBtn.addEventListener('click', () => {
                         rzp.open();
                     }
                 });
-            } else if (selectedPayment === 'wallet') {
-                Swal.fire({
-                  title: 'Confirm Wallet Payment?',
-                  text: "You will Place The Order.",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonText: 'Yes, proceed!',
-                  cancelButtonText: 'No, cancel!',
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  window.location.href = "{% url 'order' %}";
+          } else if (selectedPayment === 'wallet') {
+            fetchWalletBalance()
+              .then(balance => showWalletModal(balance, finalOrderPrice))
+              .then(() => {
+                // Wallet payment approved
+                return fetch("{% url 'process_wallet_payment' %}", {
+                  method: 'POST',
+                  body: JSON.stringify({ finalOrderPrice }),
+                  headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                });
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.status === 'success') {
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful',
+                    text: 'Your order has been placed successfully!',
+                  }).then(() => {
+                    window.location.href = "{% url 'order' %}";
+                  });
+                } else {
+                  throw new Error(data.message);
                 }
               })
-            } else if (selectedPayment === 'cashOnDelivery'){
-              Swal.fire({
-                title: 'Confirm Wallet Payment?',
-                text: "You will Place The Order by Cash On Delivery.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, proceed!',
-                cancelButtonText: 'No, cancel!',
+              .catch(error => {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops...',
+                  text: error.message || "Something went wrong with the wallet payment!",
+                });
+              });
+          } else if (selectedPayment === 'cashOnDelivery') {
+            Swal.fire({
+              title: 'Confirm Cash on Delivery?',
+              text: "You will place the order for Cash on Delivery.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, proceed!',
+              cancelButtonText: 'No, cancel!',
             }).then((result) => {
               if (result.isConfirmed) {
                 window.location.href = "{% url 'order' %}";
               }
-            })
-            }
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: data.message,
             });
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        Swal.fire({
+          }
+        } else {
+          Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            text: error.message || "Something went wrong!",
+            text: data.message,
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: error.message || "Something went wrong!",
         });
+      });
     });
-});
   const removeCouponBtn = document.getElementById('removeCouponBtn')
   removeCouponBtn.addEventListener('click', () => {
     const totalAmount = {{cart.cartTotal}}

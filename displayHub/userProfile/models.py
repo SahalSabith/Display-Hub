@@ -12,3 +12,24 @@ class Address(models.Model):
     state = models.CharField()
     zipCode = models.CharField()
     userId = models.ForeignKey(User,on_delete=models.CASCADE)
+
+class Wallet(models.Model):
+    userId = models.ForeignKey(User, on_delete=models.CASCADE)
+    balance = models.FloatField(default=0)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        id = str(self.pk)
+        return id
+    
+
+class Transaction(models.Model):
+    walletId = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    typeChoices = [
+        ('refund', 'Refund'),
+        ('addMoney', 'Added Money'),
+    ]
+    transactionType = models.CharField(max_length=20, choices=typeChoices)
+    amount = models.FloatField()
+    createdAt = models.DateTimeField(auto_now_add=True)

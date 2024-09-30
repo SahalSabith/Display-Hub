@@ -7,6 +7,7 @@ from django.contrib import messages
 from adminManagements.models import Products,Varients
 from django.http import JsonResponse
 import json
+from django.views.decorators.http import require_POST
 # Create your views here.
 @never_cache
 def home(request):
@@ -28,33 +29,22 @@ def wishlist(request):
 
 @never_cache
 @login_required(login_url='/signIn')
+@require_POST
 def addToWishlist(request):
-    if request.method == 'POST':
-        user = request.user
+    data = json.loads(request.body)
+    variant_id = data.get('variant_id')
+    user = request.user
         
-        session_data = request.session.get('product_data', None)
-        if not session_data:
-            messages.error(request, "No product data in session.")
-            return JsonResponse({'error': "No product data in session."}, status=400)
-        
-        variant_id = session_data.get('variant_id')
-        
-        try:
-            variant = Varients.objects.get(id=variant_id)
-        except Varients.DoesNotExist:
-            messages.error(request, "Selected product variant does not exist.")
-            return JsonResponse({'error': "No product data in session."}, status=400)
+    try:
+        variant = Varients.objects.get(id=variant_id)
+    except Varients.DoesNotExist:
+        messages.error(request, "Selected product variant does not exist.")
+        return JsonResponse({'error': "No product data in session."}, status=400)
 
-        Wishlist.objects.get_or_create(userId=user, varientId=variant)
-        if 'product_data' in request.session:
-            print(session_data)
-            del request.session['product_data']
-            print('session cleared')
+    Wishlist.objects.get_or_create(userId=user, varientId=variant)
 
-        messages.success(request, "Product successfully added to wishlist.")
-        return redirect('wishlist')
-    
-    return JsonResponse({'error': "No product data in session."}, status=405)
+    messages.success(request, "Product successfully added to wishlist.")
+    return redirect('wishlist')
 
 @never_cache
 @login_required(login_url='/signIn')
