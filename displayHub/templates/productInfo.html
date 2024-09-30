@@ -202,6 +202,8 @@
     let currentVariantId = null;
     let currentStock = 0;
 
+
+
     function updateAddToCartButton(isEnabled) {
         addToCartBtn.textContent = isEnabled ? 'Add To Cart' : 'Out of Stock';
         addToCartBtn.disabled = !isEnabled;
@@ -241,10 +243,12 @@
             } else {
                 if (data.price) {
                     priceElement.textContent = `₹ ${data.price}`;
+                    orginalPrice.innerText = `₹ ${data.orginalAmount}`
                     sizeElement.textContent = `Size: ${data.size} inch`;
                     refreshRateElement.textContent = `Refresh Rate: ${data.refreshRate} Hz`;
                     updateStockDisplay(data.stock);
                     currentVariantId = data.variantId;
+
                 }
 
                 if (data.refreshRates && selectedSize) {

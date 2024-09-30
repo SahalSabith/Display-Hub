@@ -21,7 +21,7 @@ class CouponUsage(models.Model):
 
 class ProductOffer(models.Model):
     name = models.CharField(max_length=255)
-    discountValue = models.DecimalField(max_digits=10, decimal_places=2)
+    discountValue = models.FloatField()
     startDate = models.DateTimeField()
     endDate = models.DateTimeField()
     applicableProducts = models.ForeignKey(Products, related_name='productoffer', blank=True,on_delete=models.CASCADE)
@@ -30,7 +30,7 @@ class ProductOffer(models.Model):
 
 class BrandOffer(models.Model):
     name = models.CharField(max_length=255)
-    discountValue = models.DecimalField(max_digits=10, decimal_places=2)
+    discountValue = models.FloatField()
     startDate = models.DateTimeField()
     endDate = models.DateTimeField()
     applicableBrand = models.ForeignKey(Brand, related_name='brandoffer', blank=True,on_delete=models.CASCADE)

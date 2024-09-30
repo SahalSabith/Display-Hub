@@ -27,6 +27,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from discounts.models import BrandOffer,ProductOffer
 from userProfile.models import Wallet,Transaction
 from django.db import transaction
+from django.utils import timezone
 # Create your views here.
 
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
@@ -185,8 +186,14 @@ def productInfo(request, pId):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         productAmount = first_variant.price
         try:
-            offer = ProductOffer.objects.get(applicableProducts=pId)
-            offerValue = offer.discountValue
+            try:  
+                offer = ProductOffer.objects.get(applicableProducts=pId)
+                offerValue = offer.discountValue
+            except ObjectDoesNotExist:
+                brand = first_variant.product.brand
+                offer = BrandOffer.objects.get(applicableBrand=brand)
+                offerValue = offer.discountValue
+                print(brand)
 
             offerAmount = (productAmount * offerValue) / 100
             finalAmount = productAmount - offerAmount
@@ -269,9 +276,16 @@ def productInfo(request, pId):
 
                 if selectedVarient:
                     productAmount= selectedVarient.price
+                    currentTime = timezone.now()
                     try:
-                        offer = ProductOffer.objects.get(applicableProducts=pId)
-                        offerValue = offer.discountValue
+                        try:
+                            brand = selectedVarient.product.brand
+                            offer = BrandOffer.objects.get(applicableBrand=brand)
+                            offerValue = offer.discountValue
+                            print(brand)
+                        except ObjectDoesNotExist:
+                            offer = ProductOffer.objects.get(applicableProducts=pId)
+                            offerValue = offer.discountValue
 
                         offerAmount = (productAmount * offerValue) / 100
                         finalAmount = productAmount - offerAmount
