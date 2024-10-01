@@ -2,169 +2,235 @@
 {% block accountContent %}
 {% load static %}
 <style>
-    .order-details-card {
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    :root {
+        --primary-color: #9A94EF;
+        --secondary-color: #C794EF;
+        --background-color: #f8f9fa;
+        --text-color: #333;
+        --border-color: #e0e0e0;
     }
-    
-    h2 {
-        color: var(--primary-color, #9A94EF);
+
+    .order-details-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: var(--background-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
-    p {
-        font-size: 1.1rem;
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
     }
-    
-    table {
-        margin-top: 20px;
+
+    .order-title {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin: 0;
     }
-    
-    .table th, .table td {
-        text-align: center;
-        vertical-align: middle;
+
+    .order-status {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        text-transform: uppercase;
     }
-    
-    .table-dark {
-        background-color: var(--secondary-color, #C794EF);
-        color: #fff;
+
+    .order-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
-    
+
+    .info-item {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        color: var(--primary-color);
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+
+    .products-table th {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+    }
+
+    .products-table td {
+        background-color: white;
+        padding: 1rem;
+    }
+
+    .products-table tr {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
     .cancel-btn {
         background-color: #dc3545;
-        color: #fff;
+        color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        font-weight: bold;
+        text-transform: uppercase;
     }
 
     .cancel-btn:hover {
         background-color: #c82333;
     }
-    
-    @media (max-width: 768px) {
-        .text-md-end {
-            text-align: left !important;
-        }
-        
-        .order-details-card {
-            padding: 20px;
-        }
-        
-        .row {
-            margin-bottom: 10px;
-        }
-        
-        p {
-            font-size: 1rem;
-        }
+
+    .modal-content {
+        border-radius: 12px;
     }
 
-    /* Modal Styling */
-    .modal-content {
-        border-radius: 10px;
-    }
-    
     .modal-header {
-        border-bottom: none;
+        background-color: var(--primary-color);
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
     }
 
     .modal-footer {
-        border-top: none;
-        justify-content: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .order-status {
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            padding: 0.75rem;
+        }
+
+        .products-table {
+            font-size: 0.9rem;
+        }
     }
 </style>
 
-<div class="container mt-5">
-    <div class="card p-4 order-details-card">
-        <h2 class="text-center mb-4">Order Details</h2>
-        
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <p><strong>Order Status:</strong> 
-                    <span class="badge 
-                        {% if order.orderStatus == 'pending' %} bg-warning text-dark
-                        {% elif order.orderStatus == 'processing' %} bg-primary text-light
-                        {% elif order.orderStatus == 'shipped' %} bg-info text-dark
-                        {% elif order.orderStatus == 'out_for_delivery' %} bg-success text-light
-                        {% elif order.orderStatus == 'delivered' %} bg-success text-light
-                        {% elif order.orderStatus == 'canceled' %} bg-danger text-light
-                        {% elif order.orderStatus == 'returned' %} bg-dark text-light
-                        {% elif order.orderStatus == 'refunded' %} bg-dark text-light
-                        {% elif order.orderStatus == 'failed' %} bg-danger text-light
-                        {% elif order.orderStatus == 'on_hold' %} bg-secondary text-light
-                        {% elif order.orderStatus == 'completed' %} bg-success text-light
-                        {% elif order.orderStatus == 'awaiting_payment' %} bg-warning text-dark
-                        {% endif %}
-                    ">
-                    {{ order.get_orderStatus_display }}
-                    </span>
-                </p>
-            </div>            
-            <div class="col-md-6 text-md-end">
-                <p><strong>Ordered Date:</strong> {{order.orderedAt}}</p>
-            </div>
-        </div>
-        
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <p><strong>Order No (ID):</strong> {{order.orderNo}}</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <p><strong>Payment Method:</strong> {{order.paymentMethod}}</p>
-            </div>
-            {% if order.orderStatus == 'canceled' %}
-            <div class="col-md-6">
-                <p><strong>Cancel Reason : </strong>{{ order.cancelReason }}</p>
-            </div>
+<div class="order-details-container">
+    <div class="order-header">
+        <h2 class="order-title">Order Details</h2>
+        <span class="order-status badge 
+            {% if order.orderStatus == 'pending' %} bg-warning text-dark
+            {% elif order.orderStatus == 'processing' %} bg-primary text-light
+            {% elif order.orderStatus == 'shipped' %} bg-info text-dark
+            {% elif order.orderStatus == 'out_for_delivery' %} bg-success text-light
+            {% elif order.orderStatus == 'delivered' %} bg-success text-light
+            {% elif order.orderStatus == 'canceled' %} bg-danger text-light
+            {% elif order.orderStatus == 'returned' %} bg-dark text-light
+            {% elif order.orderStatus == 'refunded' %} bg-dark text-light
+            {% elif order.orderStatus == 'failed' %} bg-danger text-light
+            {% elif order.orderStatus == 'on_hold' %} bg-secondary text-light
+            {% elif order.orderStatus == 'completed' %} bg-success text-light
+            {% elif order.orderStatus == 'awaiting_payment' %} bg-warning text-dark
             {% endif %}
+        ">
+        {{ order.get_orderStatus_display }}
+        </span>
+    </div>
+    
+    <div class="order-info">
+        <div class="info-item">
+            <div class="info-label">Order No (ID):</div>
+            <div class="info-value">{{order.orderNo}}</div>
         </div>
+        <div class="info-item">
+            <div class="info-label">Ordered Date:</div>
+            <div class="info-value">{{order.orderedAt}}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Payment Method:</div>
+            <div class="info-value">{{order.paymentMethod}}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total Amount:</div>
+            <div class="info-value">₹ {{order.totalPrice}}</div>
+        </div>
+    </div>
 
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <p><strong>Selected Address:</strong> {{order.addressId.name}}, {{order.addressId.city}}</p>
-            </div>
-        </div>
-        
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <p><strong>Total Amount:</strong> ₹ {{order.totalPrice}}</p>
-            </div>
-        </div>
-        
-        <h4>Products Ordered:</h4>
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="info-item">
+        <div class="info-label">Delivery Address:</div>
+        <div class="info-value">{{order.addressId.name}}, {{order.addressId.city}}</div>
+    </div>
+
+    {% if order.orderStatus == 'canceled' %}
+    <div class="info-item">
+        <div class="info-label">Cancel Reason:</div>
+        <div class="info-value">{{ order.cancelReason }}</div>
+    </div>
+    {% endif %}
+
+    <h4 class="mt-4 mb-3">Products Ordered:</h4>
+    <table class="products-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for orders in orders %}
-                <tr>
-                    <td>{{ orders.productId.name }}</td>
-                    <td>{{ orders.quantity }}</td>
-                    <td>₹ {{ orders.varientId.price }}</td>
-                    <td>₹ {{ orders.totalPrice }}</td>
-                </tr>
+            <tr>
+                <td>{{ orders.productId.name }}</td>
+                <td>{{ orders.quantity }}</td>
+                <td>₹ {{ orders.varientId.price }}</td>
+                <td>₹ {{ orders.totalPrice }}</td>
+            </tr>
         {% endfor %}
-            </tbody>
-        </table>
-        {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' %}
-            <div class="row mt-3">
-                <div class="col-md-12 text-center">
-                    <form id="cancelOrderForm" method="POST">
-                        {% csrf_token %}
-                        <button type="button" id="cancelOrder" onclick="confirmCancellation(event);" class="cancel-btn">Cancel Order</button>
-                    </form>
-                </div>
-            </div>
-        {% endif %}
+        </tbody>
+    </table>
+    
+    {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' and order.orderStatus != 'FAILURE' %}
+        <div class="text-center mt-4">
+            <form id="cancelOrderForm" method="POST">
+                {% csrf_token %}
+                <button type="button" id="cancelOrder" onclick="confirmCancellation(event);" class="cancel-btn">Cancel Order</button>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if order.orderStatus == 'FAILURE' %}
+        <div class="text-center mt-4">
+            <form method="POST">
+                {% csrf_token %}
+                <button type="button" class="btn btn-warning">Repay</button>
+            </form>
+        </div>
+    {% endif %}
 
         <!-- Modal structure -->
         <div class="modal fade" id="ajaxModal" tabindex="-1" aria-labelledby="ajaxModalLabel" aria-hidden="true">

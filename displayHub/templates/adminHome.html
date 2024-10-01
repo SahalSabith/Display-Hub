@@ -4,30 +4,70 @@
 
 {% load static %}
 <style>
-  /* Custom CSS to enhance dashboard layout */
-.main {
-    padding: 20px; /* Ensure there's space around the main content */
-}
-
-.card {
-    border: 1px solid #e0e0e0; /* Light border for cards */
-    border-radius: 8px; /* Slightly rounded corners */
-}
-
-.card-title {
-    font-weight: bold; /* Make the card titles bold */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+  /* Existing styles */
+  .main {
+    padding: 20px;
+  }
+  .card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+  .card-title {
+    font-weight: bold;
+  }
+  @media (max-width: 768px) {
     .filter {
-        flex-direction: column; /* Stack filter elements on small screens */
+      flex-direction: column;
     }
-}
+  }
 
+  /* New styles */
+  .filter-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .filter-container select,
+  .filter-container input[type="date"] {
+    margin-bottom: 10px;
+  }
+  .btn-generate {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .btn-generate:hover {
+    background-color: #45a049;
+  }
+  .btn-download {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-download:hover {
+    background-color: #0b7dda;
+  }
+  .btn-download i {
+    font-size: 18px;
+  }
 </style>
-<main id="main" class="main">
 
+<main id="main" class="main">
   <div class="pagetitle">
     <h1>Dashboard</h1>
     <nav>
@@ -40,35 +80,39 @@
 
   <section class="section dashboard">
     <div class="row">
-
-      <!-- Left side columns -->
-      <div class="col-lg-12"> <!-- Changed to col-lg-12 to take full width -->
+      <div class="col-lg-12">
         <div class="row">
-
           <div class="col-12">
             <form method="GET" action="{% url 'admin' %}">
               <div class="card recent-sales overflow-auto">
-
-                <div class="d-flex align-items-center mb-3"> <!-- Flex container for form elements -->
-                  <select name="filter_type" class="form-select me-2" onchange="this.form.submit()">
-                    <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
-                    <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
-                    <option value="monthly" {% if filter_type == 'monthly' %}selected{% endif %}>Monthly</option>
-                    <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom Date</option>
-                  </select>
-                  <div class="col-md-6" id="customDate" style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};">
-                    <input type="date" name="start_date" value="{{ start_date }}" class="form-control me-2">
-                    <input type="date" name="end_date" value="{{ end_date }}" class="form-control mt-2">
-                  </div>
-                  <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">Generate</button>
-                    <!-- example_template.html -->
-                    <a href="{% url 'generate_sales_report' %}" class="btn btn-primary">Download Sales Report</a>
-                  </div>
-                </div>
-
                 <div class="card-body">
                   <h5 class="card-title">Recent Sales <span>| Today</span></h5>
+
+                  <div class="filter-container">
+                    <div class="row align-items-end">
+                      <div class="col-md-3 mb-2">
+                        <select name="filter_type" class="form-select" id="filterType">
+                          <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
+                          <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                          <option value="monthly" {% if filter_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                          <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom Date</option>
+                        </select>
+                      </div>
+                      <div class="col-md-6 mb-2" id="customDate" style="display: {% if filter_type == 'custom' %}flex{% else %}none{% endif %};">
+                        <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control me-2">
+                        <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+                      </div>
+                      <div class="col-md-3 mb-2 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-generate me-2" id="generateBtn" style="display: {% if filter_type == 'custom' %}inline-block{% else %}none{% endif %};">Generate</button>
+                        <a href="{% url 'generate_sales_report' %}?filter_type={{ filter_type }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" class="btn btn-download" title="Download Sales Report">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>                  
+
+                <div class="card-body">
+                  <h5 class="card-title">Recent Sales</h5>
 
                   <table class="table table-borderless datatable">
                     <thead>
@@ -87,7 +131,7 @@
                         <td>{{ order.userId.username }}</td>
                         <td>₹{{ order.totalPrice }}</td>
                         <td>{{ order.orderStatus }}</td>
-                        <td>₹{{ order.discountAmount }}</td>
+                        <td>₹{{ order.discountPrice }}</td>
                       </tr>
                       {% empty %}
                       <tr>
@@ -103,102 +147,66 @@
             </form>
           </div>
 
-          <!-- Sales Card -->
-          <div class="col-xxl-4 col-md-6 mb-3">
-            <div class="card info-card sales-card">
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
+          <div class="d-flex">
+            <!-- Sales Card -->
+            <div class="col-xxl-4 col-md-6 mb-3 me-1">
+              <div class="card info-card sales-card">
+                <div class="card-body">
+                  <h5 class="card-title">Sales</h5>
 
-              <div class="card-body">
-                <h5 class="card-title">Sales <span>| Today</span></h5>
-
-                <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="bi bi-cart"></i>
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-cart"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ total_sales_count }}</h6>
+                      <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span>
+                    </div>
                   </div>
-                  <div class="ps-3">
-                    <h6>{{ total_sales_count }}</h6>
-                    <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span>
+                </div>
+
+              </div>
+            </div><!-- End Sales Card -->
+
+            <!-- Revenue Card -->
+            <div class="col-xxl-4 col-md-6 mb-3 mx-1">
+              <div class="card info-card revenue-card">
+                <div class="card-body">
+                  <h5 class="card-title">Revenue</h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="">
+                      <h6>₹{{ total_order_amount }}</h6>
+                      <span class="text-success small pt-1 fw-bold">8%</span> <span class="text-muted small pt-2 ps-1">increase</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div><!-- End Revenue Card -->
+
+            <!-- Customers Card -->
+            <div class="col-xxl-4 col-xl-12 mb-3 mx-1">
+              <div class="card info-card customers-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Discount</h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-people"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>₹{{ total_discount }}</h6>
+                      <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span>
+                    </div>
                   </div>
                 </div>
               </div>
-
-            </div>
-          </div><!-- End Sales Card -->
-
-          <!-- Revenue Card -->
-          <div class="col-xxl-4 col-md-6 mb-3">
-            <div class="card info-card revenue-card">
-
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
-
-              <div class="card-body">
-                <h5 class="card-title">Revenue <span>| This Month</span></h5>
-
-                <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="bi bi-currency-dollar"></i>
-                  </div>
-                  <div class="">
-                    <h6>₹{{ total_order_amount }}</h6>
-                    <span class="text-success small pt-1 fw-bold">8%</span> <span class="text-muted small pt-2 ps-1">increase</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div><!-- End Revenue Card -->
-
-          <!-- Customers Card -->
-          <div class="col-xxl-4 col-xl-12 mb-3">
-            <div class="card info-card customers-card">
-
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
-
-              <div class="card-body">
-                <h5 class="card-title">Customers <span>| This Year</span></h5>
-
-                <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="bi bi-people"></i>
-                  </div>
-                  <div class="ps-3">
-                    <h6>₹{{ total_discount }}</h6>
-                    <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Customers Card -->
+            </div><!-- End Customers Card -->
+          </div>
 
           <!-- Top Selling -->
           <div class="col-12 mb-3">
@@ -217,12 +225,11 @@
               </div>
 
               <div class="card-body pb-0">
-                <h5 class="card-title">Top Selling <span>| Today</span></h5>
+                <h5 class="card-title">Top Selling</h5>
 
                 <table class="table table-borderless">
                   <thead>
                     <tr>
-                      <th scope="col">Preview</th>
                       <th scope="col">Product</th>
                       <th scope="col">Price</th>
                       <th scope="col">Sold</th>
@@ -232,11 +239,8 @@
                   <tbody>
                     {% for item in top_products %}
                     <tr>
-                      <th scope="row">
-                        <a href="#" class="w-100"><img src="{{ item.productId.product_image.url }}" alt="" class="img-fluid" style="width: 50px; height: 50px; object-fit: cover;"></a>
-                      </th>
-                      <td><a href="#" class="text-primary">{{ item.productId.productName }}</a></td>
-                      <td>₹{{ item.productId.price }}</td>
+                      <td><a href="#" class="text-primary">{{ item.productId__name }}</a></td>
+                      <td>₹{{ item.varientId__price }}</td>
                       <td>{{ item.sold_count }}</td>
                       <td>₹{{ item.revenue }}</td>
                     </tr>
@@ -259,5 +263,19 @@
   </section>
 
 </main><!-- End #main -->
+<script>
+  document.getElementById('filterType').addEventListener('change', function() {
+    var customDateDiv = document.getElementById('customDate');
+    var generateBtn = document.getElementById('generateBtn');
+    if (this.value === 'custom') {
+      customDateDiv.style.display = 'flex';
+      generateBtn.style.display = 'inline-block';
+    } else {
+      customDateDiv.style.display = 'none';
+      generateBtn.style.display = 'none';
+      this.form.submit();
+    }
+  });
+</script>
 
 {% endblock %}

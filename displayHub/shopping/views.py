@@ -170,7 +170,7 @@ def products(request):
         'sizes': sizes,
         'category': categories,
         'refresh_rates': refreshRates,
-        'query': query,  # Pass the search query to the template
+        'query': query,
     }
 
     return render(request, 'shop.html', context)
@@ -290,6 +290,7 @@ def productInfo(request, pId):
                     currentTime = timezone.now()
                     try:
                         try:
+                            current_time = timezone.now()
                             brand = selectedVarient.product.brand
                             offer = BrandOffer.objects.get(
                                 applicableBrand=brand,
@@ -345,7 +346,8 @@ def productInfo(request, pId):
 @never_cache
 @login_required(login_url='/signIn')
 def orderDetails(request, oId):
-    order = Order.objects.get(id=oId)
+    user = request.user
+    order = Order.objects.get(id=oId,userId=user)
     orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
@@ -374,7 +376,7 @@ def cancelOrder(request, oId):
                 
             if order.paymentMethod == 'internetBanking':
                 user = request.user
-                wallet, created = Wallet.objects.get_or_create(userId=user)  # Unpack the tuple
+                wallet, created = Wallet.objects.get_or_create(userId=user)
                 orderAmount = order.totalPrice
 
                 wallet.balance = wallet.balance+orderAmount
@@ -464,7 +466,6 @@ def checkOut(request):
                 provider_order_id=razorpay_order['id'] if razorpay_order else None 
             )
 
-
             # Create order items and update stock
             for item in cart_items:
                 product = Products.objects.get(id=item.productId.id)
@@ -478,6 +479,14 @@ def checkOut(request):
                 )
                 variant.stock -= item.quantity
                 variant.save()
+
+                productAmount = item.varientId.price
+                offerAmount = item.price
+
+                discountedPrice = productAmount - offerAmount
+
+                order.discountPrice = order.discountPrice+discountedPrice
+                order.save()
 
             # Clear cart after order is placed
             cart_items.delete()

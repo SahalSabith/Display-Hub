@@ -66,6 +66,7 @@ class Order(models.Model):
     pamentId = models.CharField(null=False,blank=False)
     signatreId = models.CharField(null=False,blank=False)
     provider_order_id = models.CharField(max_length=255,unique=True,null=True)
+    discountPrice = models.IntegerField(default=0)
 
 class OrderItem(models.Model):
     id = models.AutoField(primary_key=True)
