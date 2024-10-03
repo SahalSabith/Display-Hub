@@ -36,7 +36,7 @@
             </thead>
             <tbody>
               {% for item in items %}
-              <tr class="clickable-row" data-url="" style="cursor:pointer;" data-item-id="{{ item.id }}" data-stock="{{ item.varientId.stock }}">
+              <tr class="clickable-row" data-url="{% url 'productInfo' item.productId.id %}" style="cursor:pointer;" data-item-id="{{ item.id }}" data-stock="{{ item.varientId.stock }}">
                 <td class="product-thumbnail">
                   <img src="{{ item.productId.image1.url }}" alt="Image" class="img-fluid">
                 </td>

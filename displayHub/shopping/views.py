@@ -28,6 +28,7 @@ from discounts.models import BrandOffer,ProductOffer
 from userProfile.models import Wallet,Transaction
 from django.db import transaction
 from django.utils import timezone
+from django.db.models import Min, Count, Q
 # Create your views here.
 
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
@@ -83,11 +84,12 @@ def addToCart(request):
     variant_id = data.get('variant_id')
     quantity = data.get('quantity', 1)
     price = data.get('price')
+    user = request.user
 
     try:
         variant = Varients.objects.get(id=variant_id)
         if variant.stock >= quantity:
-            cart, _ = Cart.objects.get_or_create(userId=request.user)
+            cart, _ = Cart.objects.get_or_create(userId=user)
             cart_item, created = CartItem.objects.get_or_create(
                 productId=variant.product,
                 varientId=variant,
@@ -97,6 +99,12 @@ def addToCart(request):
             )
             cart_item.quantity += quantity  # Add the new quantity
             cart_item.save()
+
+            cart = Cart.objects.get(userId=user)
+            cartItems = CartItem.objects.filter(cartId=cart).count()
+            print(cartItems)
+            request.session['cartCount'] = cartItems
+
             return JsonResponse({'success': True, 'message': 'Product added to cart'})
         else:
             return JsonResponse({'success': False, 'message': 'Not enough stock available'})
@@ -116,22 +124,46 @@ def checkCart(request, variant_id):
 @never_cache
 @login_required(login_url='/signIn')
 def removeCart(request, cId):
-    cartUser = get_object_or_404(Cart,userId=request.user)
+    user = request.user
+    cartUser = get_object_or_404(Cart,userId=user)
     cartItem = CartItem.objects.get(cartId=cartUser,id=cId)
     cartItem.delete()
+    cart = Cart.objects.get(userId=user)
+    cartItems = CartItem.objects.filter(cartId=cart).count()
+    print(cartItems)
+    request.session['cartCount'] = cartItems
     return redirect('cart')
 
 @never_cache
 def products(request):
+    # Get all products
+    productsList = Products.objects.filter(status=True, category__status=True, brand__status=True)
+
     # Get the search query
     query = request.GET.get('q')
-
-    # Get all products
-    productsList = Products.objects.all()
-
-    # Filter products based on search query
     if query:
-        productsList = productsList.filter(name__icontains=query)  # Case-insensitive search on product name
+        productsList = productsList.filter(name__icontains=query)
+
+    # Filter by category
+    category = request.GET.get('category')
+    if category:
+        productsList = productsList.filter(category__name=category)
+
+    # Filter by size
+    sizes = request.GET.getlist('size')
+    if sizes:
+        productsList = productsList.filter(varient__size__size__in=sizes)
+
+    # Filter by refresh rate
+    refresh_rates = request.GET.getlist('refresh_rate')
+    if refresh_rates:
+        productsList = productsList.filter(varient__refreshRate__refreshRate__in=refresh_rates)
+
+    # Filter by price range
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price and max_price:
+        productsList = productsList.filter(varient__price__gte=min_price, varient__price__lte=max_price)
 
     # Sorting logic
     sort = request.GET.get('sort')
@@ -148,29 +180,29 @@ def products(request):
     elif sort == 'za':
         productsList = productsList.order_by('-name')
 
-    # Filter size, refresh rates, and categories (with counts)
-    sizes = Size.objects.values('size').annotate(count=Count('size')).order_by('size')
-    refreshRates = RefreshRate.objects.values('refreshRate').annotate(count=Count('refreshRate')).order_by('refreshRate')
-    categories = Products.objects.values('category').annotate(count=Count('category')).order_by('category')
+    # Get filter options with counts
+    all_products = productsList
+    sizes = Size.objects.annotate(count=Count('varients', filter=Q(varients__product__in=all_products)))
+    refresh_rates = RefreshRate.objects.annotate(count=Count('varients', filter=Q(varients__product__in=all_products)))
+    categories = Category.objects.filter(status=True).annotate(count=Count('brand', filter=Q(brand__in=all_products)))
 
     # Pagination
-    paginator = Paginator(productsList, 6)  # 6 products per page
+    paginator = Paginator(productsList.distinct(), 6)  # 6 products per page
     page_number = request.GET.get('page')
+    products_final = paginator.get_page(page_number)
 
-    try:
-        products_final = paginator.get_page(page_number)
-    except:
-        products_final = paginator.page(paginator.num_pages)
-
-    # Context for template
     context = {
         'products': products_final,
-        'categories': Category.objects.all(),
-        'sort': sort,
+        'categories': categories,
         'sizes': sizes,
-        'category': categories,
-        'refresh_rates': refreshRates,
+        'refresh_rates': refresh_rates,
+        'sort': sort,
         'query': query,
+        'selected_category': category,
+        'selected_sizes': sizes,
+        'selected_refresh_rates': refresh_rates,
+        'min_price': min_price,
+        'max_price': max_price,
     }
 
     return render(request, 'shop.html', context)
@@ -351,6 +383,9 @@ def orderDetails(request, oId):
     orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
+    cart = Cart.objects.get(userId=user)
+    cartItems = CartItem.objects.filter(cartId=cart).count()
+    request.session['cartCount'] = cartItems
 
     context = {
         'order': order,
@@ -403,6 +438,9 @@ def cancelOrder(request, oId):
 def checkOut(request):
     userId = request.user
     addresses = Address.objects.filter(userId=userId)
+    cart = Cart.objects.get(userId=userId)
+    cartItems = CartItem.objects.filter(cartId=cart).count()
+    request.session['cartCount'] = cartItems
     try:
         cart = Cart.objects.get(userId=userId)
     except ObjectDoesNotExist:

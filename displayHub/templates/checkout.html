@@ -120,53 +120,84 @@
     <h2>Checkout</h2>
   </div>
 
-  <div class="checkout-step">
-    <h3>1. Shipping Address</h3>
-    <select name="selectAddress" class="form-control" id="selectAddress">
-      {% for address in addresses %}
-        <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
-      {% endfor %}
-    </select>
-    <a href="{% url 'addAddress' %}" class="btn mt-3 text-white" style="background:#9A94EF;">Add New Address</a>
-  </div>
-
-  <div class="checkout-step">
-    <h3>2. Payment Method</h3>
-    <select name="paymentMethod" class="form-control" id="paymentMethod">
-      <option value="wallet">Wallet</option>
-      <option value="cashOnDelivery">Cash on Delivery</option>
-      <option value="internetBanking">Online Banking</option>
-    </select>
-  </div>
-
-  <div class="checkout-step">
-    <h3>3. Review Items and Shipping</h3>
-    <div class="product-summary">
-      {% for item in products %}
-        <div class="product-item">
-          <span>{{ item.productId.name }} x {{item.quantity}}</span>
-          <span>₹{{item.cartItemTotal}}</span>
+  <div id="accordion">
+    <div class="card">
+      <div class="card-header" id="headingOne">
+        <h5 class="mb-0">
+          <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            1. Shipping Address
+          </button>
+        </h5>
+      </div>
+  
+      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+        <div class="card-body">
+          <select name="selectAddress" class="form-control" id="selectAddress">
+            {% for address in addresses %}
+              <option value="{{ address.id }}">{{ address.name }}, {{ address.city }}</option>
+            {% endfor %}
+          </select>
+          <a href="{% url 'addAddress' %}" class="btn mt-3 text-white" style="background:#9A94EF;">Add New Address</a>
         </div>
-      {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="headingTwo">
+        <h5 class="mb-0">
+          <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+            2. Payment Method
+          </button>
+        </h5>
+      </div>
+      <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+        <div class="card-body">
+          <select name="paymentMethod" class="form-control" id="paymentMethod">
+            <option value="wallet">Wallet</option>
+            <option value="cashOnDelivery">Cash on Delivery</option>
+            <option value="internetBanking">Online Banking</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="headingFour">
+        <h5 class="mb-0">
+          <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+            4. Coupons
+          </button>
+        </h5>
+      </div>
+      <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+        <div class="card-body">
+          <div class="coupon-section">
+            <input type="text" id="couponCode" class="form-control coupon-input" placeholder="Enter coupon code">
+            <button id="applyCouponBtn" class="btn btn-primary">Apply</button>
+          </div>
+          <div class="available-coupons">
+            <h4>Available Coupons</h4>
+            {% for coupon in coupons %}
+              <div class="coupon-item">
+                <span>{{ coupon.couponCode }} - {{ coupon.discountValue }}% off</span>
+                <button class="btn btn-sm btn-outline-primary apply-coupon" data-code="{{ coupon.couponCode }}">Apply</button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="checkout-step">
-    <h3>4. Coupons</h3>
-    <div class="coupon-section">
-      <input type="text" id="couponCode" class="form-control coupon-input" placeholder="Enter coupon code">
-      <button id="applyCouponBtn" class="btn btn-primary">Apply</button>
-    </div>
-    <div class="available-coupons">
-      <h4>Available Coupons</h4>
-      {% for coupon in coupons %}
-        <div class="coupon-item">
-          <span>{{ coupon.couponCode }} - {{ coupon.discountValue }}% off</span>
-          <button class="btn btn-sm btn-outline-primary apply-coupon" data-code="{{ coupon.couponCode }}">Apply</button>
-        </div>
-      {% endfor %}
-    </div>
+<div class="checkout-step">
+  <h3>3. Review Items and Shipping</h3>
+  <div class="product-summary">
+    {% for item in products %}
+      <div class="product-item">
+        <span>{{ item.productId.name }} x {{item.quantity}}</span>
+        <span>₹{{item.cartItemTotal}}</span>
+      </div>
+    {% endfor %}
   </div>
+</div>
 
   <div class="checkout-step">
     <h3>5. Order Summary</h3>
