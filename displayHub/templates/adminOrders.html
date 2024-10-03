@@ -25,7 +25,13 @@
                                 <td>{{ order.orderNo }}</td>
                                 <td>{{ order.userId.username }}</td>
                                 <td>{{ order.orderedAt }}</td> 
+                                {% if order.orderStatus == "returnRequested" %}
+                                <td class="text-warning">{{ order.get_orderStatus_display }}</td>
+                                {% elif order.orderStatus == "delivered" %}
+                                <td class="text-success">{{ order.get_orderStatus_display }}</td>
+                                {% else %}
                                 <td>{{ order.get_orderStatus_display }}</td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>

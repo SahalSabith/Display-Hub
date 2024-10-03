@@ -32,4 +32,5 @@ urlpatterns = [
     path("razorpay/callback/", views.razorpay_callback, name="razorpay_callback"),
     path('get_wallet_balance/', views.get_wallet_balance, name='get_wallet_balance'),
     path('process_wallet_payment/', views.process_wallet_payment, name='process_wallet_payment'),
+    path('orders/returnOrder/<int:oId>/',views.returnOrder,name='returnOrder')
 ]

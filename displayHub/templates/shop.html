@@ -50,6 +50,11 @@
       <div class="col-lg-3 order-lg-1 mb-5 mb-lg-0">
         <form method="get" id="filter-form">
           <input type="hidden" name="sort" value="{{ sort }}">
+
+          <div class="bg-white p-4 rounded shadow-sm mb-4">
+            <button type="button" id="reset-filters" class="btn btn-outline-secondary w-100">Reset Filters</button>
+          </div>  
+
           <div class="bg-white p-4 rounded shadow-sm mb-4">
             <h3 class="h5 text-uppercase mb-3">Categories</h3>
             <ul class="list-unstyled mb-0">
@@ -97,9 +102,8 @@
                 <input type="number" name="min_price" id="minPrice" value="{{ min_price|default:0 }}" class="form-control form-control-sm" style="width: 80px;">
                 <input type="number" name="max_price" id="maxPrice" value="{{ max_price|default:100000 }}" class="form-control form-control-sm" style="width: 80px;">
               </div>
-            </div>
+            </div>          
           </div>
-          <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
         </form>
       </div>
 
@@ -195,7 +199,6 @@
 </div>
 
 <script>
-  const priceRange = document.getElementById('priceRange');
   const minPrice = document.getElementById('minPrice');
   const maxPrice = document.getElementById('maxPrice');
 
@@ -205,21 +208,28 @@
     maxPrice.value = max;
   });
 
-  // Update range slider when min/max inputs change
-  minPrice.addEventListener('input', updatePriceRange);
-  maxPrice.addEventListener('input', updatePriceRange);
-
-  function updatePriceRange() {
-    priceRange.value = `${minPrice.value},${maxPrice.value}`;
-  }
-
-  // Initialize price range
-  updatePriceRange();
+  document.querySelectorAll('#filter-form input').forEach(input => {
+    input.addEventListener('change', () => document.getElementById('filter-form').submit());
+});
 
   // Submit form when any filter changes
   document.querySelectorAll('#filter-form input').forEach(input => {
     input.addEventListener('change', () => document.getElementById('filter-form').submit());
   });
+  document.getElementById('reset-filters').addEventListener('click', function() {
+    // Reset all input fields in the form
+    document.querySelectorAll('#filter-form input').forEach(input => {
+        if (input.type === 'radio' || input.type === 'checkbox') {
+            input.checked = false;
+        } else {
+            input.value = '';  // For min/max price or text fields
+        }
+    });
+    
+    // Remove any query parameters from the URL
+    window.location.href = window.location.pathname;
+});
+
 </script>
 
 {% endblock %}

@@ -138,18 +138,21 @@
             <img src="{{ item.varientId.product.image1.url }}" alt="Product Image" class="img-fluid">
             <div class="product-details">
                 <h2>{{ item.varientId.product.name }}</h2>
-                <p>Price: {{ item.varientId.price }}₹</p>
+                <p data-variant-price="{{ item.varientId.price }}">Price: {{ item.varientId.price }}₹</p>
                 <div class="product-variant">
                     <p>Size: {{ item.varientId.size.size }} Inch</p>
                     <p>Refresh Rate: {{ item.varientId.refreshRate.refreshRate }} Hz</p>
-                    <p>Stock: {{ item.varientId.stock }}</p>
+                    <p>Stock: {{ item.varientId.stock }}</p> <!-- Ensure this is the last paragraph -->
                 </div>
-                <button id="addToCart" class="btn-primary">Add to Cart</button>
+                <form id="addToCartForm" action="{% url 'add_to_cart' %}" method="post" class="d-flex align-items-center">
+                    {% csrf_token %}
+                    <button type="submit" data-variant-id="{{ item.varientId.id }}" class="btn-primary">Add to Cart</button>
+                </form>
                 <button class="btn-remove" data-variant-id="{{ item.varientId.id }}">Remove</button>
             </div>
         </div>
         {% endfor %}
-    </div>
+    </div>    
 </div>
 
 <script>
@@ -201,5 +204,78 @@
             console.error('Error:', error);
         });
     });
+
+    function addToCart(event) {
+    event.preventDefault();
+    const quantity = 1;
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    const currentVariantId = button.getAttribute('data-variant-id');
+    const currentStock = parseInt(button.closest('.product-details').querySelector('.product-variant p:last-child').innerText.split(': ')[1]);
+
+    if (quantity > currentStock) {
+        Swal.fire('Error', 'Requested quantity exceeds available stock', 'error');
+        return;
+    }
+
+    if (!currentVariantId) {
+        Swal.fire('Error', 'Please select a variant', 'error');
+        return;
+    }
+
+    const finalPrice = button.closest('.product-details').querySelector('[data-variant-price]').getAttribute('data-variant-price');
+
+    fetch('/add-to-cart/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            variant_id: currentVariantId,
+            quantity: quantity,
+            price: finalPrice
+        })
+    })
+    .then(response => {
+        // Check if the response is okay (status 200-299)
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response from server:', data); // Log the response data for debugging
+        if (data.success) {
+            Swal.fire({
+                title: 'Added to Cart!',
+                text: 'Product has been added to your cart.',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'View Cart',
+                cancelButtonText: 'Continue Shopping'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/cart/';
+                }else{
+                    window.location.href = '/wishlist/'
+                }
+            });
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to cart:', error);
+        Swal.fire('Error', 'An error occurred while hhhhh to cart', 'error');
+    });
+}
+
+// Bind the event listener to all forms
+const addToCartForms = document.querySelectorAll('#addToCartForm');
+addToCartForms.forEach(form => {
+    form.addEventListener('submit', addToCart);
+});
 </script>
 {% endblock %}

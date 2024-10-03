@@ -102,7 +102,6 @@ def addToCart(request):
 
             cart = Cart.objects.get(userId=user)
             cartItems = CartItem.objects.filter(cartId=cart).count()
-            print(cartItems)
             request.session['cartCount'] = cartItems
 
             return JsonResponse({'success': True, 'message': 'Product added to cart'})
@@ -160,8 +159,8 @@ def products(request):
         productsList = productsList.filter(varient__refreshRate__refreshRate__in=refresh_rates)
 
     # Filter by price range
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    min_price = request.GET.get('min_price', 0)
+    max_price = request.GET.get('max_price', 100000)
     if min_price and max_price:
         productsList = productsList.filter(varient__price__gte=min_price, varient__price__lte=max_price)
 
@@ -180,11 +179,18 @@ def products(request):
     elif sort == 'za':
         productsList = productsList.order_by('-name')
 
-    # Get filter options with counts
-    all_products = productsList
-    sizes = Size.objects.annotate(count=Count('varients', filter=Q(varients__product__in=all_products)))
-    refresh_rates = RefreshRate.objects.annotate(count=Count('varients', filter=Q(varients__product__in=all_products)))
-    categories = Category.objects.filter(status=True).annotate(count=Count('brand', filter=Q(brand__in=all_products)))
+    # Get filter options with counts (calculated from all active products)
+    all_active_products = Products.objects.filter(status=True, category__status=True, brand__status=True).distinct()
+
+    sizes = Size.objects.annotate(
+        count=Count('varients', filter=Q(varients__product__in=all_active_products))
+    )
+    refresh_rates = RefreshRate.objects.annotate(
+        count=Count('varients', filter=Q(varients__product__in=all_active_products))
+    )
+    categories = Category.objects.filter(status=True).annotate(
+        count=Count('brand', filter=Q(brand__in=all_active_products))
+    )
 
     # Pagination
     paginator = Paginator(productsList.distinct(), 6)  # 6 products per page
@@ -417,7 +423,7 @@ def cancelOrder(request, oId):
                 wallet.balance = wallet.balance+orderAmount
                 wallet.save()
 
-                transactions = Transaction.objects.create(walletId=wallet, TransactionType='refund', amount=orderAmount)
+                transactions = Transaction.objects.create(walletId=wallet, transactionType='refund', amount=orderAmount)
                 transactions.save()
 
             order.cancelReason = reason
@@ -636,3 +642,29 @@ def razorpay_callback(request):
             return render(request, "callback.html", context={"status": "failure"})
 
     return render(request, "callback.html", context={"status": "error"})
+
+@require_POST
+def returnOrder(request,oId):
+    try:
+        order = Order.objects.get(id=oId)
+        if order.orderStatus not in ['canceled', 'refunded','returned']:
+            reason = request.POST.get('reason', '')
+            if reason == 'other':
+                other_reason = request.POST.get('other_reason', '')
+                if other_reason:
+                    reason = other_reason
+                else:
+                    return JsonResponse({'error': 'Please provide a reason for cancellation.'}, status=400)
+
+            order.returnReason = reason
+            order.orderStatus = 'returnRequested'
+            order.save()
+
+            return JsonResponse({'success': True})
+
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order does not exist'}, status=404)
+    except OrderItem.DoesNotExist:
+        return JsonResponse({'error': 'Order item does not exist'}, status=404)
+
+    return JsonResponse({'error': 'Order cannot be canceled'}, status=400)

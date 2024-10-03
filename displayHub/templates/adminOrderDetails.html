@@ -43,6 +43,12 @@
                                         <td>{{ order.cancelReason }}</td>
                                     </tr>
                                     {% endif %}
+                                    {% if order.orderStatus == 'returnRequested' or order.orderStatus == 'returned' %}
+                                    <tr>
+                                        <th>Return Reason</th>
+                                        <td>{{ order.returnReason }}</td>
+                                    </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
 

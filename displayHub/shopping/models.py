@@ -45,6 +45,7 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('canceled', 'Canceled'),
         ('returned', 'Returned'),
+        ('returnRequested','Return Requested'),
         ('awaiting_payment', 'Awaiting Payment'),
         ('refunded', 'Refunded'),
         ('SUCCESS','SUCCESS'),
@@ -63,6 +64,7 @@ class Order(models.Model):
     orderNo = models.CharField(max_length=10,unique=True)
     totalPrice = models.IntegerField(default=0)
     cancelReason = models.TextField()
+    returnReason = models.TextField()
     pamentId = models.CharField(null=False,blank=False)
     signatreId = models.CharField(null=False,blank=False)
     provider_order_id = models.CharField(max_length=255,unique=True,null=True)
