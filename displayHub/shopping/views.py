@@ -390,9 +390,6 @@ def orderDetails(request,oId):
     orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
-    cart = Cart.objects.get(userId=user)
-    cartItems = CartItem.objects.filter(cartId=cart).count()
-    request.session['cartCount'] = cartItems
 
     context = {
         'order': order,
