@@ -3,6 +3,8 @@
 {% block adminContents %}
 
 {% load static %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
 <style>
   /* Existing styles */
   .main {
@@ -65,6 +67,28 @@
   .btn-download i {
     font-size: 18px;
   }
+  .chart-container {
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+h2 {
+    margin: 0;
+}
+select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
 </style>
 
 <main id="main" class="main">
@@ -82,6 +106,19 @@
     <div class="row">
       <div class="col-lg-12">
         <div class="row">
+
+          <div class="chart-container">
+            <div class="chart-header">
+                <h2>Order Chart</h2>
+                <select id="timeframe">
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                </select>
+            </div>
+            <canvas id="orderChart"></canvas>
+        </div>
+
           <div class="col-12">
             <form method="GET" action="{% url 'admin' %}">
               <div class="card recent-sales overflow-auto">
@@ -131,7 +168,11 @@
                         <td>{{ order.userId.username }}</td>
                         <td>₹{{ order.totalPrice }}</td>
                         <td>{{ order.orderStatus }}</td>
+                        {% if order.discountPrice == 0 %}
+                        <td>No Discount where applied</td>
+                        {% else %}
                         <td>₹{{ order.discountPrice }}</td>
+                        {% endif %}
                       </tr>
                       {% empty %}
                       <tr>
@@ -276,6 +317,102 @@
       this.form.submit();
     }
   });
+
+  let chart;
+        const mockData = generateMockData();
+
+        function generateMockData() {
+            const today = moment();
+            const yearAgo = moment().subtract(1, 'year');
+            let currentDate = yearAgo.clone();
+            const data = [];
+
+            while (currentDate.isSameOrBefore(today)) {
+                data.push({
+                    date: currentDate.format('YYYY-MM-DD'),
+                    orders: Math.floor(Math.random() * 50) + 1  // Random number between 1 and 50
+                });
+                currentDate.add(1, 'day');
+            }
+
+            return data;
+        }
+
+        function filterDataByTimeframe(data, timeframe) {
+            const today = moment();
+            let startDate;
+
+            switch (timeframe) {
+                case 'week':
+                    startDate = today.clone().subtract(1, 'week');
+                    break;
+                case 'month':
+                    startDate = today.clone().subtract(1, 'month');
+                    break;
+                case 'year':
+                    startDate = today.clone().subtract(1, 'year');
+                    break;
+                default:
+                    startDate = today.clone().subtract(1, 'week');
+            }
+
+            return data.filter(item => moment(item.date).isSameOrAfter(startDate));
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('orderChart').getContext('2d');
+            
+            const config = {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.date),
+                    datasets: [{
+                        label: 'Number of Orders',
+                        data: data.map(item => item.orders),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Orders'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (chart) {
+                chart.data = config.data;
+                chart.update();
+            } else {
+                chart = new Chart(ctx, config);
+            }
+        }
+
+        function fetchData(timeframe) {
+            const filteredData = filterDataByTimeframe(mockData, timeframe);
+            updateChart(filteredData);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('timeframe').addEventListener('change', (e) => {
+                fetchData(e.target.value);
+            });
+
+            fetchData('week');
+        });
 </script>
 
 {% endblock %}

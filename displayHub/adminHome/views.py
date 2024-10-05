@@ -13,6 +13,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from datetime import datetime
 from django.db.models import Sum, F
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+from django.http import JsonResponse
+from datetime import timedelta
 
 
 # Create your views here.
@@ -163,3 +167,22 @@ def allUsers(request):
         return redirect('home')
     allUsers = User.objects.all().order_by('-id')
     return render(request,'users.html',{'allUsers':allUsers})
+
+def order_data(request):
+    timeframe = request.GET.get('timeframe', 'week')
+    
+    if timeframe == 'week':
+        start_date = datetime.now() - timedelta(days=7)
+    elif timeframe == 'month':
+        start_date = datetime.now() - timedelta(days=30)
+    elif timeframe == 'year':
+        start_date = datetime.now() - timedelta(days=365)
+    
+    orders = Order.objects.filter(orderedAt__gte=start_date) \
+        .annotate(date=TruncDate('orderedAt')) \
+        .values('date') \
+        .annotate(orders=Count('id')) \
+        .order_by('date')
+    
+    data = list(orders)
+    return JsonResponse(data, safe=False)

@@ -25,12 +25,9 @@ urlpatterns = [
     path('add-to-cart/', views.addToCart, name='add_to_cart'),
     path('check-cart/<int:variant_id>/', views.checkCart, name='check_cart'),
     path('removeItem/<int:cId>/',views.removeCart,name='remove'),
-    path('cart/checkout',views.checkOut,name='checkOut'),
     path('account/orderDetails/<int:oId>',views.orderDetails,name='orderDetails'),
     path('account/cancel/<int:oId>/',views.cancelOrder,name='cancelOrder'),
     path('cart/quantityUpdate',views.updateQuantity,name='updateQuantity'),
-    path("razorpay/callback/", views.razorpay_callback, name="razorpay_callback"),
-    path('get_wallet_balance/', views.get_wallet_balance, name='get_wallet_balance'),
-    path('process_wallet_payment/', views.process_wallet_payment, name='process_wallet_payment'),
-    path('orders/returnOrder/<int:oId>/',views.returnOrder,name='returnOrder')
+    path('orders/returnOrder/<int:oId>/',views.returnOrder,name='returnOrder'),
+    path('invoice/<int:oId>/',views.downloadInvoice,name='downloadInvoice'),
 ]

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ order.orderNo }}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .invoice-container {
+            width: 80%;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .header div p {
+            font-size: 14px;
+            color: #555;
+            margin: 5px 0;
+        }
+        .header div p strong {
+            color: #333;
+        }
+        .order-status {
+            font-weight: bold;
+            color: #FF5722;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        td {
+            background-color: #fbfbfb;
+        }
+        .total-row td {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .total-amount {
+            text-align: right;
+            padding-right: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* Print-friendly styling */
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .invoice-container {
+                box-shadow: none;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            .header, .footer {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <h2>Invoice #{{ order.orderNo }}</h2>
+
+        <div class="header">
+            <div>
+                <p><strong>Date:</strong> {{ order.orderedAt }}</p>
+                <p><strong>Customer:</strong> {{ order.userId.username }}</p>
+                <p><strong>Address:</strong> {{ order.addressId }}</p>
+            </div>
+            <div>
+                <p><strong>Status:</strong> <span class="order-status">{{ order.orderStatus }}</span></p>
+                <p><strong>Payment Method:</strong> {{ order.paymentMethod }}</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in orderItems %}
+                <tr>
+                    <td>{{ item.productId.name }}</td>
+                    <td>{{ item.varientId.size.size }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>&#8377;{{ item.totalPrice }} / {{ item.quantity }}</td>
+                    <td>&#8377;{{ item.totalPrice }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="4" class="total-amount">Subtotal:</td>
+                    <td>&#8377;{{ order.totalPrice }}</td>
+                </tr>
+                {% if not order.discountPrice == 0 %}
+                <tr class="total-row">
+                    <td colspan="4" class="total-amount">Discount:</td>
+                    <td>-&#8377;{{ order.discountPrice }}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td colspan="4" class="total-amount">Total:</td>
+                    {% if not order.discountPrice == 0 %}
+                    <td>&#8377;{{ order.totalPrice }} - {{ order.discountPrice }}</td>
+                    {% else %}
+                    <td>&#8377;{{ order.totalPrice }}</td>
+                    {% endif %}
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>If you have any questions, please contact support at support@displayHub.site</p>
+        </div>
+    </div>
+</body>
+</html>
