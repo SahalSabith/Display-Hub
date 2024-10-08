@@ -235,9 +235,11 @@
     </div>
     
     <div class="action-buttons">
+        {% if order.orderStatus == 'delivered' %}
         <a href="{% url 'downloadInvoice' orderPk %}" class="action-btn download-btn">
             <i class="bi bi-download"></i> Download Invoice
         </a>
+        {% endif %}
         
         {% if order.orderStatus != 'canceled' and order.orderStatus != 'delivered' and order.orderStatus != 'shipped' and order.orderStatus != 'FAILURE' and order.orderStatus != 'returnRequested' and order.orderStatus != 'returned' %}
             <button type="button" id="cancelOrder" onclick="confirmCancellation(event);" class="action-btn cancel-btn">Cancel Order</button>

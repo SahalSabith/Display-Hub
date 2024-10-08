@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect,HttpResponse
 from .models import Coupon
 from django.views.decorators.cache import never_cache
-from .models import Coupon
+from .models import Coupon,CouponUsage
 from django.http import JsonResponse
 import json
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +9,7 @@ from datetime import datetime
 from .models import ProductOffer,BrandOffer
 from adminManagements.models import Brand,Products
 from django.contrib import messages
+from django.utils import timezone
 
 @never_cache
 def addCoupon(request):
@@ -88,38 +89,55 @@ def couponDetail(request,cId):
 @never_cache
 def applyCoupon(request):
     if request.method == 'POST':
-        currentDate = datetime.now().date()
-        print(currentDate)
         try:
-            couponCode = json.loads(request.body).get('couponCode')
-            coupon = Coupon.objects.get(couponCode__iexact=couponCode)
-            if coupon.validFrom <= currentDate <= coupon.validTo:
-                responseData = {
-                    'message': 'Coupon Applied',
-                    'status': 'success',
-                    'discountValue':coupon.discountValue,
-                    'minPurchaseAmount':coupon.minPurchaseAmount,
-                    'maxPurchaseAmount':coupon.maxPurchaseAmount
-                }
-                return JsonResponse(responseData, status=200)
-            else:
-                errorData = {
-                'message': 'No Coupon Applied',
-                'status': 'error',
-                }
-                return JsonResponse(errorData, status=400)
-        except ObjectDoesNotExist:
-            errorData = {
-                'message': 'No Coupon Applied',
-                'status': 'error',
+            data = json.loads(request.body)
+            coupon_code = data.get('couponCode')
+            total_amount = float(data.get('totalAmount', 0))
+            
+            coupon = Coupon.objects.get(couponCode__iexact=coupon_code, status=True)
+            current_date = timezone.now().date()
+            
+            # Check if coupon is valid
+            if not (coupon.validFrom <= current_date <= coupon.validTo):
+                return JsonResponse({'message': 'Coupon has expired', 'status': 'error'}, status=400)
+            
+            # Check purchase amount limits
+            if total_amount < coupon.minPurchaseAmount or total_amount > coupon.maxPurchaseAmount:
+                return JsonResponse({'message': 'Purchase amount is not within coupon limits', 'status': 'error'}, status=400)
+            
+            # Check if user has already used this coupon
+            if CouponUsage.objects.filter(coupon=coupon, user=request.user).exists():
+                return JsonResponse({'message': 'You have already used this coupon', 'status': 'error'}, status=400)
+            
+            # Calculate discount
+            discount_amount = min(total_amount * coupon.discountValue / 100, coupon.maxPurchaseAmount - coupon.minPurchaseAmount)
+            final_total = total_amount - discount_amount
+            
+            # Record coupon usage
+            CouponUsage.objects.create(coupon=coupon, user=request.user)
+            
+            # Save coupon info in session for persistence
+            request.session['applied_coupon'] = {
+                'code': coupon.couponCode,
+                'discount_amount': discount_amount,
+                'final_total': final_total
             }
-            return JsonResponse(errorData, status=400)
+            
+            return JsonResponse({
+                'message': 'Coupon applied successfully',
+                'status': 'success',
+                'discountAmount': discount_amount,
+                'finalTotal': final_total
+            }, status=200)
+            
+        except ObjectDoesNotExist:
+            return JsonResponse({'message': 'Invalid coupon code', 'status': 'error'}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+            return JsonResponse({'message': 'Invalid JSON', 'status': 'error'}, status=400)
         except Exception as e:
-            return JsonResponse({'message': str(e)}, status=500)
+            return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
     
-    return JsonResponse({'message': 'Invalid Request'}, status=400)
+    return JsonResponse({'message': 'Invalid request', 'status': 'error'}, status=400)
 
 @never_cache
 def offers(request):

@@ -238,53 +238,54 @@
       </li><!-- End Dashboard Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "allProducts" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'allProducts' %}">
+          <i class="bi bi-box"></i>
           <span>Products</span>
         </a>
       </li>
-
+      
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "allUsers" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'allUsers' %}">
+          <i class="bi bi-people"></i>
           <span>Users</span>
         </a>
       </li>
-
+      
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "allOrders" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'allOrders' %}">
+          <i class="bi bi-cart"></i>
           <span>Orders</span>
         </a>
       </li>
-
+      
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "allCategory" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'allCategory' %}">
+          <i class="bi bi-grid"></i>
           <span>Category</span>
         </a>
       </li>
-
+      
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "allBrand" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'allBrand' %}">
+          <i class="bi bi-tag"></i>
           <span>Brands</span>
         </a>
       </li>
-
+      
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "addCoupon" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'addCoupon' %}">
+          <i class="bi bi-ticket-perforated"></i>
           <span>Coupon</span>
         </a>
       </li>
       
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url "offers" %}">
-          <i class="bi bi-question-circle"></i>
+        <a class="nav-link collapsed" href="{% url 'offers' %}">
+          <i class="bi bi-gift"></i>
           <span>Offer</span>
         </a>
       </li>
+      
 
   </aside><!-- End Sidebar-->
     {% block adminContents %}{% endblock %}

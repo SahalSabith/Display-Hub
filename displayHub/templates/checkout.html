@@ -277,71 +277,102 @@
     });
     
     function applyCoupon() {
-        const couponCode = document.getElementById('couponCode').value.trim();
-        const totalAmount = {{cart.cartTotal}};
-        const finalTotalTag = document.getElementById('finalTotal');
-        const coupontag = document.getElementById('coupontag');
-        const couponDiv = document.getElementById('couponDiv');
-    
-        if (!couponCode) {
-            Swal.fire({
-                icon: 'error',
-                title: 'No Coupon Code',
-                text: 'Please enter or select a coupon code.',
-            });
-            return;
-        }
-    
-        fetch("{% url 'applyCoupon' %}", {
-            method: 'POST',
-            body: JSON.stringify({ couponCode }),
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Validate coupon limits
-            if (totalAmount < data.minPurchaseAmount) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Minimum Purchase Required',
-                    text: `You need to spend at least ₹${data.minPurchaseAmount}.`,
-                });
-                return;
-            }
-            if (totalAmount > data.maxPurchaseAmount) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Maximum Purchase Exceeded',
-                    text: `You can apply this coupon for up to ₹${data.maxPurchaseAmount}.`,
-                });
-                return;
-            }
-    
-            // Apply discount
-            const discountAmount = totalAmount * data.discountValue / 100;
-            const finalTotal = totalAmount - discountAmount;
-    
-            finalTotalTag.textContent = '₹' + finalTotal.toFixed(2);
-            couponDiv.style.display = 'block';
-            coupontag.textContent = '-₹' + discountAmount.toFixed(2);
-    
-            Swal.fire({
-                icon: 'success',
-                title: 'Coupon Applied',
-                text: data.message,
-            });
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to apply the coupon.',
-            });
-        });
-    }    
+      const couponCode = document.getElementById('couponCode').value.trim();
+      const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('₹', ''));
+      const finalTotalTag = document.getElementById('finalTotal');
+      const couponTag = document.getElementById('coupontag');
+      const couponDiv = document.getElementById('couponDiv');
+  
+      if (!couponCode) {
+          Swal.fire({
+              icon: 'error',
+              title: 'No Coupon Code',
+              text: 'Please enter or select a coupon code.',
+          });
+          return;
+      }
+  
+      fetch("{% url 'applyCoupon' %}", {
+          method: 'POST',
+          body: JSON.stringify({ couponCode, totalAmount }),
+          headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json',
+          },
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === 'success') {
+              finalTotalTag.textContent = '₹' + data.finalTotal.toFixed(2);
+              couponDiv.style.display = 'block';
+              couponTag.textContent = '-₹' + data.discountAmount.toFixed(2);
+  
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Coupon Applied',
+                  text: data.message,
+              });
+  
+              // Store applied coupon in localStorage
+              localStorage.setItem('appliedCoupon', JSON.stringify({
+                  code: couponCode,
+                  discountAmount: data.discountAmount,
+                  finalTotal: data.finalTotal
+              }));
+          } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: data.message,
+              });
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to apply the coupon. Please try again.',
+          });
+      });
+  }
+  
+  function checkStoredCoupon() {
+      const storedCoupon = localStorage.getItem('appliedCoupon');
+      if (storedCoupon) {
+          const couponData = JSON.parse(storedCoupon);
+          const couponCodeInput = document.getElementById('couponCode');
+          const finalTotalTag = document.getElementById('finalTotal');
+          const couponTag = document.getElementById('coupontag');
+          const couponDiv = document.getElementById('couponDiv');
+  
+          if (couponCodeInput) couponCodeInput.value = couponData.code;
+          if (finalTotalTag) finalTotalTag.textContent = '₹' + couponData.finalTotal.toFixed(2);
+          if (couponTag) couponTag.textContent = '-₹' + couponData.discountAmount.toFixed(2);
+          if (couponDiv) couponDiv.style.display = 'block';
+      }
+  }
+  
+  function removeCoupon() {
+      localStorage.removeItem('appliedCoupon');
+      document.getElementById('couponCode').value = '';
+      document.getElementById('finalTotal').textContent = document.getElementById('totalAmount').textContent;
+      document.getElementById('coupontag').textContent = '';
+      document.getElementById('couponDiv').style.display = 'none';
+  
+      // You may want to add an API call here to remove the coupon on the server-side as well
+  }
+  
+  // Call this function when the page loads
+  document.addEventListener('DOMContentLoaded', function() {
+      checkStoredCoupon();
+      
+      // Add event listener for remove coupon button
+      const removeCouponBtn = document.getElementById('removeCouponBtn');
+      if (removeCouponBtn) {
+          removeCouponBtn.addEventListener('click', removeCoupon);
+      }
+  }); 
     const checkOutBtn = document.getElementById('checkOutBtn');
     checkOutBtn.addEventListener('click', () => {
       const selectedAddress = document.getElementById('selectAddress').value;

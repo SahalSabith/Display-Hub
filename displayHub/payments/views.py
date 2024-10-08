@@ -207,7 +207,7 @@ def razorpay_callback(request):
             # Verify the signature
             if verify_signature(request.POST):
                 # Signature is valid, mark payment as successful
-                order.orderStatus = "SUCCESS"
+                order.orderStatus = "dispatched"
                 order.save()
                 return render(request, "callback.html", context={"status": "success"})
             else:
