@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'discounts',
-    'chats',
+    'talk',
 ]
 
 SOCIALACCOUNT_PROVIDER = {

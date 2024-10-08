@@ -28,5 +28,5 @@ urlpatterns = [
     path('',include('adminManagements.urls')),
     path('',include('discounts.urls')),
     path('',include('payments.urls')),
-    path('',include('chats.urls')),
+    path('',include('talk.urls')),
 ]

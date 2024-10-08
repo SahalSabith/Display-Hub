@@ -1,9 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+import shortuuid
 
 # Create your models here.
 class ChatGroup(models.Model):
-    groupName = models.CharField(max_length=128,unique=True)
+    groupName = models.CharField(max_length=128,unique=True,default=shortuuid.uuid)
+    isPrivate = models.BooleanField(default=True)
+    admin = models.ForeignKey(User,on_delete=models.CASCADE,related_name='adminChat')
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='userChat')
 
     def __str__(self):
         return self.groupName
