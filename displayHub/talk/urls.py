@@ -19,5 +19,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('message/',views.userMessage,name='userChat'),
+    path('message/room/', views.getOrCreateChatroom, name='create_chatroom'),
+    path('message/<str:chatroomName>/', views.userMessage, name='messaging'),
 ]

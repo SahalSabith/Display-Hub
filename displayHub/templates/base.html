@@ -52,7 +52,7 @@
                   {% else %}
                   <li><a href=" {% url "signIn" %} "><span class="icon icon-person"></span></a></li>
                   {% endif %}
-                  <li><a href="{% url "userChat" %}"><span class="icon icon-chat"></span></a></li>
+                  <li><a href="{% url 'create_chatroom' %}"><span class="icon icon-chat"></span></a></li>
                   <li><a href="{% url "wishlist" %}"><span class="icon icon-heart-o"></span></a></li>
                   <li>
                     <a href="{% url "cart" %}" class="site-cart">

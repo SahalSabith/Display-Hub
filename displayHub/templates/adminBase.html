@@ -163,70 +163,21 @@
         </li><!-- End Notification Nav -->
 
         <li class="nav-item dropdown">
-
           <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number">3</span>
-          </a><!-- End Messages Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
+            <i class="bi bi-people"></i>
+            <span class="badge bg-success badge-number" id="user-count"></span>
+          </a>
+        
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow users-list">
             <li class="dropdown-header">
-              You have 3 new messages
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
+              User List
             </li>
             <li>
               <hr class="dropdown-divider">
             </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="{% static 'admin/img/messages-1.jpg' %}" alt="" class="rounded-circle">
-                <div>
-                  <h4>Maria Hudson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>4 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="{% static 'admin/img/messages-2.jpg' %}" alt="" class="rounded-circle">
-                <div>
-                  <h4>Anna Nelson</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>6 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="message-item">
-              <a href="#">
-                <img src="{% static 'admin/img/messages-3.jpg' %}" alt="" class="rounded-circle">
-                <div>
-                  <h4>David Muldon</h4>
-                  <p>Velit asperiores et ducimus soluta repudiandae labore officia est ut...</p>
-                  <p>8 hrs. ago</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="dropdown-footer">
-              <a href="#">Show all messages</a>
-            </li>
-
-          </ul><!-- End Messages Dropdown Items -->
-
-        </li><!-- End Messages Nav -->
+            <!-- User list items will be dynamically inserted here -->
+          </ul>
+        </li>
 
         <li class="nav-item dropdown pe-3">
 
@@ -319,8 +270,128 @@
       </li>
 
   </aside><!-- End Sidebar-->
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">User Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4 user-details">
+            <!-- User details will be inserted here -->
+          </div>
+          <div class="col-md-8">
+            <div class="messages-container" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+              <!-- Messages will be inserted here -->
+            </div>
+            <div class="input-group">
+              <input type="text" class="form-control" id="messageInput" placeholder="Type a message...">
+              <button class="btn btn-primary" type="button" id="sendMessage">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
     {% block adminContents %}{% endblock %}
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <script>
+      // Sample user data (replace this with your actual user data retrieval method)
+      const users = [
+        { id: 1, name: "John Doe", email: "john@example.com", avatar: "{% static 'admin/img/messages-1.jpg' %}" },
+        { id: 2, name: "Jane Smith", email: "jane@example.com", avatar: "{% static 'admin/img/messages-2.jpg' %}" },
+        { id: 3, name: "Bob Johnson", email: "bob@example.com", avatar: "{% static 'admin/img/messages-3.jpg' %}" },
+      ];
+      
+      // Sample messages (replace this with actual message data)
+      const dummyMessages = [
+        { userId: 1, text: "Hello! How are you?", timestamp: "2023-05-01T10:00:00" },
+        { userId: 2, text: "I'm doing great, thanks for asking!", timestamp: "2023-05-01T10:05:00" },
+        { userId: 1, text: "That's wonderful to hear!", timestamp: "2023-05-01T10:10:00" },
+      ];
+      
+      document.addEventListener("DOMContentLoaded", function() {
+        const usersList = document.querySelector(".users-list");
+        const userCount = document.getElementById("user-count");
+        const userModal = new bootstrap.Modal(document.getElementById("userModal"));
+        const messageInput = document.getElementById("messageInput");
+        const sendButton = document.getElementById("sendMessage");
+      
+        // Update user count
+        userCount.textContent = users.length;
+      
+        // Populate user list
+        users.forEach(user => {
+          const li = document.createElement("li");
+          li.className = "dropdown-item d-flex align-items-center";
+          li.innerHTML = `
+            <img src="${user.avatar}" alt="User Avatar" class="rounded-circle" width="40" height="40">
+            <div class="ms-2">
+              <h6 class="mb-0">${user.name}</h6>
+              <small>${user.email}</small>
+            </div>
+          `;
+          li.addEventListener("click", () => showUserModal(user));
+          usersList.appendChild(li);
+        });
+      
+        function showUserModal(user) {
+          const userDetails = document.querySelector("#userModal .user-details");
+          userDetails.innerHTML = `
+            <img src="${user.avatar}" alt="User Avatar" class="rounded-circle mb-3" width="100" height="100">
+            <h4>${user.name}</h4>
+            <p>Email: ${user.email}</p>
+            <p>User ID: ${user.id}</p>
+          `;
+      
+          const messagesContainer = document.querySelector("#userModal .messages-container");
+          messagesContainer.innerHTML = "";
+          dummyMessages.forEach(message => {
+            const messageEl = document.createElement("div");
+            messageEl.className = `message ${message.userId === user.id ? 'text-end' : ''}`;
+            messageEl.innerHTML = `
+              <p><strong>${message.userId === user.id ? 'You' : user.name}:</strong> ${message.text}</p>
+              <small class="text-muted">${new Date(message.timestamp).toLocaleString()}</small>
+            `;
+            messagesContainer.appendChild(messageEl);
+          });
+      
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+          userModal.show();
+        }
+      
+        sendButton.addEventListener("click", sendMessage);
+        messageInput.addEventListener("keypress", function(e) {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        });
+      
+        function sendMessage() {
+          const messageText = messageInput.value.trim();
+          if (messageText) {
+            const messagesContainer = document.querySelector("#userModal .messages-container");
+            const messageEl = document.createElement("div");
+            messageEl.className = "message text-end";
+            messageEl.innerHTML = `
+              <p><strong>You:</strong> ${messageText}</p>
+              <small class="text-muted">${new Date().toLocaleString()}</small>
+            `;
+            messagesContainer.appendChild(messageEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            messageInput.value = "";
+          }
+        }
+      });
+      </script>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
