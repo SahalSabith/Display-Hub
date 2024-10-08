@@ -1,0 +1,13 @@
+{% if message.author == user %}
+    <li class="flex justify-end">
+        <div class="message-bubble sent">
+            <p class="text-sm">{{message.body}}!</p>
+        </div>
+    </li>
+{% else %}
+    <li class="flex justify-start">
+        <div class="message-bubble received">
+            <p class="text-sm">{{message.body}}</p>
+        </div>
+    </li>
+{% endif %}

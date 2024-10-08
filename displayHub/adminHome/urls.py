@@ -22,4 +22,6 @@ urlpatterns = [
     path('admin/',views.dashboard,name='admin'),
     path('admin/users',views.allUsers,name='allUsers'),
     path('sales-report/',views.generate_sales_report, name='generate_sales_report'),
+    path('admin/message/<str:username>/', views.messageOrCreate, name='admin_message_or_create'),
+    path('admin/chatroom/<chatroomName>',views.adminMessage,name='adminMessage')
 ]
