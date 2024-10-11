@@ -393,6 +393,12 @@ def orderDetails(request,oId):
     if not orderItems:
         order.delete()
         return redirect('order')
+    
+    activeOrderItems = OrderItem.objects.filter(orderItemId=order,status=True)
+    if not activeOrderItems.exists():
+        order.orderStatus = 'canceled'
+        order.cancelReason = "user canceled all Items"
+        order.save()
 
     context = {
         'order': order,
@@ -494,12 +500,25 @@ def removeProduct(request, pId):
         try:
             order_item = OrderItem.objects.get(id=pId)
             
-            order = order_item.orderItemId 
+            order = order_item.orderItemId
+
+            if order.paymentMethod == 'internetBanking':
+                user = order.userId
+                wallet, created = Wallet.objects.get_or_create(userId=user)
+                itemAmount = order_item.totalPrice
+
+                wallet.balance = wallet.balance+itemAmount
+                wallet.save()
+
+                transactions = Transaction.objects.create(walletId=wallet, transactionType='refund', amount=itemAmount)
+                transactions.save()
+
 
             order.totalPrice -= order_item.totalPrice
             order.save()
 
-            order_item.delete()
+            order_item.status = False
+            order_item.save()
 
             return JsonResponse({'success': 'Order Item canceled, total price updated'}, status=200)
         except OrderItem.DoesNotExist:

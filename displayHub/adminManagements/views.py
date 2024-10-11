@@ -408,7 +408,7 @@ def orderDetail(request, oId):
         return redirect('home')
 
     order = Order.objects.get(id=oId)
-    orderItems = OrderItem.objects.filter(orderItemId=order)
+    orderItems = OrderItem.objects.filter(orderItemId=order,status=True)
 
     if not order:
         return redirect('admin') 

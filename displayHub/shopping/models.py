@@ -76,4 +76,5 @@ class OrderItem(models.Model):
     varientId = models.ForeignKey(Varients,on_delete=models.CASCADE) 
     quantity = models.IntegerField()
     totalPrice = models.IntegerField(default=0)
+    status = models.BooleanField(default=True)
     orderItemId = models.ForeignKey(Order,related_name='orderItemId',on_delete=models.CASCADE)

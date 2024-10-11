@@ -223,13 +223,17 @@
                 </tr>
             </thead>
             <tbody>
-            {% for orders in orders %}
+            {% for item in orders %}
                 <tr>
-                    <td>{{ orders.productId.name }} ({{ orders.varientId.size }})</td>
-                    <td>{{ orders.quantity }}</td>
-                    <td>₹ {{ orders.varientId.price }}</td>
-                    <td>₹ {{ orders.totalPrice }}</td>
-                    <td><a id="removeBtn" data-variant-id="{{orders.id}}" class="btn btn-danger text-white">remove</a></td>
+                    <td>{{ item.productId.name }} ({{ item.varientId.size }})</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹ {{ item.varientId.price }}</td>
+                    <td>₹ {{ item.totalPrice }}</td>
+                    {% if item.status %}
+                    <td><a id="removeBtn" data-variant-id="{{item.id}}" class="btn btn-danger text-white">Cancel</a></td>
+                    {% else %}
+                    <td><p class="text-danger">You Canceled This Product</p></td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>

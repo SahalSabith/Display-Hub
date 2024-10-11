@@ -92,13 +92,13 @@ def checkOut(request):
                 wallet = Wallet.objects.get(userId=userId)
                 if wallet.balance < float(final_order_price):
                     return JsonResponse({'message': 'Insufficient wallet balance', 'status': 'error'}, status=400)
-                order_status = 'PENDING'  # Set to PENDING, will be updated after confirmation
+                order_status = 'dispatched'
             elif payment_method == 'internetBanking':
                 order_status = 'FAILURE'
             elif payment_method == 'cashOnDelivery':
                 if final_order_price < 1000:
                     return JsonResponse({'message': 'The order amount should be more than 1000 for cash on delivery.', 'status': 'error'}, status=400)
-                order_status = 'PENDING'
+                order_status = 'dispatched'
             else:
                 order_status = 'dispatched'
 
@@ -291,3 +291,67 @@ def repayment(request):
 def orderSuccess(request):
 
     return render(request,'paymentSuccess.html')
+
+
+@never_cache
+@login_required(login_url='/signIn')
+def create_razorpay_order(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            amount = data.get('amount')
+            phone = data.get('phone')
+
+            # Create a new Razorpay order
+            client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+            razorpay_order = client.order.create({
+                "amount": int(amount) * 100,  # Convert to paise
+                "currency": "INR",
+                "payment_capture": "1"
+            })
+            
+            response_data = {
+                'message': 'Order Created',
+                'status': 'success',
+                'razorpay_order_id': razorpay_order['id'],
+                'razorpay_key': RAZOR_KEY_ID,
+                'final_order_price': amount
+            }
+            return JsonResponse(response_data, status=200)
+        
+        except Exception as e:
+            return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
+    
+    return JsonResponse({'message': 'Invalid request method', 'status': 'error'}, status=405)
+
+
+@never_cache
+@login_required(login_url='/signIn')
+def credit_wallet(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            payment_id = data.get('paymentId')
+            amount = data.get('amount')
+            phone = data.get('phone')
+
+            # Get the user's wallet
+            wallet = Wallet.objects.get(userId=request.user)
+
+            # Update wallet balance
+            wallet.balance += float(amount)  # Make sure to handle the amount correctly
+            wallet.save()
+
+            # Log the transaction
+            Transaction.objects.create(
+                walletId=wallet,
+                transactionType='addMoney',
+                amount=float(amount)
+            )
+
+            return JsonResponse({'message': 'Money added to wallet successfully!', 'status': 'success'}, status=200)
+
+        except Exception as e:
+            return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request method', 'status': 'error'}, status=405)
