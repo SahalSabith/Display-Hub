@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Success</title>
+
+  <!-- CDN Links for animation libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      overflow-x: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 50px;
+    }
+
+    h1 {
+      color: #4CAF50;
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .see-orders-btn {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .see-orders-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Coin styles */
+    .coin {
+      width: 30px;
+      height: 30px;
+      background-color: gold;
+      border-radius: 50%;
+      position: absolute;
+      top: -50px;
+      animation: fall linear infinite;
+    }
+
+    /* Partypopper glitters */
+    .glitter {
+      width: 10px;
+      height: 10px;
+      background-color: #FFD700;
+      position: absolute;
+      border-radius: 50%;
+      animation: popper-fall 3s ease-out infinite;
+    }
+
+    /* Coin falling animation from top */
+    @keyframes fall {
+      0% {
+        transform: translateY(-50px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
+    /* Partypopper glitter popping from sides */
+    @keyframes popper-fall-left {
+      0% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(100vw) translateY(100vh);
+        opacity: 0;
+      }
+    }
+
+    @keyframes popper-fall-right {
+      0% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-100vw) translateY(100vh);
+        opacity: 0;
+      }
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .see-orders-btn {
+        font-size: 1rem;
+        padding: 8px 16px;
+      }
+    }
+a{
+    text-decoration: none;
+    color: white;
+}
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1 class="animate__animated animate__bounceIn">Order Placed Successfully!</h1>
+  <button class="see-orders-btn"><a href="{% url "order" %}">See All Orders</a></button>
+</div>
+
+<!-- JavaScript for Coin and Partypopper Animation -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.querySelector('.container');
+
+    // Create coins and partypopper glitters on page load/refresh
+    for (let i = 0; i < 50; i++) {
+      createFallingCoins();
+      createPartypopper('left');  // Glitter pops from left
+      createPartypopper('right'); // Glitter pops from right
+    }
+
+    // Coin creation (falling from top)
+    function createFallingCoins() {
+      const coin = document.createElement('div');
+      coin.classList.add('coin');
+      coin.style.left = Math.random() * window.innerWidth + 'px';
+      coin.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      document.body.appendChild(coin);
+
+      setTimeout(() => {
+        coin.remove();
+      }, 5000); // Remove coins after falling
+    }
+
+    // Partypopper glitter creation (popping from sides)
+    function createPartypopper(direction) {
+      const glitter = document.createElement('div');
+      glitter.classList.add('glitter');
+
+      if (direction === 'left') {
+        glitter.style.left = '0px';
+        glitter.style.top = Math.random() * window.innerHeight + 'px';
+        glitter.style.animationName = 'popper-fall-left';
+      } else {
+        glitter.style.right = '0px';
+        glitter.style.top = Math.random() * window.innerHeight + 'px';
+        glitter.style.animationName = 'popper-fall-right';
+      }
+
+      glitter.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      document.body.appendChild(glitter);
+
+      setTimeout(() => {
+        glitter.remove();
+      }, 5000); // Remove glitters after popping
+    }
+
+    // Repeat animations every time the page refreshes
+    setInterval(() => {
+      for (let i = 0; i < 50; i++) {
+        createFallingCoins();
+        createPartypopper('left');
+        createPartypopper('right');
+      }
+    }, 5000);
+  });
+</script>
+
+</body>
+</html>

@@ -7,7 +7,7 @@ import razorpay
 from django.db import transaction
 from userProfile.models import Address
 from django.core.exceptions import ObjectDoesNotExist
-from discounts.models import Coupon
+from discounts.models import Coupon,CouponUsage
 from datetime import datetime
 from django.contrib import messages
 import json
@@ -18,7 +18,6 @@ from userProfile.models import Wallet,Transaction
 from adminManagements.models import Products,Varients
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-
 # Create your views here.
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
 RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
@@ -28,7 +27,10 @@ RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
 def checkOut(request):
     userId = request.user
     addresses = Address.objects.filter(userId=userId)
-    cart = Cart.objects.get(userId=userId)
+    try:    
+        cart = Cart.objects.get(userId=userId)
+    except ObjectDoesNotExist:
+        return redirect('cart')
     cartItems = CartItem.objects.filter(cartId=cart).count()
     request.session['cartCount'] = cartItems
     try:
@@ -36,6 +38,17 @@ def checkOut(request):
     except ObjectDoesNotExist:
         return redirect('cart')
     cart_items = CartItem.objects.filter(cartId=cart).order_by('-id')
+    
+    for Item in cart_items:
+        if Item.productId.status == False:
+            itemId = Item.pk
+            messages.warning(request,f'{Item.productId.name} is unavailable now')
+            deleteItem = CartItem.objects.get(id=itemId).delete()
+        elif Item.varientId.stock <= 0:
+            itemId = Item.pk
+            messages.warning(request,f'{Item.productId.name} is Out Of Stock now')
+            deleteItem = CartItem.objects.get(id=itemId).delete()
+
     coupon = Coupon.objects.all()
 
     for coupon in coupon:
@@ -43,7 +56,8 @@ def checkOut(request):
             coupon.status = False
             coupon.save()
 
-    coupons = Coupon.objects.filter(status=True)
+    coupons = Coupon.objects.filter(status=True).exclude(
+    id__in=CouponUsage.objects.values_list('coupon_id', flat=True))
 
     if not cart_items.exists():
         messages.error(request, 'Please add items to the cart')
@@ -272,3 +286,8 @@ def repayment(request):
             return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
     
     return JsonResponse({'message': 'Invalid request method', 'status': 'error'}, status=405)
+
+
+def orderSuccess(request):
+
+    return render(request,'paymentSuccess.html')

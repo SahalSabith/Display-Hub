@@ -254,7 +254,7 @@ def editVarient(request, vId):
         return redirect('home')
     
     varient = Varients.objects.get(id=vId)
-    pId = varient.product
+    pId = varient.product.pk
     refreshRate = RefreshRate.objects.all()
     size = Size.objects.all()
 
@@ -270,7 +270,6 @@ def editVarient(request, vId):
         varient.stock = stock
         varient.save()
 
-        messages.success(request, "Variant edited successfully")
         return redirect('allVarients', pId)
 
     context = {

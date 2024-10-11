@@ -200,6 +200,9 @@ def adminMessage(request, chatroomName=None):
     
     # Get the last 30 messages for the chat group
     chatMessages = chatGroups.chatMessage.all()[:30]
+
+    user = chatGroups.user
+    chatuser = user.get(is_superuser=False,is_staff=False)
     
     form = ChatMessageCreateForm()
     
@@ -224,7 +227,8 @@ def adminMessage(request, chatroomName=None):
         'messages': chatMessages,
         'form': form,
         'chatroomName': chatroomName,
-        'users':users
+        'users':users,
+        'chatuser':chatuser
     }
 
     return render(request, 'adminChat.html', context)

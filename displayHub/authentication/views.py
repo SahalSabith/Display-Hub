@@ -49,13 +49,12 @@ def signUp(request):
             return JsonResponse({'success': False, 'messages': '<p>Username already exists</p>'})
         else:
             if password == confirmPassword:
-                # Save user logic here
                 request.session['username'] = userName
                 request.session['email'] = email
                 request.session['password'] = confirmPassword
                 request.session['firstName'] = firstName
                 request.session['lastName'] = lastName
-                return JsonResponse({'success': True, 'redirect_url': '/signIn/emailOtpVerification/'})
+                return JsonResponse({'success': True})
             else:
                 messages.error(request, "Passwords don't match")
                 return JsonResponse({'success': False, 'messages': "<p>Passwords don't match</p>"})
@@ -63,42 +62,9 @@ def signUp(request):
     return JsonResponse({'success': False, 'messages': "<p>Invalid request method</p>"})
 
 @never_cache
-def sendOtp(request):
-    otp = ""
-    if request.POST:
-        toEmail = request.session.get('email')
-        for digit in range(6):
-            otp += str(random.randint(1,9))
-        request.session['otp'] = otp
-        request.session['purpose'] = 'emailVerification'
-        print(otp)
-        try:
-            server = smtplib.SMTP('smtp.gmail.com',587)
-            server.starttls()
-
-            adminEmail = config('adminEmail')
-            server.login(adminEmail,config('adminPassword'))
-
-            print(toEmail)
-
-            msg = EmailMessage()
-            msg['Subject'] = "Display Hub OTP Verification"
-            msg['From'] = adminEmail
-            msg['To'] = toEmail
-            msg.set_content("Your OTP is: " + otp)
-            server.send_message(msg)
-            server.quit()
-            print("sccefullty sent")
-        except Exception as e:
-                print(f"Failed: {e}")
-        
-    return render(request,'emailVerification.html')
-
-@never_cache
-def forgotPassword(request):
+def sendForgotPassOTP(request):
     otp = ""
     mailSent = False
-    toEmail = None
     if request.POST:
         toEmail = request.POST.get('email')
         existEmail = User.objects.filter(email = toEmail)
@@ -108,16 +74,12 @@ def forgotPassword(request):
 
             request.session['otp'] = otp
             request.session['userEmail'] = toEmail
-            request.session['purpose'] = 'passwordReset'
-            print(otp)
             try:
                 server = smtplib.SMTP('smtp.gmail.com',587)
                 server.starttls()
 
                 adminEmail = config('adminEmail')
                 server.login(adminEmail,config('adminPassword'))
-
-                print(toEmail)
 
                 msg = EmailMessage()
                 msg['Subject'] = "Display Hub OTP Verification"
@@ -126,90 +88,101 @@ def forgotPassword(request):
                 msg.set_content("Your OTP is: " + otp)
                 server.send_message(msg)
                 server.quit()
-                print("sccefullty sent")
-                mailSent = True
+
+                print("OTP IS : "+otp)
+                print("Send To : "+toEmail)
+                print("Successfully Sent!")
             except Exception as e:
                 print(f"Failed: {e}")
         else:
             messages.error(request,"No User Found")
     context = {
-                'mailSent' : mailSent,
-                'toEmail' : toEmail
+                'mailSent' : mailSent
             }
     return render(request,'forgotPassword.html',context)
 
 @never_cache
-def verifyPassword(request):
+def verifyForgotOTP(request):
     if request.POST:
         userOtp = request.POST.get('otp')
-        print(userOtp)
         generatedOtp = request.session.get('otp')
-        print(generatedOtp)
         if userOtp == generatedOtp:
-            print("perfect")
-            if request.session.get('purpose') == 'passwordReset':
-                request.session['verified'] = True
-                return redirect('resetPassword')
-            else:
-                return redirect('resetPassword')
+            return redirect('resetPassword')
         else:
             messages.error(request,"OTP does'nt Match")
-            return redirect('emailVerification')
+            return redirect('verifyForgotOTP')
     return render(request,'forgotPassword.html')
 
 @never_cache
-def verifyEmail(request):
+def EmailVerification(request):
+    if request.method == 'GET':
+        toEmail = request.session.get('email')
+        otp = ''
+        for digit in range(6):
+            otp += str(random.randint(1,9))
+            request.session['otp'] = otp
+        try:
+            server = smtplib.SMTP('smtp.gmail.com',587)
+            server.starttls()
+
+            adminEmail = config('adminEmail')
+            server.login(adminEmail,config('adminPassword'))
+
+            msg = EmailMessage()
+            msg['Subject'] = "Display Hub OTP Verification"
+            msg['From'] = adminEmail
+            msg['To'] = toEmail
+            msg.set_content("Your OTP is: " + otp)
+            server.send_message(msg)
+            server.quit()
+            
+            print("OTP IS : "+otp)
+            print("Send To : "+toEmail)
+            print("Successfully Sent!")
+        except Exception as e:
+                print(f"Failed: {e}")
+
     if request.method == 'POST':
         userOtp = request.POST.get('otp')
-        generatedOtp = request.session.get('otp')
-        
-        if userOtp == generatedOtp:
-            if request.session.get('purpose') == 'emailVerification':
-                username = request.session.get('username')
-                email = request.session.get('email')
-                password = request.session.get('password')
-                firstName = request.session.get('firstName')
-                lastName = request.session.get('lastName')
-                newUser = User.objects.create_user(username=username, email=email, password=password, first_name=firstName, last_name=lastName)
-                newUser.save()
-                Wallet.objects.create(userId=newUser)
-                return JsonResponse({'success': True, 'redirect_url': '/signIn/'})
-            else:
-                return JsonResponse({'success': True, 'redirect_url': '/signIn/resetPassword/'})
+        validOTP = request.session.get('otp')
+
+        if userOtp == validOTP:
+            username = request.session.get('username')
+            email = request.session.get('email')
+            password = request.session.get('password')
+            firstName = request.session.get('firstName')
+            lastName = request.session.get('lastName')
+            newUser = User.objects.create_user(username=username, email=email, password=password, first_name=firstName, last_name=lastName)
+            newUser.save()
+            Wallet.objects.create(userId=newUser)
+            del request.session['otp']
+            request.session.modified = True
+            return JsonResponse({'success': True, 'redirect_url': '/signIn/'})
         else:
             return JsonResponse({'success': False, 'error_message': "OTP doesn't match"})
-
     return render(request, 'emailVerification.html')
 
 
 @never_cache
 def resetPassword(request):
-    if request.session.get('verified') == True:
-        if request.POST:
-            newPassword = request.POST.get('newPassword')
-            confirmPassword = request.POST.get('confirmPassword')
-            userEmail = request.session.get('userEmail')
+    if request.POST:
+        newPassword = request.POST.get('newPassword')
+        confirmPassword = request.POST.get('confirmPassword')
+        userEmail = request.session.get('userEmail')
 
-            if newPassword == confirmPassword:
-                user = User.objects.get(email = userEmail)
-                user.set_password(confirmPassword)
-                user.save()
-                return redirect('signIn')
-            else:
-                messages.error(request,"Password doest'nt Match")
-    else:
-        return redirect('signIn')
+        if newPassword == confirmPassword:
+            user = User.objects.get(email = userEmail)
+            user.set_password(confirmPassword)
+            user.save()
+            return redirect('signIn')
+        else:
+            messages.error(request,"Password doest'nt Match")
     return render(request,'resetPassword.html')
 
 @never_cache
 def logout(request):
     authlogout(request)
     return redirect('/')
-
-from django.contrib.auth import authenticate, login as authLogin
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from django.views.decorators.cache import never_cache
 
 @never_cache
 def adminLogin(request):

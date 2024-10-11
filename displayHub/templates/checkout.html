@@ -227,6 +227,22 @@
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: 'warning',
+                title: 'Warning',
+                text: "{{ message }}",
+                showConfirmButton: false,
+                timer: 2000
+            });
+            setTimeout(function() {
+              window.location.reload()
+            }, 2000);  
+        {% endfor %}
+    {% endif %}
+});
       function showError() {
           Swal.fire({
               icon: 'error',
@@ -481,7 +497,7 @@
                       title: 'Payment Successful',
                       text: 'Your order has been placed successfully!',
                     }).then(() => {
-                      window.location.href = "{% url 'order' %}";
+                      window.location.href = "{% url 'successPage' %}";
                     });
                   } else {
                     throw new Error(data.message);
@@ -504,7 +520,7 @@
                 cancelButtonText: 'No, cancel!',
               }).then((result) => {
                 if (result.isConfirmed) {
-                  window.location.href = "{% url 'order' %}";
+                  window.location.href = "{% url 'successPage' %}";
                 }
               });
             }

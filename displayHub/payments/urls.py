@@ -24,4 +24,5 @@ urlpatterns = [
     path('get_wallet_balance/', views.get_wallet_balance, name='get_wallet_balance'),
     path('process_wallet_payment/', views.process_wallet_payment, name='process_wallet_payment'),
     path('cart/checkout',views.checkOut,name='checkOut'),
+    path('orderSuccess/',views.orderSuccess,name="successPage")
 ]

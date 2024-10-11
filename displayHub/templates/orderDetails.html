@@ -219,6 +219,7 @@
                     <th>Quantity</th>
                     <th>Price</th>
                     <th>Subtotal</th>
+                    <th>remove</th>
                 </tr>
             </thead>
             <tbody>
@@ -228,6 +229,7 @@
                     <td>{{ orders.quantity }}</td>
                     <td>₹ {{ orders.varientId.price }}</td>
                     <td>₹ {{ orders.totalPrice }}</td>
+                    <td><a id="removeBtn" data-variant-id="{{orders.id}}" class="btn btn-danger text-white">remove</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -250,7 +252,7 @@
         {% endif %}
 
         {% if order.orderStatus == 'delivered' %}
-            <button type="button" class="action-btn btn-danger" onclick="confirmReturn(event);">Return</button>
+            <button type="button" class="action-btn btn-danger" onclick="confirmRetrun(event);">Return</button>
         {% endif %}
     </div>
 </div>
@@ -519,6 +521,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+
 // Function to get CSRF token
 function getCookie(name) {
     let cookieValue = null;
@@ -534,6 +538,58 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+removeBtn = document.getElementById('removeBtn');
+removeBtn.addEventListener('click', () => {
+    const orderId = removeBtn.getAttribute('data-variant-id');
+    const url = `/order/cancel/${orderId}/`;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you really want to remove this product from the order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ orderId: orderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire(
+                        'Removed!',
+                        'The product has been removed from the order.',
+                        'success'
+                    );
+                    window.location.reload();
+                } else {
+                    Swal.fire(
+                        'Failed!',
+                        'Failed to remove the product from the order.',
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error!',
+                    'An error occurred. Please try again.',
+                    'error'
+                );
+            });
+        }
+    });
+});
 </script>
 
 {% endblock %}

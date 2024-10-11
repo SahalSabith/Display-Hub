@@ -194,7 +194,7 @@ def products(request):
     )
 
     # Pagination
-    paginator = Paginator(productsList.distinct(), 6)  # 6 products per page
+    paginator = Paginator(productsList.distinct(), 8)  # 6 products per page
     page_number = request.GET.get('page')
     products_final = paginator.get_page(page_number)
 
@@ -390,6 +390,9 @@ def orderDetails(request,oId):
     orderPk = order.pk
 
     orderItems = OrderItem.objects.filter(orderItemId=order)
+    if not orderItems:
+        order.delete()
+        return redirect('order')
 
     context = {
         'order': order,
@@ -483,3 +486,22 @@ def downloadInvoice(request,oId):
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="invoice_{oId}.pdf"'
     return response
+
+@never_cache
+@csrf_exempt
+def removeProduct(request, pId):
+    if request.method == 'POST':
+        try:
+            order_item = OrderItem.objects.get(id=pId)
+            
+            order = order_item.orderItemId 
+
+            order.totalPrice -= order_item.totalPrice
+            order.save()
+
+            order_item.delete()
+
+            return JsonResponse({'success': 'Order Item canceled, total price updated'}, status=200)
+        except OrderItem.DoesNotExist:
+            return JsonResponse({'error': 'Order item not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

@@ -11,8 +11,6 @@
 
     <div class="container">
         <div class="form-wrapper">
-            <form id="forgotPasswordForm" method="POST" class="form" action="{% url "emailVerification" %}">
-                {% csrf_token %}
                 <h2>Verify Email</h2>
                 <button type="submit" id="sendOtpBtn">Send OTP</button>
                 <div class="timer" id="timer">45 seconds remaining</div>
@@ -31,12 +29,17 @@
     
 <script src="{% static "js/forgotPassword.js" %}"></script>
 <script>
+sendOtpBtn = document.getElementById('sendOtpBtn');
+sendOtpBtn.addEventListener('click',() => {
+    window.location.reload();
+});
+
     document.getElementById('verifyOtpBtn').addEventListener('click', function() {
         const form = document.getElementById('otpForm');
         const formData = new FormData(form);
         const messagesDiv = document.querySelector('.messages3');
 
-        fetch("{% url 'verifiyEmailOtp' %}", {
+        fetch("{% url 'verifyEmail' %}", {
             method: 'POST',
             body: formData,
             headers: {

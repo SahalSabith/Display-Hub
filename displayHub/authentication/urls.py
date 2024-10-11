@@ -21,12 +21,11 @@ from . import views
 urlpatterns = [
     path('signIn/',views.signIn,name='signIn'),
     path('signUp/',views.signUp,name='signUp'),
-    path('signIn/forgotPassword/', views.forgotPassword, name='forgotPassword'),
+    path('signIn/forgotPassword/', views.sendForgotPassOTP, name='sendForgotPassOTP'),
     path('account/logout/',views.logout,name='logout'),
     path('admin/login/',views.adminLogin,name='adminLogin'),
-    path('signIn/verifyPassword',views.verifyPassword,name='verifyPassword'),
+    path('signIn/verifyPassword',views.verifyForgotOTP,name='verifyForgotOTP'),
     path('signIn/resetPassword/',views.resetPassword,name='resetPassword'),
-    path('emailVerification/',views.sendOtp,name='emailVerification'),
     path('admin/block/<int:uId>/',views.block,name='block'),
-    path('signIn/emailOtpVerification/',views.verifyEmail,name="verifiyEmailOtp")
+    path('signUp/verifyEmail/',views.EmailVerification,name="verifyEmail")
 ]

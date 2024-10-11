@@ -43,13 +43,20 @@
                           {% endfor %}
                       </select>
                   </div>                  
-                    {% include 'messages.html' %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <p>{{message}}</p>
+                    {% endfor %}
+                    {% endif %}
                     <!-- Image Fields -->
                     <div class="col-md-12">
                       <label for="image1" class="form-label">Image 1</label>
                       <input type="file" class="form-control" id="image1" name="image1" accept="image/*">
+                      <div style='width:300px;'>
+                        <img src="{{product.image1.url}}"/>
+                      </div>
                       <div class="img-preview" style='width:300px;'>
-                          <img id="preview1" src="{{product.image1.url}}" alt="Image 1 Preview"/>
+                          <img id="preview1" alt="Image 1 Preview"/>
                       </div>
                       <button type="button" class="btn btn-secondary btn-confirm-crop" id="confirmCrop1" style="display:none;">Confirm Crop</button>
                       <input type="hidden" id="croppedImage1" name="croppedImage1">
@@ -58,34 +65,43 @@
                   <div class="col-md-12">
                       <label for="image2" class="form-label">Image 2</label>
                       <input type="file" class="form-control" id="image2" name="image2" accept="image/*">
+                      {% if product.image2 %}
+                      <div style='width:300px;'>
+                        <img src="{{product.image2.url}}"/>
+                      </div>
+                      {% endif %}
                       <div class="img-preview" style='width:300px;'>
-                        {% if product.image2 %}
-                          <img id="preview2" src="{{product.image2.url}}" alt="Image 2 Preview"/>
-                        {% endif %}
+                          <img id="preview2" alt="Image 2 Preview"/>
                       </div>
                       <button type="button" class="btn btn-secondary btn-confirm-crop" id="confirmCrop2" style="display:none;">Confirm Crop</button>
                       <input type="hidden" id="croppedImage2" name="croppedImage2">
                   </div>
 
                   <div class="col-md-12">
-                      <label for="image3" class="form-label">Image 3</label>
-                      <input type="file" class="form-control" id="image3" name="image3" accept="image/*">
-                      <div class="img-preview" style='width:300px;'>
-                        {% if product.image3 %}
-                          <img id="preview3" src="{{product.image3.url}}" alt="Image 3 Preview"/>
-                        {% endif %}
-                      </div>
-                      <button type="button" class="btn btn-secondary btn-confirm-crop" id="confirmCrop3" style="display:none;">Confirm Crop</button>
-                      <input type="hidden" id="croppedImage3" name="croppedImage3">
+                    <label for="image3" class="form-label">Image 3</label>
+                    <input type="file" class="form-control" id="image3" name="image3" accept="image/*">
+                    {% if product.image3 %}
+                    <div style='width:300px;'>
+                      <img src="{{product.image3.url}}"/>
+                    </div>
+                    {% endif %}
+                    <div class="img-preview" style='width:300px;'>
+                        <img id="preview3" alt="Image 3 Preview"/>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-confirm-crop" id="confirmCrop3" style="display:none;">Confirm Crop</button>
+                    <input type="hidden" id="croppedImage3" name="croppedImage3">
                   </div>
 
                   <div class="col-md-12">
                       <label for="image4" class="form-label">Image 4</label>
                       <input type="file" class="form-control" id="image4" name="image4" accept="image/*">
+                      {% if product.image4 %}
+                      <div style='width:300px;'>
+                        <img src="{{product.image4.url}}"/>
+                      </div>
+                      {% endif %}
                       <div class="img-preview" style='width:300px;'>
-                        {% if product.image4 %}
-                          <img id="preview4" src="{{product.image4.url}}" alt="Image 4 Preview"/>
-                        {% endif %}
+                          <img id="preview4" alt="Image 4 Preview"/>
                       </div>
                       <button type="button" class="btn btn-secondary btn-confirm-crop" id="confirmCrop4" style="display:none;">Confirm Crop</button>
                       <input type="hidden" id="croppedImage4" name="croppedImage4">

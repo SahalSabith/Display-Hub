@@ -42,6 +42,11 @@
                 </td>
                 <td class="product-name">
                   <h2 class="h5 text-black">{{ item.productId.name }}</h2>
+                  {% if item.varientId.stock <= 0 %}
+                  <p class="text-danger">Currently This Product Is Out Of Stock</p>
+                  {% elif item.productId.status == False %}
+                  <p class="text-danger">Currently This Product Unavailable</p>
+                  {% endif %}
                 </td>
                 <td class="product-refreshrate">{{ item.varientId.refreshRate.refreshRate }}Hz</td>
                 <td class="product-size">{{ item.varientId.size.size }}Inch</td>

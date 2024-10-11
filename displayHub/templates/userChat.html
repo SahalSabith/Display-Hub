@@ -77,7 +77,7 @@
             ws-send
             _="on htmx:wsAfterSend reset() me">
           {% csrf_token %}
-          {{ form.as_p }}
+          {{ form.body }}
       </form>      
         </div>
     </div>
