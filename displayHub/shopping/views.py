@@ -130,7 +130,6 @@ def removeCart(request, cId):
     cartItem.delete()
     cart = Cart.objects.get(userId=user)
     cartItems = CartItem.objects.filter(cartId=cart).count()
-    print(cartItems)
     request.session['cartCount'] = cartItems
     return redirect('cart')
 
@@ -243,11 +242,10 @@ def productInfo(request, pId):
                     status=True
                 )
                 offerValue = offer.discountValue
-                print(brand)
 
             offerAmount = (productAmount * offerValue) / 100
             finalAmount = productAmount - offerAmount
-            print('offer available')
+
             productData = {
                 'product': {
                     'name': product.name,
@@ -271,7 +269,6 @@ def productInfo(request, pId):
                 'varientRefreshRates': list(varientRefreshRates),
             }
         except ObjectDoesNotExist:
-            print("No offer")
             productData = {
                 'product': {
                     'name': product.name,
@@ -338,7 +335,6 @@ def productInfo(request, pId):
                                 status=True
                                 )
                             offerValue = offer.discountValue
-                            print(brand)
                         except ObjectDoesNotExist:
                             offer = ProductOffer.objects.get(
                                 applicableProducts=pId,
@@ -351,7 +347,6 @@ def productInfo(request, pId):
                         offerAmount = (productAmount * offerValue) / 100
                         finalAmount = productAmount - offerAmount
 
-                        print("Offer Available")
                         responseData.update({
                             'price': finalAmount,
                             'offerStatus':True,
@@ -363,7 +358,6 @@ def productInfo(request, pId):
                         })
                         
                     except ObjectDoesNotExist:
-                        print("No Offer")
                         responseData.update({
                             'price': productAmount,
                             'size': selectedVarient.size.size,

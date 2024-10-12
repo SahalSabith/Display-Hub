@@ -7,6 +7,7 @@ from . models import Address
 from shopping.models import Order,OrderItem
 from .models import Transaction,Wallet
 from django.http import JsonResponse
+from django.contrib import messages
 from django.views.decorators.http import require_POST
 # Create your views here.
 @never_cache
@@ -83,9 +84,9 @@ def changePassword(request):
                 update_session_auth_hash(request,user)
                 return redirect('account')
             else:
-                print('not match')
+                messages.error(request, "New password and confirm password do not match.")
         else:
-            print('current not match')
+            messages.error(request, "Current password is incorrect.")
 
     return render(request,'changePassword.html')
 

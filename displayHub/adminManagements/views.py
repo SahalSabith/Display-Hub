@@ -21,7 +21,6 @@ def addCategory(request):
         name = request.POST.get('name')
         try:
             Category.objects.create(name=name)
-            print("catogory created")
             return redirect('allCategory')
         except IntegrityError:
             messages.error(request,"Category Already Exits")
@@ -37,7 +36,6 @@ def addBrand(request):
         brand = request.POST.get('brand')
         try:
             Brand.objects.create(name=brand)
-            print('brand added')
             return redirect('allBrand')
         except IntegrityError:
             messages.error(request,"The Brand Already Exits")
@@ -115,8 +113,6 @@ def addProduct(request):
                 image3=image3,
                 image4=image4
                 )
-            
-            print('product added')
             return redirect('allProducts')
         except IntegrityError:
             messages.error(request,"Product Must Be Unique")
@@ -138,7 +134,6 @@ def addVarient(request, vId):
         return redirect('home')
     
     if request.POST:
-        print(vId)
         stock = request.POST.get('stock')
         price = request.POST.get('price')
         sizeId = request.POST.get('size')
@@ -155,8 +150,6 @@ def addVarient(request, vId):
             refreshRate=refreshRate,
             size=size
         )
-        
-        print('Variant added')
         return redirect('allVarients', vId)
     
     sizes = Size.objects.all()
@@ -221,7 +214,6 @@ def blockBrand(request,bId):
     brands = get_object_or_404(Brand,id=bId)
     brands.status = not brands.status
     brands.save()
-    print('brand Blocked')
     return redirect('allBrand')
 
 
@@ -233,7 +225,6 @@ def blockProduct(request,pId):
     product = get_object_or_404(Products,id=pId)
     product.status = not product.status
     product.save()
-    print('varient added')
     return redirect('allProducts')
 
 @never_cache
