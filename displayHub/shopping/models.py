@@ -48,7 +48,6 @@ class Order(models.Model):
         ('returnRequested','Return Requested'),
         ('awaiting_payment', 'Awaiting Payment'),
         ('refunded', 'Refunded'),
-        ('SUCCESS','SUCCESS'),
         ('FAILURE','Failed'),
     ]
     orderStatus = models.CharField(max_length=20,choices=statusChoices,default='dispatched')

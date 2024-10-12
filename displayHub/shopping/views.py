@@ -384,28 +384,32 @@ def productInfo(request, pId):
 
 @never_cache
 @login_required(login_url='/signIn')
-def orderDetails(request,oId):
+def orderDetails(request, oId):
     user = request.user
-    order = Order.objects.get(id=oId,userId=user)
-    orderPk = order.pk
-
+    order = get_object_or_404(Order, id=oId, userId=user)
     orderItems = OrderItem.objects.filter(orderItemId=order)
+    
     if not orderItems:
         order.delete()
         return redirect('order')
     
-    activeOrderItems = OrderItem.objects.filter(orderItemId=order,status=True)
+    activeOrderItems = OrderItem.objects.filter(orderItemId=order, status=True)
     if not activeOrderItems.exists():
         order.orderStatus = 'canceled'
-        order.cancelReason = "user canceled all Items"
+        order.cancelReason = "User canceled all items"
         order.save()
+
+    # Add available addresses for the modal
+    addresses = Address.objects.filter(userId=user)
 
     context = {
         'order': order,
         'orders': orderItems,
-        'orderPk':orderPk
+        'orderPk': order.pk,
+        'addresses': addresses,  # Pass addresses to template
     }
     return render(request, 'orderDetails.html', context)
+
 
 @require_POST
 @never_cache

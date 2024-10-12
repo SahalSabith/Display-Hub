@@ -395,7 +395,8 @@ def editBrand(request,bId):
 def listOrders(request):
     if not request.user.is_superuser:
         return redirect('home')
-    orders = Order.objects.all().order_by('-id')
+    orders = Order.objects.exclude(orderStatus='FAILURE').order_by('-id')
+
     context = {
         'orders': orders
     }
@@ -408,21 +409,45 @@ def orderDetail(request, oId):
         return redirect('home')
 
     order = Order.objects.get(id=oId)
-    orderItems = OrderItem.objects.filter(orderItemId=order,status=True)
+    orderItems = OrderItem.objects.filter(orderItemId=order)
 
     if not order:
-        return redirect('admin') 
+        return redirect('admin')
 
     if request.method == "POST":
         newStatus = request.POST.get("status")
-        if newStatus in dict(Order.statusChoices).keys():
-            order.orderStatus = newStatus
-            order.save()
+        if newStatus and newStatus in dict(Order.statusChoices).keys():
+            if newStatus != order.orderStatus:
+                order.orderStatus = newStatus
+                order.save()
+
+    # Get available status options based on current status
+    availableStatuses = getAvailableStatuses(order.orderStatus)
+    
+    # Filter statusChoices based on available statuses
+    filteredStatusChoices = [
+        (value, display) for value, display in Order.statusChoices
+        if value in availableStatuses
+    ]
 
     context = {
         'order': order,
-        'order_status_options': Order.statusChoices,
+        'orderStatusOptions': filteredStatusChoices,
         'orderItem': orderItems,
     }
     return render(request, 'adminOrderDetails.html', context)
+
+def getAvailableStatuses(currentStatus):
+    allStatuses = [status for status, _ in Order.statusChoices]
+    
+    if currentStatus == 'delivered':
+        return ['returned', 'returnRequested']
+    elif currentStatus in ['dispatched', 'shipped', 'outForDelivery']:
+        return ['delivered', 'canceled'] + [s for s in allStatuses if s not in ['dispatched', 'shipped', 'outForDelivery']]
+    elif currentStatus == 'returnRequested':
+        return ['returned', 'canceled']
+    elif currentStatus in ['canceled', 'returned', 'refunded', 'FAILURE']:
+        return [currentStatus]  # No change allowed
+    else:
+        return allStatuses
 

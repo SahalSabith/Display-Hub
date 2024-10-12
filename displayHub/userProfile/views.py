@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.models import User
@@ -6,7 +6,8 @@ from django.contrib.auth import login as authlogin,authenticate,update_session_a
 from . models import Address
 from shopping.models import Order,OrderItem
 from .models import Transaction,Wallet
-
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 # Create your views here.
 @never_cache
 @login_required(login_url='/signIn')
@@ -155,7 +156,48 @@ def editAddress(request,aId):
 
 @never_cache
 @login_required(login_url='/signIn')
-def removeAddress(request,aId):
-    address = Address.objects.get(id=aId)
-    address.delete()
-    return redirect('address')
+@require_POST
+def removeAddress(request, aId):
+    try:
+        address = Address.objects.get(id=aId)
+        
+        # Check if any orders are using this address
+        orders_using_address = Order.objects.filter(addressId=address).exists()
+        
+        if orders_using_address:
+            # If orders are using the address, return a warning JSON response
+            return JsonResponse({
+                'status': 'warning',
+                'message': 'This address is associated with existing orders and cannot be deleted.'
+            })
+        else:
+            # If no orders are using the address, delete it
+            address.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Address deleted successfully'
+            })
+    except Address.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Address not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+    
+
+@never_cache
+@login_required(login_url='/signIn')
+def change_address(request, oId):
+    if request.method == "POST":
+        order = get_object_or_404(Order, id=oId, userId=request.user)
+        address_id = request.POST.get('address_id')
+        address = get_object_or_404(Address, id=address_id, userId=request.user)
+        order.addressId = address
+        order.save()
+        return redirect('orderDetails', oId=oId)
+
+    return redirect('orderDetails', oId=oId)

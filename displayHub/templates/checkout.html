@@ -441,40 +441,54 @@
       .then(data => {
         if (data.status === 'success') {
           if (selectedPayment === 'internetBanking') {
-                // SweetAlert confirmation for internet banking
-                Swal.fire({
-                    title: 'Confirm Online Banking?',
-                    text: "You will be redirected to the online banking page.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, proceed!',
-                    cancelButtonText: 'No, cancel!',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Proceed with Razorpay payment
-                        const options = {
-                            key: data.razorpay_key,
-                            amount: data.final_order_price * 100, // Amount in paise
-                            currency: "INR",
-                            name: data.order_name,
-                            description: "Order Payment",
-                            image: "https://example.com/logo", // Optional, your site logo
-                            order_id: data.razorpay_order_id, // Razorpay order ID
-                            callback_url: data.callback_url, // Your callback URL
-                            prefill: {
-                                name: "{{user.first_name}} {{ user.last_name }}",
-                                email: "{{ user.email }}",
-                                contact: data.selectedAddress  // Placeholder, update with user contact info
-                            },
-                            theme: {
-                                color: "#3399cc"
+            // SweetAlert confirmation for internet banking
+            Swal.fire({
+                title: 'Confirm Online Banking?',
+                text: "You will be redirected to the online banking page.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'No, cancel!',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Proceed with Razorpay payment
+                    const options = {
+                        key: data.razorpay_key,
+                        amount: data.final_order_price * 100, // Amount in paise
+                        currency: "INR",
+                        name: data.order_name,
+                        description: "Order Payment",
+                        image: "https://example.com/logo", // Optional, your site logo
+                        order_id: data.razorpay_order_id, // Razorpay order ID
+                        callback_url: data.callback_url, // Your callback URL
+                        prefill: {
+                            name: "{{user.first_name}} {{ user.last_name }}",
+                            email: "{{ user.email }}",
+                            contact: data.selectedAddress  // Placeholder, update with user contact info
+                        },
+                        theme: {
+                            color: "#3399cc"
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                // Show SweetAlert when payment modal is closed
+                                Swal.fire({
+                                    title: 'Payment Failed',
+                                    text: 'The payment process was interrupted. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                }).then((result) => {
+                                    // Redirect to the orders page after the SweetAlert is closed
+                                    window.location.href = "{% url 'order' %}";
+                                });
                             }
-                        };
-                        const rzp = new Razorpay(options);
-                        rzp.open();
-                    }
-                });
-            } else if (selectedPayment === 'wallet') {
+                        }
+                    };
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                }
+            });
+        } else if (selectedPayment === 'wallet') {
               fetchWalletBalance()
                 .then(balance => showWalletModal(balance, finalOrderPrice))
                 .then(() => {

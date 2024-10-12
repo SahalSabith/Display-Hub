@@ -40,7 +40,9 @@
                     <td>{{ address.state }}</td>
                     <td>{{ address.zipCode }}</td>
                     <td>
-                        <button onclick="confirmRemoveAddress('{% url 'removeAddress' address.id %}'); return false;" style="border: none; background-color: transparent;"><i class="bi bi-trash3-fill" style="color: #9A94EF;"></i></button>
+                        <button onclick="removeAddress({{ address.pk }})" style="border: none; background-color: transparent;">
+                            <i class="bi bi-trash3-fill" style="color: #9A94EF;"></i>
+                          </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -51,20 +53,60 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmRemoveAddress(url) {
-        Swal.fire({
-          title: 'Are you sure?',
-          text: "You are about to Remove The Address!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Yes, Remove It!'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = url;
-          }
+    function removeAddress(addressId) {
+        fetch(`/account/removeAddress/${addressId}/`, {  // Updated URL path
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'warning') {
+                Swal.fire({
+                    title: 'Warning',
+                    text: data.message,
+                    icon: 'warning',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            } else if (data.status === 'success') {
+                Swal.fire(
+                    'Deleted!',
+                    data.message,
+                    'success'
+                ).then(() => {
+                    // Reload the page or update the address list
+                    location.reload();
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire(
+                'Error',
+                'An error occurred while deleting the address',
+                'error'
+            );
         });
-      }
+    }
+    
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 </script>
 {% endblock %}

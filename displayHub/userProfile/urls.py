@@ -28,5 +28,6 @@ urlpatterns = [
     path('account/editProfile',views.editProfile,name='editProfile'),
     path('account/addAdress',views.addAdress,name='addAddress'),
     path('account/editAddress/<int:aId>',views.editAddress,name='editAddress'),
-    path('account/removeAddress/<int:aId>',views.removeAddress,name='removeAddress'),
+    path('account/removeAddress/<int:aId>/', views.removeAddress, name='removeAddress'),
+    path('changeAddress/<int:oId>/',views.change_address, name='change_address'),
 ]
