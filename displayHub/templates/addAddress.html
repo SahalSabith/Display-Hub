@@ -2,52 +2,112 @@
 {% block accountContent %}
 {% load static %}
 
-<form class="mx-5" method="post">
-    {% csrf_token %}
-    <div class="container">
-        <h2>Add new address</h2>
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="name">Name</label>
-          <input type="text" class="form-control" id="name" name="name" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="phone">Phone</label>
-          <input type="tel" class="form-control" id="phone" name="phone" maxlength="12" required>
+<style>
+        .content {
+            padding-top: 5vh;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #4e54c8;
+            color: white;
+            text-align: center;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        .card-body {
+            padding: 30px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 10px;
+        }
+        .form-control:focus {
+            border-color: #4e54c8;
+            box-shadow: 0 0 0 0.2rem rgba(78, 84, 200, 0.25);
+        }
+        .error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .content {
+                padding-top: 10vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+      <div class="col py-3">
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">Add Address</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name:</label>
+                            <input type="text" class="form-control" id="name" name="name" required value="{{ name }}">
+                            {% if errors.name %}
+                                <p class="error" style="display: block;">{{ errors.name }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone:</label>
+                            <input type="text" class="form-control" id="phone" name="phone" required value="{{ phone }}">
+                            {% if errors.phone %}
+                                <p class="error" style="display: block;">{{ errors.phone }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="houseName" class="form-label">House Name:</label>
+                            <input type="text" class="form-control" id="houseName" name="houseName" required value="{{ houseName }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="city" class="form-label">City:</label>
+                            <input type="text" class="form-control" id="city" name="city" required value="{{ city }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="district" class="form-label">District:</label>
+                            <input type="text" class="form-control" id="district" name="district" required value="{{ district }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="state" class="form-label">State:</label>
+                            <input type="text" class="form-control" id="state" name="state" required value="{{ state }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="zipCode" class="form-label">Zip Code:</label>
+                            <input type="text" class="form-control" id="zipCode" name="zipCode" required value="{{ zipCode }}">
+                            {% if errors.zipCode %}
+                                <p class="error" style="display: block;">{{ errors.zipCode }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Add Address</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
       </div>
-      
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="houseName">House Name</label>
-          <input type="text" class="form-control" id="houseName" name="houseName" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="city">City</label>
-          <input type="text" class="form-control" id="city" name="city" required>
-        </div>
-      </div>
-  
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="district">District</label>
-          <input type="text" class="form-control" id="district" name="district" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="state">State</label>
-          <input type="text" class="form-control" id="state" name="state" required>
-        </div>
-      </div>
-  
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="zipCode">Zip Code</label>
-          <input type="number" class="form-control" id="zipCode" name="zipCode" maxlength="6" required>
-        </div>
-      </div>
-  
-      <button type="submit" class="btn btn-primary">Submit</button>
     </div>
-  </form>
+    <script>
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+    </script>
   
 {% endblock  %}

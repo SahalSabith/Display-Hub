@@ -27,12 +27,13 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG',cast=bool)
 
-ALLOWED_HOSTS = ['10.0.11.83','127.0.0.1']
+ALLOWED_HOSTS = ['*','displayhub.store','www.displayhub.store']
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
 
 # Application definition
 
-SITE_ID = 3
+SITE_ID = 4
 
 INSTALLED_APPS = [
     'daphne',
@@ -83,6 +84,12 @@ MIDDLEWARE = [
     'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://displayhub.store',
+    'https://www.displayhub.store',  # if applicable
+]
+
+
 ROOT_URLCONF = 'displayHub.urls'
 
 TEMPLATES = [
@@ -105,11 +112,13 @@ WSGI_APPLICATION = 'displayHub.wsgi.application'
 ASGI_APPLICATION = 'displayHub.asgi.application'
 
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+    'default': {
+        'BACKEND': 'channels_rabbitmq.core.RabbitmqChannelLayer',
+        'CONFIG': {
+            'host': 'amqp://displayadmin:admin123@localhost:5672/displayHub',
+        },
+    },
 }
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -117,9 +126,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'displayHub',
-        'USER': 'postgres',
-        'PASSWORD': 'sahal123',
+        'NAME': 'displayhub',
+        'USER': 'displayadmin',
+        'PASSWORD': 'admin123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -160,11 +169,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR /'static')
 ]
-STATIC_ROOT = os.path.join(BASE_DIR,'assets')
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
 
 
 # Default primary key field type

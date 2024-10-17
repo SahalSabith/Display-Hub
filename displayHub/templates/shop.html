@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block baseContents %}
 {% load static %}
-<style>
+<style
+.modal-dialog {
+        display: flex;
+	margin-top:130px;
+        align-items: center;  /* Center vertically */
+        min-height: calc(100% - 1rem); /* Ensures the modal is at least full height */
+    }>
   .star-rating {
     display: flex;
     font-size: 24px;
@@ -146,8 +152,8 @@
 </div>
 
 <!-- Filter Modal -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
+<div class="modal fade mt-5" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div style="margin-top:150px;" class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="filterModalLabel">Filter Options</h5>

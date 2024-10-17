@@ -20,7 +20,6 @@ from . import views
 
 urlpatterns = [
     path('',views.home,name='home'),
-    path('contact/',views.contact,name='contact'),
     path('wishlist/',views.wishlist,name='wishlist'),
     path('addToWishlist/',views.addToWishlist,name='addToWishlist'),
     path('removeWishlsit/<int:vId>/',views.removeWishlsit,name='removeWishlsit'),

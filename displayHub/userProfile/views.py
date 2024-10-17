@@ -8,6 +8,8 @@ from shopping.models import Order,OrderItem
 from .models import Transaction,Wallet
 from django.http import JsonResponse
 from django.contrib import messages
+import re
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 # Create your views here.
 @never_cache
@@ -113,7 +115,8 @@ def editProfile(request):
 @never_cache
 @login_required(login_url='/signIn')
 def addAdress(request):
-    if request.POST:
+    errors = {}
+    if request.method == 'POST':
         name = request.POST.get('name')
         phone = request.POST.get('phone')
         houseName = request.POST.get('houseName')
@@ -123,16 +126,35 @@ def addAdress(request):
         zipCode = request.POST.get('zipCode')
         user = request.user
 
-        address = Address.objects.create(name=name,phone=phone,houseName=houseName,city=city,district=district,state=state,zipCode=zipCode,userId=user)
-        address.save()
-        return redirect('address')
-    return render(request,'addAddress.html')
+        if not re.match(r'^\d{10}$', phone):
+            errors['phone'] = "Phone number must be exactly 10 digits."
+
+        if not re.match(r'^\d{6}$', zipCode):
+            errors['zipCode'] = "Zip code must be exactly 6 digits."
+
+        if not errors:
+            address = Address.objects.create(
+                name=name,
+                phone=phone,
+                houseName=houseName,
+                city=city,
+                district=district,
+                state=state,
+                zipCode=zipCode,
+                userId=user
+            )
+            address.save()
+            return redirect('address')
+
+    return render(request, 'addAddress.html', {'errors': errors})
 
 @never_cache
 @login_required(login_url='/signIn')
-def editAddress(request,aId):
+def editAddress(request, aId):
     addressId = Address.objects.get(id=aId)
-    if request.POST:
+    errors = {}
+
+    if request.method == 'POST':
         name = request.POST.get('name')
         phone = request.POST.get('phone')
         houseName = request.POST.get('houseName')
@@ -141,19 +163,28 @@ def editAddress(request,aId):
         state = request.POST.get('state')
         zipCode = request.POST.get('zipCode')
 
-        addressId.name = name
-        addressId.phone = phone
-        addressId.houseName = houseName
-        addressId.city = city
-        addressId.district = district
-        addressId.state = state
-        addressId.zipCode = zipCode
-        addressId.save()
-        return redirect('address')
+        if not re.match(r'^\d{10}$', phone):
+            errors['phone'] = "Phone number must be exactly 10 digits."
+
+        if not re.match(r'^\d{6}$', zipCode):
+            errors['zipCode'] = "Zip code must be exactly 6 digits."
+
+        if not errors: 
+            addressId.name = name
+            addressId.phone = phone
+            addressId.houseName = houseName
+            addressId.city = city
+            addressId.district = district
+            addressId.state = state
+            addressId.zipCode = zipCode
+            addressId.save()
+            return redirect('address')
+
     context = {
-        'address':addressId
+        'address': addressId,
+        'errors': errors
     }
-    return render(request,'editAddress.html',context)
+    return render(request, 'editAddress.html', context)
 
 @never_cache
 @login_required(login_url='/signIn')

@@ -9,7 +9,7 @@ class ChatMessageCreateForm(ModelForm):
         widgets = {
             'body': forms.TextInput(attrs={
                 'placeholder': 'Add Message.....',
-                'class': 'p-4 text-black',
+                'class': 'p-4 text-black form-control',
                 'maxlength': 300,
                 'autofocus': True,
                 'style': 'border-radius: 10px; width: 100%; height: 50px;',

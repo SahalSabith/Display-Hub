@@ -86,7 +86,10 @@ def addToCart(request):
     quantity = data.get('quantity', 1)
     price = data.get('price')
     user = request.user
-
+    if user:
+        None
+    else:
+        return JsonResponse({'success': False, 'message': 'Logi Please'})
     try:
         variant = Varients.objects.get(id=variant_id)
         if variant.stock >= quantity:

@@ -1,141 +1,195 @@
 {% extends "adminBase.html" %}
 {% load static %}
 {% block adminContents %}
-<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+<main id="main" class="main">
+    <section class="section">
+        <div class="chat-wrapper">
+            <div id="chat_window" class="w-full flex flex-col h-[600px] my-3">
+                <div class="chat-header">
+                    <a onclick="goBack()" class="back-button">←</a>
+                    <div class="user-details">
+                        <h2>{{ chatuser.username }}</h2>
+                        <h6>{{ chatuser.email }}</h6>
+                    </div>
+                </div>
+                <div id="chat_container" class="flex-grow overflow-y-auto p-4 space-y-4">
+                    <ul id="chat_messages" class="space-y-4">
+                        {% for message in messages reversed %}
+                            {% include "adminChatMessage.html" %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="chat-input">
+                    <form id="chat_message_form" method="POST"
+                          hx-ext="ws"
+                          ws-connect="/ws/chatroom/{{ chatroomName }}"
+                          ws-send
+                          _="on htmx:wsAfterSend reset() me">
+                        {% csrf_token %}
+                        {{ form.body }}
+                        <button type="submit" class="send-button">SEND</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
 <style>
-    /* Container to center the chat window */
-    .chat-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: calc(100vh - 100px); /* Adjust based on the height of your header */
-        margin-left: 250px; /* Adjust based on sidebar width */
-    }
-    #chat_window {
-        background-color: #ffffff;
-        border-radius: 30px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        max-width: 400px;
-        width: 100%;
-        height: 600px; /* Fixed height for the chat window */
-        display: flex;
-        flex-direction: column;
-    }
-    #chat_container {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        height: 450px; /* Set a fixed height for the chat container */
-        overflow-y: auto; /* Enable vertical scrolling */
-    }
-    #chat_container::-webkit-scrollbar {
-        display: none;
-    }
-    .message-bubble {
-        max-width: 80%;
-        word-wrap: break-word;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        border-radius: 18px;
-    }
-    .message-bubble.sent {
-        background-color: #5c6bc0;
-        color: white;
-        border-bottom-right-radius: 4px;
-        align-self: flex-end;
-    }
-    .message-bubble.received {
-        background-color: #e8eaf6;
-        color: #333;
-        border-bottom-left-radius: 4px;
-        align-self: flex-start;
-    }
-    .message-input {
-        border: none;
-        outline: none;
-        padding: 12px 20px;
-        border-radius: 24px;
-        background-color: #f0f2f5;
-        width: 100%;
-    }
-    .send-button {
-        background-color: #5c6bc0;
-        color: white;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-    li {
+    li{
         list-style: none;
     }
-    .inbox {
-    width: 100%;
-    height: auto;
-    background-color: #7a7a7a; 
+    body {
+        background-color: #e5d4f1;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    .chat-wrapper {
+        max-width: 414px;
+        margin: 20px auto;
+        background-color: white;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .chat-header {
+        background-color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+    }
+    .chat-header h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+    .chat-header h6 {
+        margin: 0;
+        font-size: 12px;
+        color: #666;
+    }
+    .back-button, .add-button {
+        color: #000;
+        text-decoration: none;
+        font-size: 20px;
+    }
+    #chat_container {
+        height: calc(600px - 130px); /* Adjust based on header and input heights */
+        overflow-y: auto;
+        padding: 15px;
+    }
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+    }
+    .message.sent {
+        justify-content: flex-end;
+    }
+    .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 18px;
+        font-size: 14px;
+    }
+    .sent .message-content {
+        background-color: #b980f0;
+        color: white;
+    }
+    .received .message-content {
+        background-color: #f0f0f0;
+        color: black;
+    }
+    .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    .chat-input {
+        padding: 15px;
+        background-color: white;
+        border-top: 1px solid #eee;
+    }
+    .chat-input form {
+        display: flex;
+    }
+    .chat-input input {
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        border-radius: 20px;
+        background-color: #f0f0f0;
+        margin-right: 10px;
+    }
+    .send-button {
+        background-color: #b980f0;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+/* Remove the default list styles */
+.message-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Flexbox layout for the chat */
+.message-item {
     display: flex;
-    flex-direction: row; 
-    justify-content: start;
-    align-items: center;
-    padding: 10px 20px;
-    border-radius: 10px; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    gap: 15px;
+    margin-bottom: 10px;
 }
 
-.user-details h4 {
-    margin: 0;
-    font-size: 1.2em;
-    color: white;
-    font-weight: 600;
+/* Messages sent by the user */
+.message-bubble.sent {
+    background-color: #b980f0; /* Sent message background */
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 60%;
+    align-self: flex-end; /* Align to the right */
+    text-align: right;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0; /* Margin top and bottom */
 }
 
-.user-details h6 {
-    margin: 0;
-    font-size: 0.9em;
-    color: #d0d0d0;
-    font-weight: 400;
+/* Messages received from others */
+.message-bubble.received {
+    background-color: #e5d4f1; /* Received message background */
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 60%;
+    align-self: flex-start; /* Align to the left */
+    text-align: left;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0; /* Margin top and bottom */
 }
+
+/* Optional: Text styling */
+.message-bubble p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 </style>
 
-<div class="chat-wrapper">
-    <div id="chat_window" class="w-full flex flex-col h-[600px] my-3">
-        <div class="inbox">
-            <div class="user-details">
-                <h4>{{ chatuser.username }}</h4>
-                <h6>{{ chatuser.email }}</h6>
-            </div>
-        </div>        
-        <div id="chat_container" class="flex-grow overflow-y-auto p-4 space-y-4">
-            <ul id="chat_messages" class="space-y-4">
-                {% for message in messages reversed %}
-                {% include "adminChatMessage.html" %}
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="bg-white p-4 rounded-b-[30px] border-t border-gray-200">
-            <form id="chat_message_form" method="POST" class="flex items-center"
-                  hx-ext="ws"
-                  ws-connect="/ws/chatroom/{{ chatroomName }}"
-                  ws-send
-                  _="on htmx:wsAfterSend reset() me">
-                {% csrf_token %}
-                {{ form.body }}
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block adminchatjs %}
+<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 <script>
     function scrollToBottom() {
         const container = document.getElementById('chat_container');
         container.scrollTop = container.scrollHeight;
     }
     scrollToBottom();
+    document.body.addEventListener('htmx:wsAfterMessage', function(event) {
+        scrollToBottom();
+    });
+    function goBack() {
+    window.history.back();
+    }
 </script>
 {% endblock %}
