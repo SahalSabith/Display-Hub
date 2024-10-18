@@ -17,9 +17,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from userHome.models import Subscribers
 from decouple import config
-import smtplib
-from email.message import EmailMessage
-
+from django.core.mail import EmailMultiAlternatives
 # Create your views here.
 @never_cache
 @login_required(login_url='/admin/login')
@@ -453,9 +451,9 @@ def getAvailableStatuses(currentStatus):
 
 def announceNewProduct(request):
     if request.method == 'POST':
-        varient_id = request.POST.get("selectedProduct")
-        varient = get_object_or_404(Varients, id=varient_id)
-        product = varient.product
+        variant_id = request.POST.get("selectedProduct")
+        variant = get_object_or_404(Varients, id=variant_id)
+        product = variant.product
 
         # Get all subscribers
         subscribers = Subscribers.objects.all()
@@ -463,7 +461,8 @@ def announceNewProduct(request):
         # Prepare the context for the email template
         context = {
             'product': product,
-            'varient': varient,
+            'variant': variant,
+            'product_url': request.build_absolute_uri(f'/product/{product.id}'),  # Adjust this URL as needed
         }
 
         # Render the HTML template
@@ -471,27 +470,13 @@ def announceNewProduct(request):
         plain_message = strip_tags(html_message)
 
         # Send emails to all subscribers
+        subject = "Announcing Our New Product"
+        from_email = config('adminEmail')
+        
         for subscriber in subscribers:
-            # send_mail(
-            #     subject=f"New Product Announcement: {product.name}",
-            #     message=plain_message,
-            #     from_email=config('adminEmail'),
-            #     recipient_list=[subscriber.email],
-            #     html_message=html_message,
-            #     fail_silently=False,
-            # )
-            server = smtplib.SMTP('smtp.gmail.com',587)
-            server.starttls()
-
-            adminEmail = config('adminEmail')
-            server.login(adminEmail,config('adminPassword'))
-            msg = EmailMessage()
-            msg['Subject'] = "Announcing Our New Product"
-            msg['From'] = adminEmail
-            msg['To'] = subscriber.email
-            msg.set_content(plain_message)
-            server.send_message(msg)
-            server.quit()
+            msg = EmailMultiAlternatives(subject, plain_message, from_email, [subscriber.email])
+            msg.attach_alternative(html_message, "text/html")
+            msg.send()
 
         # Redirect or render a success message
         return redirect('admin')
