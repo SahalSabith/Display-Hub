@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifications</title>
+    <script>
+        const userId = {{ user.id }};  // Pass the user ID from Django context
+        const ws = new WebSocket(`ws://localhost:8000/ws/notifications/`);
+
+        ws.onopen = () => {
+            console.log('WebSocket connection established.');
+        };
+
+        ws.onmessage = (event) => {
+            const notification = JSON.parse(event.data);
+            // Display the notification (e.g., append to a list)
+            console.log(notification);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed.');
+        };
+    </script>
+</head>
+<body>
+    <h1>Your Notifications</h1>
+    <ul id="notification-list"></ul>
+</body>
+</html>
