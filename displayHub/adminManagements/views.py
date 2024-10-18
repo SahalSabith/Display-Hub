@@ -17,7 +17,8 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from userHome.models import Subscribers
 from decouple import config
-
+import smtplib
+from email.message import EmailMessage
 
 # Create your views here.
 @never_cache
@@ -471,14 +472,26 @@ def announceNewProduct(request):
 
         # Send emails to all subscribers
         for subscriber in subscribers:
-            send_mail(
-                subject=f"New Product Announcement: {product.name}",
-                message=plain_message,
-                from_email=config('adminEmail'),
-                recipient_list=[subscriber.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            # send_mail(
+            #     subject=f"New Product Announcement: {product.name}",
+            #     message=plain_message,
+            #     from_email=config('adminEmail'),
+            #     recipient_list=[subscriber.email],
+            #     html_message=html_message,
+            #     fail_silently=False,
+            # )
+            server = smtplib.SMTP('smtp.gmail.com',587)
+            server.starttls()
+
+            adminEmail = config('adminEmail')
+            server.login(adminEmail,config('adminPassword'))
+            msg = EmailMessage()
+            msg['Subject'] = "Announcing Our New Product"
+            msg['From'] = adminEmail
+            msg['To'] = subscriber.email
+            msg.set_content(plain_message)
+            server.send_message(msg)
+            server.quit()
 
         # Redirect or render a success message
         return redirect('admin')
