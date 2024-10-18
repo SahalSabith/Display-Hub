@@ -18,6 +18,9 @@ from django.urls import reverse
 from userHome.models import Subscribers
 from decouple import config
 from django.core.mail import EmailMultiAlternatives
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 # Create your views here.
 @never_cache
 @login_required(login_url='/admin/login')
@@ -469,14 +472,36 @@ def announceNewProduct(request):
         html_message = render_to_string('announceProduct.html', context)
         plain_message = strip_tags(html_message)
 
-        # Send emails to all subscribers
+        # Email settings
         subject = "Announcing Our New Product"
         from_email = config('adminEmail')
-        
+        smtp_server = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_username = config('adminEmail')
+        smtp_password = config('adminPassword')
+
+        # Create SMTP connection
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+
+        # Send emails to all subscribers
         for subscriber in subscribers:
-            msg = EmailMultiAlternatives(subject, plain_message, from_email, [subscriber.email])
-            msg.attach_alternative(html_message, "text/html")
-            msg.send()
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = from_email
+            msg['To'] = subscriber.email
+
+            # Attach both plain-text and HTML versions
+            text_part = MIMEText(plain_message, 'plain')
+            html_part = MIMEText(html_message, 'html')
+            msg.attach(text_part)
+            msg.attach(html_part)
+
+            server.send_message(msg)
+
+        # Close the SMTP connection
+        server.quit()
 
         # Redirect or render a success message
         return redirect('admin')
