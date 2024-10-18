@@ -19,6 +19,7 @@ from adminManagements.models import Products,Varients
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from notifications.views import send_notification
+import asyncio
 # Create your views here.
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
 RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
@@ -115,7 +116,7 @@ def checkOut(request):
 
             message = f"Your order is placed with order no :{order_number}"
 
-            send_notification(request.user,message)
+            await send_notification(request.user,message)
 
             # Create order items and update stock
             for item in cart_items:

@@ -565,5 +565,12 @@
     couponDiv.style.display = 'none'
     coupontag.style.display = 'none'
   })
+  function triggerNotification(userId) {
+    fetch(`/trigger-notification/${userId}/`)
+    .then(response => response.json())
+    .then(data => {
+        console.log('Notification Triggered:', data.status);
+    });
+  }
 </script>
 {% endblock %}
