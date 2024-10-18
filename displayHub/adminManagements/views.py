@@ -454,8 +454,8 @@ def getAvailableStatuses(currentStatus):
 
 def announceNewProduct(request):
     if request.method == 'POST':
-        variant_id = request.POST.get("selectedProduct")
-        variant = get_object_or_404(Varients, id=variant_id)
+        variantId = request.POST.get("selectedProduct")
+        variant = Varients.objects.get(id=variantId)
         product = variant.product
 
         # Get all subscribers
@@ -465,7 +465,8 @@ def announceNewProduct(request):
         context = {
             'product': product,
             'variant': variant,
-            'product_url': request.build_absolute_uri(f'/product/{product.id}'),  # Adjust this URL as needed
+            'product_url': request.build_absolute_uri(f'/product/{product.id}'),
+            'product_image_url': request.build_absolute_uri(product.image1.url),  # Add this line
         }
 
         # Render the HTML template
@@ -485,20 +486,21 @@ def announceNewProduct(request):
         server.starttls()
         server.login(smtp_username, smtp_password)
 
-        # Send emails to all subscribers
-        for subscriber in subscribers:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = from_email
-            msg['To'] = subscriber.email
+        # Create the email message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = from_email  # Set the 'To' field to the sender's email
+        msg['Bcc'] = ', '.join([sub.email for sub in subscribers])  # Add all subscribers to BCC
 
-            # Attach both plain-text and HTML versions
-            text_part = MIMEText(plain_message, 'plain')
-            html_part = MIMEText(html_message, 'html')
-            msg.attach(text_part)
-            msg.attach(html_part)
+        # Attach both plain-text and HTML versions
+        text_part = MIMEText(plain_message, 'plain')
+        html_part = MIMEText(html_message, 'html')
+        msg.attach(text_part)
+        msg.attach(html_part)
 
-            server.send_message(msg)
+        # Send the email
+        server.send_message(msg)
 
         # Close the SMTP connection
         server.quit()

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Product Announcement</title>
+    <title>Exciting New Product Announcement!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,58 +12,101 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f0f0f0;
         }
         .container {
-            background-color: #f9f9f9;
-            border-radius: 5px;
+            background-color: #ffffff;
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
+            font-size: 28px;
+            margin-bottom: 20px;
         }
         .product-image {
             display: block;
-            max-width: 100%;
+            width: 100%;
+            max-width: 300px;
             height: auto;
             margin: 20px auto;
             border-radius: 5px;
         }
         .product-details {
-            background-color: #fff;
+            background-color: #f9f9f9;
             padding: 15px;
             border-radius: 5px;
             margin-top: 20px;
         }
         .btn {
             display: inline-block;
-            background-color: #3498db;
+            background-color: #e74c3c;
             color: #fff;
-            padding: 10px 20px;
+            padding: 12px 24px;
             text-decoration: none;
             border-radius: 5px;
             margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
         }
         .btn:hover {
-            background-color: #2980b9;
+            background-color: #c0392b;
+        }
+        .sticker {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+        }
+        .sticker-1 {
+            top: 10px;
+            left: 10px;
+            transform: rotate(-15deg);
+        }
+        .sticker-2 {
+            bottom: 10px;
+            right: 10px;
+            transform: rotate(15deg);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>New Product Announcement</h1>
-        <img src="{{ product.image1.url }}" alt="{{ product.name }}" class="product-image">
+        <h1>🎉 Exciting New Product Alert! 🎉</h1>
+        
+        <!-- Party popper sticker (left top) -->
+        <svg class="sticker sticker-1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="#FFD700"/>
+            <circle cx="50" cy="50" r="20" fill="#FF6347"/>
+            <path d="M50 30 L55 45 L70 50 L55 55 L50 70 L45 55 L30 50 L45 45 Z" fill="#4CAF50"/>
+        </svg>
+        
+        <!-- Make sure to replace with an absolute URL to your image -->
+        <img src="{{ product_image_url }}" alt="{{ product.name }}" class="product-image">
+        
         <div class="product-details">
             <h2>{{ product.name }}</h2>
             <p><strong>Category:</strong> {{ product.category }}</p>
             <p><strong>Brand:</strong> {{ product.brand }}</p>
             <p><strong>Resolution:</strong> {{ product.resolution }}p</p>
-            <p><strong>Size:</strong> {{ varient.size }}</p>
-            <p><strong>Refresh Rate:</strong> {{ varient.refreshRate }}Hz</p>
-            <p><strong>Price:</strong> ${{ varient.price }}</p>
+            <p><strong>Size:</strong> {{ variant.first.size }}</p>
+            <p><strong>Refresh Rate:</strong> {{ variant.first.refreshRate }}Hz</p>
+            <p><strong>Price:</strong> {{ variant.first.price }}</p>
         </div>
-        <a href="{{ product_url }}" class="btn">View Product</a>
+        
+        <a href="{{ product_url }}" class="btn">🛒 View Product Now!</a>
+        
+        <!-- Confetti sticker (right bottom) -->
+        <svg class="sticker sticker-2" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="5" fill="#FF6347"/>
+            <circle cx="40" cy="60" r="7" fill="#4CAF50"/>
+            <circle cx="70" cy="30" r="6" fill="#3498db"/>
+            <rect x="80" y="70" width="10" height="10" fill="#9b59b6" transform="rotate(45 85 75)"/>
+            <rect x="10" y="80" width="8" height="8" fill="#f1c40f" transform="rotate(-15 14 84)"/>
+        </svg>
     </div>
 </body>
 </html>
