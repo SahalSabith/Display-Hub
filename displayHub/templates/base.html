@@ -105,18 +105,19 @@
               <li class="email"><a href="mailto:support@displayHub.com">support@displayHub.com</a></li>
             </ul>
           </div>
-<!--          <div class="col-lg-4">
+          <div class="col-lg-4">
             <h3 class="footer-heading mb-4">Stay Updated</h3>
-            <form action="#" method="post">
+            <form action="{% url "emailSubscribe" %}" method="post">
+              {% csrf_token %}
               <div class="input-group mb-3">
-                <input type="email" class="form-control" placeholder="Enter your email" aria-label="Email" aria-describedby="button-addon2">
+                <input type="email" class="form-control" name="email" placeholder="Enter your email" aria-label="Email" aria-describedby="button-addon2">
                 <div class="input-group-append">
-                  <button class="btn btn-primary" type="button" id="button-addon2">Subscribe</button>
+                  <button class="btn btn-primary" type="submit" id="button-addon2">Subscribe</button>
                 </div>
               </div>
             </form>
           </div>
-        </div> -->
+        </div>
 
         <div class="row pt-5 mt-5 text-center">
           <div class="col-md-12">

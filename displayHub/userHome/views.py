@@ -8,6 +8,8 @@ from adminManagements.models import Products,Varients
 from django.http import JsonResponse
 import json
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ObjectDoesNotExist
+from . models import Subscribers
 # Create your views here.
 @never_cache
 def home(request):
@@ -77,4 +79,19 @@ def removeAllFromWishlist(request):
         return JsonResponse({'success': True}, status=200)
 
     # If it's not a POST request, return an error
+    return JsonResponse({'error': "Invalid request method."}, status=405)
+
+def emailSubscribe(request):
+    if request.POST:
+        email = request.POST.get('email')
+        try:
+            subscriber = Subscribers.objects.get(email=email)
+            print("already subscribed")
+            return redirect('home')
+        except ObjectDoesNotExist:
+            newSubs = Subscribers.objects.create(email=email)
+            newSubs.save()
+            print(email)
+            print("subscribed")
+            return redirect('home')
     return JsonResponse({'error': "Invalid request method."}, status=405)

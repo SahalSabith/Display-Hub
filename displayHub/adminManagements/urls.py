@@ -40,7 +40,8 @@ urlpatterns = [
     path('admin/allOrders',views.listOrders,name='allOrders'),
     path('admin/orderDetails/<int:oId>/',views.orderDetail,name='adminOrderDeatils'),
     path('admin/newSize',views.addSize,name='createSize'),
-    path('admin/newrefreshrate',views.addRefreshRate,name='createRefreshRate')
+    path('admin/newrefreshrate',views.addRefreshRate,name='createRefreshRate'),
+    path('admin/announceProduct/',views.announceNewProduct,name="announceProduct")
 ]
 
 if settings.DEBUG:

@@ -9,6 +9,14 @@ from django.core.files.base import ContentFile
 from shopping.models import Order,OrderItem
 from django.http import HttpResponse, JsonResponse
 import json
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from userHome.models import Subscribers
+from decouple import config
 
 
 # Create your views here.
@@ -442,3 +450,39 @@ def getAvailableStatuses(currentStatus):
     else:
         return allStatuses
 
+def announceNewProduct(request):
+    if request.method == 'POST':
+        varient_id = request.POST.get("selectedProduct")
+        varient = get_object_or_404(Varients, id=varient_id)
+        product = varient.product
+
+        # Get all subscribers
+        subscribers = Subscribers.objects.all()
+
+        # Prepare the context for the email template
+        context = {
+            'product': product,
+            'varient': varient,
+        }
+
+        # Render the HTML template
+        html_message = render_to_string('announceProduct.html', context)
+        plain_message = strip_tags(html_message)
+
+        # Send emails to all subscribers
+        for subscriber in subscribers:
+            send_mail(
+                subject=f"New Product Announcement: {product.name}",
+                message=plain_message,
+                from_email=config('adminEmail'),
+                recipient_list=[subscriber.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
+        # Redirect or render a success message
+        return redirect('admin')
+
+    # If it's a GET request, render the form
+    products = Products.objects.filter(status=True)
+    return render(request, 'announceProduct.html', {'products': products})

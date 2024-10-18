@@ -52,6 +52,19 @@
               </tbody> 
             </table>             
           <button class="btn btn-outline-success"><a class="text-success" href="{% url "addProduct" %}">Add Product</a></button>
+          <div class="my-5">
+            <form method="post" action="{% url "announceProduct" %}">
+              {% csrf_token %}
+              <select name="selectedProduct">
+                  {% for product in products %}
+                      {% for varient in product.varient.all %}
+                          <option value="{{ varient.id }}">{{ product.name }} - {{ varient.size }} - {{ varient.refreshRate }}Hz</option>
+                      {% endfor %}
+                  {% endfor %}
+              </select>
+              <button type="submit">Announce New Product</button>
+          </form>
+          </div>
         </div>
       </div>
   </section>
