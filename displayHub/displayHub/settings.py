@@ -111,46 +111,46 @@ TEMPLATES = [
 WSGI_APPLICATION = 'displayHub.wsgi.application'
 ASGI_APPLICATION = 'displayHub.asgi.application'
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_rabbitmq.core.RabbitmqChannelLayer',
-#         'CONFIG': {
-#             'host': 'amqp://displayadmin:admin123@localhost:5672/displayHub',
-#         },
-#     },
-# }
-
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_rabbitmq.core.RabbitmqChannelLayer',
+        'CONFIG': {
+            'host': 'amqp://displayadmin:admin123@localhost:5672/displayHub',
+        },
     },
 }
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'displayhub',
-#         'USER': 'displayadmin',
-#         'PASSWORD': 'admin123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'displayHub',
-        'USER': 'postgres',
-        'PASSWORD': 'sahal123',
+        'NAME': 'displayhub',
+        'USER': 'displayadmin',
+        'PASSWORD': 'admin123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'displayHub',
+#         'USER': 'postgres',
+#         'PASSWORD': 'sahal123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation
