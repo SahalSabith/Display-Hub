@@ -82,16 +82,21 @@ def removeAllFromWishlist(request):
     return JsonResponse({'error': "Invalid request method."}, status=405)
 
 def emailSubscribe(request):
-    if request.POST:
+    if request.method == 'POST':
         email = request.POST.get('email')
-        try:
-            subscriber = Subscribers.objects.get(email=email)
-            print("already subscribed")
-            return redirect('home')
-        except ObjectDoesNotExist:
-            newSubs = Subscribers.objects.create(email=email)
-            newSubs.save()
-            print(email)
-            print("subscribed")
-            return redirect('home')
+        if not email:
+            return JsonResponse({'error': 'No email provided'}, status=400)
+
+        # Use get_or_create to simplify the logic
+        subscriber, created = Subscribers.objects.get_or_create(email=email)
+        
+        if created:
+            print(f"New subscription: {email}")
+            messages.success(request, "Thank you for subscribing!")
+        else:
+            print("Already subscribed")
+            messages.info(request, "You are already subscribed.")
+        
+        return redirect('home')
+
     return JsonResponse({'error': "Invalid request method."}, status=405)

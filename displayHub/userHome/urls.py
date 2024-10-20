@@ -24,5 +24,5 @@ urlpatterns = [
     path('addToWishlist/',views.addToWishlist,name='addToWishlist'),
     path('removeWishlsit/<int:vId>/',views.removeWishlsit,name='removeWishlsit'),
     path('removeAllFromWishlist/',views.removeAllFromWishlist,name='removeAllFromWishlist'),
-    path('subscribe/',views.emailSubscribe,name='emailSubscribe'),
+    path('subscribe/', views.emailSubscribe, name='emailSubscribe'),
 ]
