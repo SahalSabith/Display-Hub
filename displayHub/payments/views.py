@@ -19,6 +19,8 @@ from adminManagements.models import Products,Varients
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from webpush import send_user_notification
+import logging
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
@@ -142,7 +144,9 @@ def checkOut(request):
                 'url': f'/account/orderDetails/{order_number}/'
             }
 
+            logger.info(f"Sending notification to user {request.user.username}")
             send_user_notification(user=request.user, payload=payload, ttl=1000)
+            logger.info("Notification sent")
 
             # Clear cart after order is placed
             cart_items.delete()
