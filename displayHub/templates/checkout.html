@@ -389,6 +389,13 @@
           removeCouponBtn.addEventListener('click', removeCoupon);
       }
   }); 
+  function requestNotificationPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(function(result) {
+            console.log('Notification permission:', result);
+        });
+    }
+}
     const checkOutBtn = document.getElementById('checkOutBtn');
     checkOutBtn.addEventListener('click', () => {
       const selectedAddress = document.getElementById('selectAddress').value;
@@ -555,6 +562,9 @@
           });
         });
       });
+    document.addEventListener('DOMContentLoaded', function() {
+        requestNotificationPermission();
+    });
   const removeCouponBtn = document.getElementById('removeCouponBtn')
   removeCouponBtn.addEventListener('click', () => {
     const totalAmount = {{cart.cartTotal}}
