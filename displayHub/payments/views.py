@@ -18,6 +18,8 @@ from userProfile.models import Wallet,Transaction
 from adminManagements.models import Products,Varients
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from webpush import send_user_notification
+
 # Create your views here.
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
 RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
@@ -133,6 +135,14 @@ def checkOut(request):
 
                 order.discountPrice = order.discountPrice+discountedPrice
                 order.save()
+            
+            payload = {
+                'head': 'New Order',
+                'body': 'A new order has been placed!',
+                'url': f'/account/orderDetails/{order_number}/'
+            }
+
+            send_user_notification(user=request.user, payload=payload, ttl=1000)
 
             # Clear cart after order is placed
             cart_items.delete()

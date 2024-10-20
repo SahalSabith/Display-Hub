@@ -1,4 +1,6 @@
 {% load static %}
+{% load webpush_notifications %}
+{% webpush_header %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -132,6 +134,22 @@
 
     {% block chatjs %}{% endblock  %}
   
+    <script>
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+              reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFbWp1dUN2WDN5dGFpZmo5cXNpTGwxbWRSOXZMYwpqRTREMjB0Vmh0Q1JVY2h2NC9NYlJ4WitDYitHUG1EQkFrQW0yT3FjOXAwTGlscHVveS9mV1lacC9nPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg'
+              }).then(function(sub) {
+                  fetch('/subscribe/', {
+                      method: 'POST',
+                      body: JSON.stringify(sub)
+                  });
+              });
+          });
+      }
+    </script>
+
     <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui.js' %}"></script>
     <script src="{% static 'js/popper.min.js' %}"></script>

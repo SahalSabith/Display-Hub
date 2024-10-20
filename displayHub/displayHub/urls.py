@@ -29,4 +29,5 @@ urlpatterns = [
     path('',include('discounts.urls')),
     path('',include('payments.urls')),
     path('',include('talk.urls')),
+    path('webpush/', include('webpush.urls')),
 ]
