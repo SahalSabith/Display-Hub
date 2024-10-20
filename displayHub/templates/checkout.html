@@ -227,6 +227,13 @@
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+  function requestNotificationPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(function(result) {
+            console.log('Notification permission:', result);
+        });
+    }
+}
   document.addEventListener('DOMContentLoaded', function() {
     {% if messages %}
         {% for message in messages %}
@@ -389,13 +396,6 @@
           removeCouponBtn.addEventListener('click', removeCoupon);
       }
   }); 
-  function requestNotificationPermission() {
-    if ('Notification' in window) {
-        Notification.requestPermission().then(function(result) {
-            console.log('Notification permission:', result);
-        });
-    }
-}
     const checkOutBtn = document.getElementById('checkOutBtn');
     checkOutBtn.addEventListener('click', () => {
       const selectedAddress = document.getElementById('selectAddress').value;
@@ -434,7 +434,12 @@
         });
       }
   
-      // Main checkout process
+      document.getElementById('placeOrder').addEventListener('click', function(event) {
+        event.preventDefault();  // Prevent immediate form submission
+        requestNotificationPermission();
+        // Wait a bit to allow the permission request to complete
+        setTimeout(function() {
+            // Main checkout process
       fetch("{% url 'checkOut' %}", {
         method: 'POST',
         body: JSON.stringify({ selectedAddress, selectedPayment, finalOrderPrice }),
@@ -562,8 +567,7 @@
           });
         });
       });
-    document.addEventListener('DOMContentLoaded', function() {
-        requestNotificationPermission();
+        }, 1000);
     });
   const removeCouponBtn = document.getElementById('removeCouponBtn')
   removeCouponBtn.addEventListener('click', () => {
