@@ -39,6 +39,8 @@ def userMessage(request, chatroomName=None):
 
     return render(request, 'userChat.html', context)
 
+@never_cache
+@login_required(login_url='signIn')
 def getOrCreateChatroom(request):
     # Get the admin user (consider using a more dynamic approach)
     admin = User.objects.get(pk=12)

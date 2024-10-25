@@ -193,7 +193,7 @@ def order_data(request):
     return JsonResponse(data, safe=False)
 
 @never_cache
-@login_required(login_url='signIn')
+@login_required(login_url='/admin/login')
 def adminMessage(request, chatroomName=None):
     # Retrieve the chat group or return 404 if not found
     chatGroups = get_object_or_404(ChatGroup, groupName=chatroomName)
@@ -233,6 +233,8 @@ def adminMessage(request, chatroomName=None):
 
     return render(request, 'adminChat.html', context)
 
+@never_cache
+@login_required(login_url='/admin/login')
 def messageOrCreate(request, username):
     # Ensure the requesting user is an admin
     if not request.user.is_staff:
