@@ -32,7 +32,7 @@ def userMessage(request, chatroomName=None):
                        "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
                        "url": "https://www.displayhub.store"}
             
-            send_user_notification(user=admin, payload=payload, ttl=1000)
+            send_user_notification(user=request.user, payload=payload, ttl=1000)
 
             context = {
                 'message': message,

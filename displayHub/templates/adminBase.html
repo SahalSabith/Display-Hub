@@ -67,6 +67,8 @@
     }
 </style>
 <script src="https://unpkg.com/cropperjs"></script>
+{% load webpush_notifications %}
+{% webpush_header %}
 </head>
 
 <body>
@@ -290,6 +292,8 @@
   </aside><!-- End Sidebar-->
     {% block adminContents %}{% endblock %}
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    {% webpush_button with_class="btn btn-outline-info" %}
 
     {% block adminchatjs %}{% endblock  %}
 
