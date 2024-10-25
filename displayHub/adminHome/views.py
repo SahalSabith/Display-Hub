@@ -202,12 +202,14 @@ def adminMessage(request, chatroomName=None):
     # Get the last 30 messages for the chat group
     chatMessages = chatGroups.chatMessage.all()[:30]
 
-    user = chatGroups.user
-    chatuser = user.get(is_superuser=False,is_staff=False)
-    admin = user.get(is_superuser=True)
-    
+    # Retrieve users associated with the chat group
+    users = User.objects.filter(is_superuser=False, is_staff=False)
+    chatuser = users.first()  # Assuming you want to notify only one user for simplicity
+    admin = User.objects.filter(is_superuser=True).first()  # Admin user
+
     form = ChatMessageCreateForm()
     
+    # Check if the request is from HTMX (indicating a form submission)
     if request.htmx:
         form = ChatMessageCreateForm(request.POST)
         if form.is_valid():
@@ -221,19 +223,26 @@ def adminMessage(request, chatroomName=None):
                 'message': message,
                 'user': request.user
             }
+            # Render the new message without refreshing the entire page
             return render(request, 'partials/adminChatMessage_p.html', context)
-        payload = {"head": f"You Have One Message From {admin.username}", "body": form.body,
-                    "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
-                    "url": "https://www.displayhub.store"}
-        send_user_notification(user=chatuser, payload=payload, ttl=1000)    
-    users = User.objects.filter(is_superuser=False,is_staff=False)
-    
+        
+        # Ensure the body of the message exists before sending in the payload
+        if form.cleaned_data.get('body'):
+            payload = {
+                "head": f"You have a new message from {admin.username}",
+                "body": form.cleaned_data['body'],
+                "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                "url": "https://www.displayhub.store"
+            }
+            # Send notification to the chat user
+            send_user_notification(user=chatuser, payload=payload, ttl=1000)
+
     context = {
         'messages': chatMessages,
         'form': form,
         'chatroomName': chatroomName,
-        'users':users,
-        'chatuser':chatuser
+        'users': users,
+        'chatuser': chatuser
     }
 
     return render(request, 'adminChat.html', context)
