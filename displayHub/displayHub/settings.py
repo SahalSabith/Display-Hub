@@ -162,7 +162,7 @@ CHANNEL_LAYERS = {
 # }
 
 DATABASES = {
-    'default': {
+    'default': { 
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'displayHub',
         'USER': 'postgres',
