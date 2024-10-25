@@ -4,6 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.models import User
 from .models import ChatGroup, GroupMessage
 from .forms import ChatMessageCreateForm
+from webpush import send_user_notification
 
 @never_cache
 @login_required(login_url='signIn')
@@ -24,7 +25,15 @@ def userMessage(request, chatroomName=None):
             message.author = request.user
             message.group = chatGroups
             message.save()
+
+            admin = User.objects.get(id=1)
+
+            payload = {"head": f"You Have One Message From {request.user.username}", "body": form.body,
+                       "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                       "url": "https://www.displayhub.store"}
             
+            send_user_notification(user=admin, payload=payload, ttl=1000)
+
             context = {
                 'message': message,
                 'user': request.user

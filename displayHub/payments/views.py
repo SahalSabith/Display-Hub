@@ -18,6 +18,7 @@ from userProfile.models import Wallet,Transaction
 from adminManagements.models import Products,Varients
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from webpush import send_user_notification
 # Create your views here.
 RAZOR_KEY_ID = config('RAZOR_KEY_ID')
 RAZOR_KEY_SECRET = config('RAZOR_KEY_SECRET')
@@ -133,6 +134,13 @@ def checkOut(request):
 
                 order.discountPrice = order.discountPrice+discountedPrice
                 order.save()
+            
+            payload = {"head": "Congratulation..!",
+                        "body": f"Your Order Is Conformed With Order no: {order_number}!",
+                       "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                       "url": "https://www.displayhub.store"}
+            
+            send_user_notification(user=request.user, payload=payload, ttl=1000)
 
             # Clear cart after order is placed
             cart_items.delete()

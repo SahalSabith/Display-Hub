@@ -19,6 +19,7 @@ from datetime import timedelta
 from talk.models import ChatGroup
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from talk.forms import ChatMessageCreateForm
+from webpush import send_user_notification
 
 
 # Create your views here.
@@ -203,6 +204,7 @@ def adminMessage(request, chatroomName=None):
 
     user = chatGroups.user
     chatuser = user.get(is_superuser=False,is_staff=False)
+    admin = user.get(is_superuser=True)
     
     form = ChatMessageCreateForm()
     
@@ -215,6 +217,11 @@ def adminMessage(request, chatroomName=None):
             message.group = chatGroups
             message.save()
             
+            payload = {"head": f"You Have One Message From {admin.username}", "body": form.body,
+                       "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                       "url": "https://www.displayhub.store"}
+            send_user_notification(user=chatuser, payload=payload, ttl=1000)
+
             context = {
                 'message': message,
                 'user': request.user
