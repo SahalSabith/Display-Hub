@@ -216,18 +216,16 @@ def adminMessage(request, chatroomName=None):
             message.author = request.user
             message.group = chatGroups
             message.save()
-            
-            payload = {"head": f"You Have One Message From {admin.username}", "body": form.body,
-                       "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
-                       "url": "https://www.displayhub.store"}
-            send_user_notification(user=chatuser, payload=payload, ttl=1000)
 
             context = {
                 'message': message,
                 'user': request.user
             }
             return render(request, 'partials/adminChatMessage_p.html', context)
-    
+        payload = {"head": f"You Have One Message From {admin.username}", "body": form.body,
+                    "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                    "url": "https://www.displayhub.store"}
+        send_user_notification(user=chatuser, payload=payload, ttl=1000)    
     users = User.objects.filter(is_superuser=False,is_staff=False)
     
     context = {
