@@ -22,6 +22,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from userProfile.models import Wallet,Transaction
+from webpush import send_user_notification
 # Create your views here.
 @never_cache
 @login_required(login_url='/admin/login')
@@ -437,6 +438,12 @@ def orderDetail(request, oId):
                 if newStatus != order.orderStatus:
                     order.orderStatus = newStatus
                     order.save()
+        payload = {"head": "Order Update!",
+                    "body": f"You Order Has Been {newStatus}",
+                    "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                    "url": "https://www.displayhub.store"}
+        
+        send_user_notification(user=order.userId, payload=payload, ttl=1000)
 
     # Get available status options based on current status
     availableStatuses = getAvailableStatuses(order.orderStatus)

@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 import json
 from django.template.loader import render_to_string
 from asgiref.sync import async_to_sync
+from webpush import send_user_notification
 
 class ChatroomConsumer(WebsocketConsumer):
     def connect(self):
@@ -27,11 +28,33 @@ class ChatroomConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         body = text_data_json['body']
+        user = self.user
+
         message = GroupMessage.objects.create(
             body=body,
             author=self.user,
             group=self.chatroom
         )
+
+        if user.is_staff or user.is_superuser:
+            chat_user = self.chatroom.user.get(is_superuser=False, is_staff=False)
+            payload = {
+                "head": "you've got message from DisplayHub!",
+                "body": message.body,
+                "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                "url": "https://www.displayhub.store"
+            }
+            send_user_notification(user=chat_user, payload=payload, ttl=1000)
+        else:
+            admin = self.chatroom.user.get(is_superuser=True)
+            payload = {
+                "head": "DisplayHub!",
+                "body": message.body,
+                "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                "url": "https://www.displayhub.store"
+            }
+            send_user_notification(user=admin, payload=payload, ttl=1000)
+        
         event = {
             'type': 'messageHandler',
             'messageId': message.id
