@@ -43,7 +43,7 @@ def userMessage(request, chatroomName=None):
 @login_required(login_url='signIn')
 def getOrCreateChatroom(request):
     # Get the admin user (consider using a more dynamic approach)
-    admin = User.objects.get(pk=12)
+    admin = User.objects.get(pk=1)
     # Get all private chatrooms for the current user
     chatrooms = request.user.userChat.filter(isPrivate=True)
 
