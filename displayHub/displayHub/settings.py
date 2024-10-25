@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+from django_jinja.builtins import DEFAULT_EXTENSIONS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +58,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'discounts',
     'talk',
+    'webpush',
+    'payments',
+    'django_jinja',
 ]
 
 SOCIALACCOUNT_PROVIDER = {
@@ -86,7 +90,7 @@ MIDDLEWARE = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://displayhub.store',
-    'https://www.displayhub.store',  # if applicable
+    'https://www.displayhub.store',
 ]
 
 
@@ -106,6 +110,22 @@ TEMPLATES = [
             ],
         },
     },
+    {
+        "BACKEND": "django_jinja.backend.Jinja2",
+        "DIRS": ["templates/jinja2"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "extensions": DEFAULT_EXTENSIONS + [
+                "webpush.jinja2.WebPushExtension"
+            ],
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        }
+    }
 ]
 
 WSGI_APPLICATION = 'displayHub.wsgi.application'
@@ -150,6 +170,12 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
+}
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BHVM8z266Ncme00k4luNK1DgrGS2XW8FKDZAapDc9WU74pYuXQFQJHFyZ3k9amh6XkMuT40AmlvqjDwKaLv0Htk",
+    "VAPID_PRIVATE_KEY":"ZYwUd9INUE94ylX_r3CvQNKOcLIjzYAn9aEAGYA0ahA",
+    "VAPID_ADMIN_EMAIL": "sahalsabith000@gmail.com"
 }
 
 

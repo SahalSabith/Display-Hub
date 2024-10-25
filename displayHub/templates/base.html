@@ -20,7 +20,8 @@
     <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/aos.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
+    {% load webpush_notifications %}
+    {% webpush_header %}
   </head>
   <body>
   
@@ -129,6 +130,9 @@
       </div>
     </footer>
     </div>
+
+    {% webpush_button with_class="btn btn-outline-info" %}
+
 
     {% block chatjs %}{% endblock  %}
   

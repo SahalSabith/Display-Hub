@@ -30,6 +30,7 @@ from django.db.models import Min, Count, Q
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from io import BytesIO
+from webpush import send_user_notification
 # Create your views here.
 
 @never_cache
@@ -91,6 +92,8 @@ def addToCart(request):
     else:
         return JsonResponse({'success': False, 'message': 'Logi Please'})
     try:
+        payload = {"head": "Welcome!", "body": "Hello World"}
+        send_user_notification(user=user, payload=payload, ttl=1000)
         variant = Varients.objects.get(id=variant_id)
         if variant.stock >= quantity:
             cart, _ = Cart.objects.get_or_create(userId=user)
