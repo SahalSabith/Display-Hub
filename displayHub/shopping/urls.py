@@ -32,7 +32,8 @@ urlpatterns = [
     path('cart/quantityUpdate',views.updateQuantity,name='updateQuantity'),
     path('orders/returnOrder/<int:oId>/',views.returnOrder,name='returnOrder'),
     path('invoice/<int:oId>/',views.downloadInvoice,name='downloadInvoice'),
-    path('order/cancel/<int:pId>/',views.removeProduct,name='cancelProduct')
+    path('order/cancel/<int:pId>/',views.removeProduct,name='cancelProduct'),
+    path('order/return/<int:pId>',views.returnProduct,name='returnProduct')
 ]
 
 if settings.DEBUG:

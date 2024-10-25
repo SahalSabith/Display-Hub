@@ -21,6 +21,7 @@ from django.core.mail import EmailMultiAlternatives
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from userProfile.models import Wallet,Transaction
 # Create your views here.
 @never_cache
 @login_required(login_url='/admin/login')
@@ -417,10 +418,25 @@ def orderDetail(request, oId):
 
     if request.method == "POST":
         newStatus = request.POST.get("status")
-        if newStatus and newStatus in dict(Order.statusChoices).keys():
+        if newStatus == 'Returned':
+            user = order.userId
+            wallet, created = Wallet.objects.get_or_create(userId=user)
+            orderAmount = order.totalPrice
+
+            wallet.balance = wallet.balance+orderAmount
+            wallet.save()
+
+            transactions = Transaction.objects.create(walletId=wallet, transactionType='refund', amount=orderAmount)
+            transactions.save()
+
             if newStatus != order.orderStatus:
                 order.orderStatus = newStatus
                 order.save()
+        else:
+            if newStatus and newStatus in dict(Order.statusChoices).keys():
+                if newStatus != order.orderStatus:
+                    order.orderStatus = newStatus
+                    order.save()
 
     # Get available status options based on current status
     availableStatuses = getAvailableStatuses(order.orderStatus)

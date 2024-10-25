@@ -525,3 +525,39 @@ def removeProduct(request, pId):
         except OrderItem.DoesNotExist:
             return JsonResponse({'error': 'Order item not found'}, status=404)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@never_cache
+@csrf_exempt
+def returnProduct(request, pId):
+    if request.method == 'POST':
+        try:
+            order_item = OrderItem.objects.get(id=pId)
+            order = order_item.orderItemId
+
+            # Check if payment method is internet banking
+            if order.paymentMethod == 'internetBanking':
+                user = order.userId
+                wallet, created = Wallet.objects.get_or_create(userId=user)
+                itemAmount = order_item.totalPrice
+
+                # Add the returned amount to wallet
+                wallet.balance += itemAmount
+                wallet.save()
+
+                # Record the transaction in Transaction history
+                transactions = Transaction.objects.create(walletId=wallet, transactionType='return', amount=itemAmount)
+                transactions.save()
+
+            # Update the total order price
+            order.totalPrice -= order_item.totalPrice
+            order.orderStatus = 'returnRequested'  # Set order status to return requested
+            order.save()
+
+            # Update the status of the order item to indicate it's being returned
+            order_item.status = False  # Mark as returned
+            order_item.save()
+
+            return JsonResponse({'success': 'Order Item returned, total price updated'}, status=200)
+        except OrderItem.DoesNotExist:
+            return JsonResponse({'error': 'Order item not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

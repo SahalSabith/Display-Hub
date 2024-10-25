@@ -228,11 +228,14 @@
                 {{order.addressId.city}}, {{order.addressId.state}} {{order.addressId.postal_code}}<br>
                 {{order.addressId.country}}
             </div>
+            {% if order.orderStatus == 'returned' %}
+            {% else %}
             <div class="mt-2">
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addressModal">
                     Change Address
                 </button>                
             </div>
+            {% endif %}
         </div>
 
         {% if order.orderStatus == 'canceled' %}
@@ -255,7 +258,10 @@
                     <th>Quantity</th>
                     <th>Price</th>
                     <th>Subtotal</th>
+                    {% if order.orderStatus == 'returned' or order.orderStatus == 'returnRequested'%}
+                    {% else %}
                     <th>remove</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -265,7 +271,10 @@
                     <td>{{ item.quantity }}</td>
                     <td>₹ {{ item.varientId.price }}</td>
                     <td>₹ {{ item.totalPrice }}</td>
-                    {% if item.status %}
+                    {% if order.orderStatus == 'delivered' %}
+                    <td><a id="signleReturnBtn" data-variant-id="{{item.id}}" class="btn btn-danger text-white">Return</a></td>
+                    {% elif order.orderStatus == 'returned' or order.orderStatus == 'returnRequested'%}
+                    {% elif item.status %}
                     <td><a id="removeBtn" data-variant-id="{{item.id}}" class="btn btn-danger text-white">Cancel</a></td>
                     {% else %}
                     <td><p class="text-danger">You Canceled This Product</p></td>
@@ -615,14 +624,13 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
 removeBtn = document.getElementById('removeBtn');
 removeBtn.addEventListener('click', () => {
     const orderId = removeBtn.getAttribute('data-variant-id');
     const url = `/order/cancel/${orderId}/`;
     Swal.fire({
         title: 'Are you sure?',
-        text: "Do you really want to remove this product from the order?",
+        text: "Do you really want to Cancel this product from the order?",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -644,14 +652,65 @@ removeBtn.addEventListener('click', () => {
                 if (data.success) {
                     Swal.fire(
                         'Removed!',
-                        'The product has been removed from the order.',
+                        'The product has been Canceled from the order.',
                         'success'
                     );
                     window.location.reload();
                 } else {
                     Swal.fire(
                         'Failed!',
-                        'Failed to remove the product from the order.',
+                        'Failed to Canceled the product from the order.',
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error!',
+                    'An error occurred. Please try again.',
+                    'error'
+                );
+            });
+        }
+    });
+});
+signleReturnBtn = document.getElementById('signleReturnBtn');
+signleReturnBtn.addEventListener('click', () => {
+    const orderId = signleReturnBtn.getAttribute('data-variant-id');  // Fetching data from signleReturnBtn
+    const url = `/order/return/${orderId}/`;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to return this product?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, return it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ orderId: orderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire(
+                        'Returned!',
+                        'The product has been marked for return.',
+                        'success'
+                    );
+                    window.location.reload();
+                } else {
+                    Swal.fire(
+                        'Failed!',
+                        'Failed to return the product.',
                         'error'
                     );
                 }

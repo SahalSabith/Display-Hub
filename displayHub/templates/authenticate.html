@@ -73,7 +73,7 @@
                             <i class='bx bxs-lock-alt'></i>
                             <input type="password" placeholder="Password" name="password" pattern=".*\S.*" required>
                         </div>
-                        <div class="messages2"></div>
+                        <div class="messages2" style="font-size: 14px; margin-bottom: 7px;"></div>
                         <button type="submit">Sign in</button>
                         <p>
                             <b onclick="goToForgotPassword()" class="pointer">
@@ -144,7 +144,10 @@
                         // Handle errors
                         const messages = data.messages;
                         // Update the UI to display error messages
-                        document.querySelector('.messages').innerHTML = messages;
+                        const message1 = document.querySelector('.messages');
+                        message1.innerHTML = messages;
+                        message1.style.color="red"
+                        
                     }
                 })
                 .catch(error => {
@@ -175,10 +178,11 @@
                         window.location.href = data.redirect_url; // Redirect if needed
                     } else {
                         // Handle errors
-                        const messages = data.messages;
-                        messages.style.color = 'red';
+                        const messages2 = data.messages;
                         // Update the UI to display error messages
-                        document.querySelector('.messages2').innerHTML = messages;
+                        const message2 = document.querySelector('.messages2')
+                        message2.innerHTML = messages2;
+                        message2.style.color = 'red'
                     }
                 })
                 .catch(error => {
