@@ -33,7 +33,7 @@ urlpatterns = [
     path('orders/returnOrder/<int:oId>/',views.returnOrder,name='returnOrder'),
     path('invoice/<int:oId>/',views.downloadInvoice,name='downloadInvoice'),
     path('order/cancel/<int:pId>/',views.removeProduct,name='cancelProduct'),
-    path('order/return/<int:pId>',views.returnProduct,name='returnProduct')
+    path('orders/returns/<int:pId>/',views.returnProduct,name='returnProduct')
 ]
 
 if settings.DEBUG:

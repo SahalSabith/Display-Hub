@@ -624,6 +624,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+{% if order.orderStatus == 'returned' or order.orderStatus == 'returnRequested' %}
 removeBtn = document.getElementById('removeBtn');
 removeBtn.addEventListener('click', () => {
     const orderId = removeBtn.getAttribute('data-variant-id');
@@ -675,10 +676,13 @@ removeBtn.addEventListener('click', () => {
         }
     });
 });
+{% endif %}
 signleReturnBtn = document.getElementById('signleReturnBtn');
+console.log(signleReturnBtn)
 signleReturnBtn.addEventListener('click', () => {
-    const orderId = signleReturnBtn.getAttribute('data-variant-id');  // Fetching data from signleReturnBtn
-    const url = `/order/return/${orderId}/`;
+    console.log("clicked");
+    const orderId = signleReturnBtn.getAttribute('data-variant-id');
+    const url = `/orders/returns/${orderId}/`;
     Swal.fire({
         title: 'Are you sure?',
         text: "Do you want to return this product?",

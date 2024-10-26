@@ -419,7 +419,7 @@ def orderDetail(request, oId):
 
     if request.method == "POST":
         newStatus = request.POST.get("status")
-        if newStatus == 'Returned':
+        if newStatus == 'returned':
             user = order.userId
             wallet, created = Wallet.objects.get_or_create(userId=user)
             orderAmount = order.totalPrice

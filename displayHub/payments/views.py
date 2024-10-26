@@ -155,6 +155,7 @@ def checkOut(request):
                     'razorpay_order_id': razorpay_order['id'],
                     'razorpay_key': RAZOR_KEY_ID,
                     'callback_url': 'https://displayhub.store/razorpay/callback/',
+                    # 'callback_url': 'http://127.0.0.1:8001/razorpay/callback/',
                     'order_name': order_number,
                     'final_order_price': final_order_price
                 }
@@ -285,6 +286,7 @@ def repayment(request):
                 'razorpay_order_id': razorpay_order['id'],
                 'razorpay_key': RAZOR_KEY_ID,
                 'callback_url': 'https://displayhub.store/razorpay/callback/',
+                # 'callback_url': 'http://127.0.0.1:8001/razorpay/callback/',
                 'order_name': order.orderNo,
                 'final_order_price': order.totalPrice
             }
