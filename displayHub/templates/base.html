@@ -5,6 +5,7 @@
     <title>Display Hub</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
@@ -108,7 +109,7 @@
           </div>
           <div class="col-lg-4">
             <h3 class="footer-heading mb-4">Stay Updated</h3>
-            <form action="{% url "emailSubscribe" %}" method="post">
+            <form id="subform" action="{% url "emailSubscribe" %}" method="post">
               {% csrf_token %}
               <div class="input-group mb-3">
                 <input type="email" class="form-control" name="email" placeholder="Enter your email" aria-label="Email" aria-describedby="button-addon2">
@@ -133,6 +134,21 @@
     </div>
 
     {% block chatjs %}{% endblock  %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+      const form = document.getElementById('subform');
+
+      form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const emailInput = this.querySelector('input[name="email"]');
+          const submitButton = this.querySelector('button[type="submit"]');
+          const csrfToken = this.querySelector('input[name="csrfmiddlewaretoken"]').value;
+          
+          emailInput.disabled = true;
+          submitButton.disabled = true;
+      });
+    </script>
   
     <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui.js' %}"></script>

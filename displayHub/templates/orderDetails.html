@@ -624,7 +624,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-{% if order.orderStatus == 'returned' or order.orderStatus == 'returnRequested' %}
+{% if order.orderStatus != 'returned' or order.orderStatus != 'returnRequested' %}
 removeBtn = document.getElementById('removeBtn');
 removeBtn.addEventListener('click', () => {
     const orderId = removeBtn.getAttribute('data-variant-id');
@@ -676,7 +676,7 @@ removeBtn.addEventListener('click', () => {
         }
     });
 });
-{% endif %}
+{% else %}
 signleReturnBtn = document.getElementById('signleReturnBtn');
 console.log(signleReturnBtn)
 signleReturnBtn.addEventListener('click', () => {
@@ -730,6 +730,7 @@ signleReturnBtn.addEventListener('click', () => {
         }
     });
 });
+{% endif %}
 </script>
 
 {% endblock %}

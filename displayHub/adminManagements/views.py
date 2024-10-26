@@ -419,20 +419,23 @@ def orderDetail(request, oId):
 
     if request.method == "POST":
         newStatus = request.POST.get("status")
+        print(newStatus)
         if newStatus == 'returned':
-            user = order.userId
-            wallet, created = Wallet.objects.get_or_create(userId=user)
-            orderAmount = order.totalPrice
+            if order.paymentMethod == 'internetBanking' or order.paymentMethod == 'wallet':
+                print("two")
+                user = order.userId
+                wallet, created = Wallet.objects.get_or_create(userId=user)
+                orderAmount = order.totalPrice
 
-            wallet.balance = wallet.balance+orderAmount
-            wallet.save()
+                wallet.balance = wallet.balance+orderAmount
+                wallet.save()
 
-            transactions = Transaction.objects.create(walletId=wallet, transactionType='refund', amount=orderAmount)
-            transactions.save()
+                transactions = Transaction.objects.create(walletId=wallet, transactionType='refund', amount=orderAmount)
+                transactions.save()
 
-            if newStatus != order.orderStatus:
-                order.orderStatus = newStatus
-                order.save()
+                if newStatus != order.orderStatus:
+                    order.orderStatus = newStatus
+                    order.save()
         else:
             if newStatus and newStatus in dict(Order.statusChoices).keys():
                 if newStatus != order.orderStatus:

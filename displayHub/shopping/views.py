@@ -78,8 +78,8 @@ def updateQuantity(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-@login_required(login_url='/signIn')
 @require_POST
+@login_required(login_url='/signIn')
 def addToCart(request):
     data = json.loads(request.body)
     variant_id = data.get('variant_id')
@@ -423,7 +423,7 @@ def cancelOrder(request, oId):
                 else:
                     return JsonResponse({'error': 'Please provide a reason for cancellation.'}, status=400)
                 
-            if order.paymentMethod == 'internetBanking':
+            if order.paymentMethod == 'internetBanking' or order.paymentMethod == 'wallet':
                 user = request.user
                 wallet, created = Wallet.objects.get_or_create(userId=user)
                 orderAmount = order.totalPrice
@@ -503,7 +503,7 @@ def removeProduct(request, pId):
             
             order = order_item.orderItemId
 
-            if order.paymentMethod == 'internetBanking':
+            if order.paymentMethod == 'internetBanking' or order.paymentMethod == 'wallet':
                 user = order.userId
                 wallet, created = Wallet.objects.get_or_create(userId=user)
                 itemAmount = order_item.totalPrice
@@ -535,7 +535,7 @@ def returnProduct(request, pId):
             order = order_item.orderItemId
 
             # Check if payment method is internet banking
-            if order.paymentMethod == 'internetBanking':
+            if order.paymentMethod == 'internetBanking' or order.paymentMethod == 'wallet':
                 user = order.userId
                 wallet, created = Wallet.objects.get_or_create(userId=user)
                 itemAmount = order_item.totalPrice
