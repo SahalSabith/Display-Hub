@@ -140,37 +140,37 @@ CHANNEL_LAYERS = {
     },
 }
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-#     },
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'displayhub',
-        'USER': 'displayadmin',
-        'PASSWORD': 'admin123',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-
 # DATABASES = {
-#     'default': { 
+#     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'displayHub',
-#         'USER': 'postgres',
-#         'PASSWORD': 'sahal123',
+#         'NAME': 'displayhub',
+#         'USER': 'displayadmin',
+#         'PASSWORD': 'admin123',
 #         'HOST': 'localhost',
-#         'PORT': '5432', 
+#         'PORT': '5432',
 #     }
 # }
+
+DATABASES = {
+    'default': { 
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'displayHub',
+        'USER': 'postgres',
+        'PASSWORD': 'sahal123',
+        'HOST': 'localhost',
+        'PORT': '5432', 
+    }
+}
 
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": "BHVM8z266Ncme00k4luNK1DgrGS2XW8FKDZAapDc9WU74pYuXQFQJHFyZ3k9amh6XkMuT40AmlvqjDwKaLv0Htk",

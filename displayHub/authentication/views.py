@@ -67,6 +67,7 @@ def sendForgotPassOTP(request):
     mailSent = False
     if request.POST:
         toEmail = request.POST.get('email')
+        request.session['forgotEmail'] = toEmail
         existEmail = User.objects.filter(email = toEmail)
         if existEmail:
             for digit in range(6):
@@ -107,6 +108,7 @@ def verifyForgotOTP(request):
         userOtp = request.POST.get('otp')
         generatedOtp = request.session.get('otp')
         if userOtp == generatedOtp:
+            del request.session['forgotEmail']
             return redirect('resetPassword')
         else:
             messages.error(request,"OTP does'nt Match")
