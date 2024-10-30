@@ -210,47 +210,67 @@ def razorpay_callback(request):
     def verify_signature(response_data):
         client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
         try:
-            client.utility.verify_payment_signature(response_data)
-            return True
+            return client.utility.verify_payment_signature(response_data)
         except:
             return False
 
     if request.method == "POST":
-        if "razorpay_signature" in request.POST:
-            # Extract Razorpay details from POST request
-            payment_id = request.POST.get("razorpay_payment_id", "")
-            provider_order_id = request.POST.get("razorpay_order_id", "")
-            signature_id = request.POST.get("razorpay_signature", "")
+        try:
+            if "razorpay_signature" in request.POST:
+                # Extract Razorpay details from POST request
+                payment_id = request.POST.get("razorpay_payment_id", "")
+                provider_order_id = request.POST.get("razorpay_order_id", "")
+                signature_id = request.POST.get("razorpay_signature", "")
 
-            # Fetch the corresponding order in your system
-            order = Order.objects.get(provider_order_id=provider_order_id)
-            order.pamentId = payment_id
-            order.signatreId = signature_id
+                # Fetch the corresponding order in your system
+                order = Order.objects.get(provider_order_id=provider_order_id)
+                
+                # Update payment details
+                order.pamentId = payment_id
+                order.signatreId = signature_id
 
-            # Verify the signature
-            if verify_signature(request.POST):
-                # Signature is valid, mark payment as successful
-                order.orderStatus = "dispatched"
-                order.save()
-                return render(request, "callback.html", context={"status": "success"})
+                # Verify the signature
+                if verify_signature(request.POST):
+                    # Signature is valid, mark payment as successful
+                    order.orderStatus = "dispatched"
+                    order.save()
+                    
+                    # Send notification for successful payment
+                    try:
+                        payload = {
+                            "head": "Payment Successful!",
+                            "body": f"Your payment for order {order.orderNo} has been processed successfully!",
+                            "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                            "url": "https://www.displayhub.store"
+                        }
+                        send_user_notification(user=order.userId, payload=payload, ttl=1000)
+                    except Exception as e:
+                        # Log notification error but don't stop the process
+                        print(f"Notification error: {str(e)}")
+                    
+                    return render(request, "callback.html", context={"status": "success"})
+                else:
+                    # Invalid signature, mark payment as failed
+                    order.orderStatus = "FAILURE"
+                    order.save()
+                    return render(request, "callback.html", context={"status": "failure"})
             else:
-                # Invalid signature, mark payment as failed
+                # Handle Razorpay error response
+                error_metadata = json.loads(request.POST.get("error[metadata]"))
+                payment_id = error_metadata.get("payment_id", "")
+                provider_order_id = error_metadata.get("order_id", "")
+
+                # Fetch and update the corresponding order
+                order = Order.objects.get(provider_order_id=provider_order_id)
+                order.pamentId = payment_id
                 order.orderStatus = "FAILURE"
                 order.save()
+
                 return render(request, "callback.html", context={"status": "failure"})
-        else:
-            # Handle Razorpay error response
-            error_metadata = json.loads(request.POST.get("error[metadata]"))
-            payment_id = error_metadata.get("payment_id", "")
-            provider_order_id = error_metadata.get("order_id", "")
-
-            # Fetch the corresponding order
-            order = Order.objects.get(provider_order_id=provider_order_id)
-            order.pamentId = payment_id
-            order.orderStatus = "FAILURE"
-            order.save()
-
-            return render(request, "callback.html", context={"status": "failure"})
+        except Exception as e:
+            # Log the error and return a generic error response
+            print(f"Callback error: {str(e)}")
+            return render(request, "callback.html", context={"status": "error"})
 
     return render(request, "callback.html", context={"status": "error"})
 
@@ -278,6 +298,8 @@ def repayment(request):
             
             # Update the order with the new Razorpay order ID
             order.provider_order_id = razorpay_order['id']
+            order.pamentId = None  # Reset payment ID for new attempt
+            order.signatreId = None  # Reset signature ID for new attempt
             order.save()
             
             response_data = {
@@ -286,7 +308,6 @@ def repayment(request):
                 'razorpay_order_id': razorpay_order['id'],
                 'razorpay_key': RAZOR_KEY_ID,
                 'callback_url': 'https://displayhub.store/razorpay/callback/',
-                # 'callback_url': 'http://127.0.0.1:8001/razorpay/callback/',
                 'order_name': order.orderNo,
                 'final_order_price': order.totalPrice
             }

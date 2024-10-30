@@ -154,12 +154,20 @@
       const quantityInput = row.querySelector('.quantity-input');
       const stock = parseInt(row.getAttribute('data-stock'));
       let quantity = parseInt(quantityInput.value);
-      const itemId = event.target.getAttribute('data-item-id'); // Get item ID from the button
-
-      // Check stock and limit quantity
+      const itemId = event.target.getAttribute('data-item-id');
+ 
       if (event.target.classList.contains('js-btn-plus')) {
-        if (quantity < stock) {
-
+        if (quantity < stock && quantity < 10) {
+          quantity++;
+        } else if (quantity >= 10) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Oops...',
+            text: `You Can Only Buy 10 Products at a time`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          quantity = 10;
         } else {
           Swal.fire({
             icon: 'error',
@@ -171,8 +179,8 @@
           quantity = stock;
         }
       } else if (event.target.classList.contains('js-btn-minus')) {
-        if (quantity >= 1) {
-          
+        if (quantity > 1) {
+          quantity--;
         } else {
           Swal.fire({
             icon: 'error',
@@ -184,19 +192,13 @@
           quantity = 1;
         }
       }
-
-      // Update the quantity input field
+ 
       quantityInput.value = quantity;
-
-      // Recalculate totals
       updateTotals();
-
-      // Now trigger AJAX to update the quantity in the backend
       const action = event.target.classList.contains('js-btn-plus') ? 'increase' : 'decrease';
       updateQuantity(itemId, action);
     }
   });
-
   
   function updateQuantity(itemId, action) {
     fetch("{% url 'updateQuantity' %}", {

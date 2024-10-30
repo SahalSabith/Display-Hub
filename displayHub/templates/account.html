@@ -138,7 +138,10 @@
             </tbody>
           </table>
           <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+            {% if request.user.email %}
               <button type="button" onclick="confirmPasswordChange('{% url 'changePassword' %}'); return false;" class="btn btn-outline-danger">Change Password</button>
+            {% else %}
+            {% endif %}
               <button type="button" class="btn btn-outline-success mt-2 mt-sm-0 mx-md-3" onclick="confirmEditProfile('{% url 'editProfile' %}'); return false;">Edit Profile</button>
           </div>          
         </div>

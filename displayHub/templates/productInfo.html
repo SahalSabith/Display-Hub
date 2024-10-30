@@ -631,11 +631,21 @@
 
             function updateQuantity(increment) {
                 let quantity = parseInt(quantityInput.value);
-                if (quantity < 1) quantity = 1;
-                if (quantity > currentStock) {
-                    Swal.fire('Warning', 'Requested quantity exceeds available stock', 'warning');
-                    quantity = currentStock;
+                
+                if (quantity < 1) {
+                    quantity = 1;
                 }
+                
+                if (quantity >= currentStock) {
+                    Swal.fire('Warning', 'Requested quantity exceeds available stock', 'warning');
+                    quantity = currentStock-1;
+                }
+                
+                if (quantity >= 10 ) {
+                    Swal.fire('Warning', 'You can only buy 10 products at a time', 'warning');
+                    quantity = quantity-1;
+                }
+                
                 quantityInput.value = quantity;
             }
 

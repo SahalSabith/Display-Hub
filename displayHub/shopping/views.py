@@ -68,11 +68,11 @@ def updateQuantity(request):
                 cart_item.quantity -= 1
                 cart_item.save()
                 return JsonResponse({'success': True, 'new_quantity': cart_item.quantity})
-            else:
-                cart_item.delete()
-                cart = cart_item.cartId
-                cart.delete()
-                return JsonResponse({'success': True, 'new_quantity': 0, 'removed': True})
+        else:
+            cart_item.delete()
+            cart = cart_item.cartId
+            cart.delete()
+            return JsonResponse({'success': True, 'new_quantity': 0, 'removed': True})
     except CartItem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Item not found'})
 

@@ -11,6 +11,8 @@ from django.contrib import messages
 import re
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
+from discounts.models import CouponUsage
+from django.core.paginator import Paginator
 # Create your views here.
 @never_cache
 @login_required(login_url='/signIn')
@@ -49,12 +51,23 @@ def order(request):
     return render(request, 'order.html', context)
 
 
-@never_cache
+never_cache
 @login_required(login_url='/signIn')
 def coupon(request):
     if request.user.is_superuser:
         return redirect('admin')
-    return render(request,'coupon.html')
+    
+    coupons = CouponUsage.objects.filter(user=request.user)
+
+    paginator = Paginator(coupons, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'coupons': page_obj,
+        'has_coupons': coupons.exists()
+    }
+    return render(request, 'coupon.html', context)
 
 @never_cache
 @login_required(login_url='/signIn')
