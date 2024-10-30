@@ -154,8 +154,8 @@ def checkOut(request):
                     'selectedAddress':address.phone,
                     'razorpay_order_id': razorpay_order['id'],
                     'razorpay_key': RAZOR_KEY_ID,
-                    'callback_url': 'https://displayhub.store/razorpay/callback/',
-                    # 'callback_url': 'http://127.0.0.1:8001/razorpay/callback/',
+                    # 'callback_url': 'https://displayhub.store/razorpay/callback/',
+                    'callback_url': 'http://127.0.0.1:8001/razorpay/callback/',
                     'order_name': order_number,
                     'final_order_price': final_order_price
                 }
@@ -210,113 +210,156 @@ def razorpay_callback(request):
     def verify_signature(response_data):
         client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
         try:
-            return client.utility.verify_payment_signature(response_data)
+            client.utility.verify_payment_signature(response_data)
+            return True
         except:
             return False
 
     if request.method == "POST":
-        try:
-            if "razorpay_signature" in request.POST:
-                # Extract Razorpay details from POST request
-                payment_id = request.POST.get("razorpay_payment_id", "")
-                provider_order_id = request.POST.get("razorpay_order_id", "")
-                signature_id = request.POST.get("razorpay_signature", "")
+        if "razorpay_signature" in request.POST:
+            # Extract Razorpay details from POST request
+            payment_id = request.POST.get("razorpay_payment_id", "")
+            provider_order_id = request.POST.get("razorpay_order_id", "")
+            signature_id = request.POST.get("razorpay_signature", "")
 
-                # Fetch the corresponding order in your system
-                order = Order.objects.get(provider_order_id=provider_order_id)
-                
-                # Update payment details
-                order.pamentId = payment_id
-                order.signatreId = signature_id
+            # Fetch the corresponding order in your system
+            order = Order.objects.get(provider_order_id=provider_order_id)
+            order.pamentId = payment_id
+            order.signatreId = signature_id
 
-                # Verify the signature
-                if verify_signature(request.POST):
-                    # Signature is valid, mark payment as successful
-                    order.orderStatus = "dispatched"
-                    order.save()
-                    
-                    # Send notification for successful payment
-                    try:
-                        payload = {
-                            "head": "Payment Successful!",
-                            "body": f"Your payment for order {order.orderNo} has been processed successfully!",
-                            "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
-                            "url": "https://www.displayhub.store"
-                        }
-                        send_user_notification(user=order.userId, payload=payload, ttl=1000)
-                    except Exception as e:
-                        # Log notification error but don't stop the process
-                        print(f"Notification error: {str(e)}")
-                    
-                    return render(request, "callback.html", context={"status": "success"})
-                else:
-                    # Invalid signature, mark payment as failed
-                    order.orderStatus = "FAILURE"
-                    order.save()
-                    return render(request, "callback.html", context={"status": "failure"})
+            # Verify the signature
+            if verify_signature(request.POST):
+                # Signature is valid, mark payment as successful
+                order.orderStatus = "dispatched"
+                order.save()
+                return render(request, "callback.html", context={"status": "success"})
             else:
-                # Handle Razorpay error response
-                error_metadata = json.loads(request.POST.get("error[metadata]"))
-                payment_id = error_metadata.get("payment_id", "")
-                provider_order_id = error_metadata.get("order_id", "")
-
-                # Fetch and update the corresponding order
-                order = Order.objects.get(provider_order_id=provider_order_id)
-                order.pamentId = payment_id
+                # Invalid signature, mark payment as failed
                 order.orderStatus = "FAILURE"
                 order.save()
-
                 return render(request, "callback.html", context={"status": "failure"})
-        except Exception as e:
-            # Log the error and return a generic error response
-            print(f"Callback error: {str(e)}")
-            return render(request, "callback.html", context={"status": "error"})
+        else:
+            # Handle Razorpay error response
+            error_metadata = json.loads(request.POST.get("error[metadata]"))
+            payment_id = error_metadata.get("payment_id", "")
+            provider_order_id = error_metadata.get("order_id", "")
+
+            # Fetch the corresponding order
+            order = Order.objects.get(provider_order_id=provider_order_id)
+            order.pamentId = payment_id
+            order.orderStatus = "FAILURE"
+            order.save()
+
+            return render(request, "callback.html", context={"status": "failure"})
 
     return render(request, "callback.html", context={"status": "error"})
 
 
 @never_cache
 @login_required(login_url='/signIn')
+@transaction.atomic  # Add transaction management
 def repayment(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             order_id = data.get('orderId')
             
-            order = Order.objects.get(id=order_id)
+            if not order_id:
+                return JsonResponse({
+                    'message': 'Order ID is required', 
+                    'status': 'error'
+                }, status=400)
             
-            if order.orderStatus != 'FAILURE':
-                return JsonResponse({'message': 'This order does not require repayment', 'status': 'error'}, status=400)
+            try:
+                order = Order.objects.select_for_update().get(id=order_id, userId=request.user)
+            except Order.DoesNotExist:
+                return JsonResponse({
+                    'message': 'Order not found or unauthorized', 
+                    'status': 'error'
+                }, status=404)
+            
+            # Check valid order statuses for repayment
+            valid_repayment_statuses = ['FAILURE', 'PENDING']
+            if order.orderStatus not in valid_repayment_statuses:
+                return JsonResponse({
+                    'message': f'Repayment is only allowed for orders with status: {", ".join(valid_repayment_statuses)}', 
+                    'status': 'error'
+                }, status=400)
+            
+            # Validate order amount
+            if order.totalPrice <= 0:
+                return JsonResponse({
+                    'message': 'Invalid order amount', 
+                    'status': 'error'
+                }, status=400)
             
             # Create a new Razorpay order
-            client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
-            razorpay_order = client.order.create({
-                "amount": int(order.totalPrice) * 100,
-                "currency": "INR",
-                "payment_capture": "1"
-            })
+            try:
+                client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+                razorpay_order = client.order.create({
+                    "amount": int(order.totalPrice * 100),  # Convert to paise
+                    "currency": "INR",
+                    "payment_capture": "1",
+                    "notes": {
+                        "order_id": str(order.id),
+                        "order_number": order.orderNo,
+                        "repayment": "true"
+                    }
+                })
+            except razorpay.errors.Error as e:
+                return JsonResponse({
+                    'message': f'Payment gateway error: {str(e)}', 
+                    'status': 'error'
+                }, status=500)
             
             # Update the order with the new Razorpay order ID
             order.provider_order_id = razorpay_order['id']
-            order.pamentId = None  # Reset payment ID for new attempt
-            order.signatreId = None  # Reset signature ID for new attempt
+            order.orderStatus = 'dispatched'
             order.save()
+            
+            # Prepare callback URL based on environment
+            callback_url = request.build_absolute_uri('/razorpay/callback/')
             
             response_data = {
                 'message': 'Repayment Initiated',
                 'status': 'success',
                 'razorpay_order_id': razorpay_order['id'],
                 'razorpay_key': RAZOR_KEY_ID,
-                'callback_url': 'https://displayhub.store/razorpay/callback/',
+                'callback_url': callback_url,
                 'order_name': order.orderNo,
-                'final_order_price': order.totalPrice
+                'final_order_price': float(order.totalPrice)
             }
+            
+            # Send notification to user
+            try:
+                payload = {
+                    "head": "Repayment Initiated",
+                    "body": f"Repayment initiated for order {order.orderNo}",
+                    "icon": "https://st2.depositphotos.com/1874273/6627/v/450/depositphotos_66278313-stock-illustration-sign-letter-d.jpg",
+                    "url": request.build_absolute_uri('/')
+                }
+                send_user_notification(user=request.user, payload=payload, ttl=1000)
+            except Exception:
+                # Don't fail the whole request if notification fails
+                pass
+            
             return JsonResponse(response_data, status=200)
         
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'message': 'Invalid JSON data', 
+                'status': 'error'
+            }, status=400)
         except Exception as e:
-            return JsonResponse({'message': str(e), 'status': 'error'}, status=500)
+            return JsonResponse({
+                'message': f'An unexpected error occurred: {str(e)}', 
+                'status': 'error'
+            }, status=500)
     
-    return JsonResponse({'message': 'Invalid request method', 'status': 'error'}, status=405)
+    return JsonResponse({
+        'message': 'Invalid request method', 
+        'status': 'error'
+    }, status=405)
 
 
 def orderSuccess(request):

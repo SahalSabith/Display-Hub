@@ -624,7 +624,8 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-{% if order.orderStatus != 'returned' or order.orderStatus != 'returnRequested' %}
+{% if order.orderStatus !=  'delivered' %}
+console.log("one");
 removeBtn = document.getElementById('removeBtn');
 removeBtn.addEventListener('click', () => {
     const orderId = removeBtn.getAttribute('data-variant-id');
@@ -677,6 +678,7 @@ removeBtn.addEventListener('click', () => {
     });
 });
 {% else %}
+console.log("two");
 signleReturnBtn = document.getElementById('signleReturnBtn');
 console.log(signleReturnBtn)
 signleReturnBtn.addEventListener('click', () => {
