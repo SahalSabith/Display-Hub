@@ -2,17 +2,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Display Hub</title>
+    <title>{% block title %}Display Hub{% endblock %}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    {# CSS Libraries #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://unpkg.com/htmx.org@1.8.4"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+    
+    {# Custom CSS #}
     <link rel="stylesheet" href="{% static 'icomoon/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
@@ -21,8 +23,17 @@
     <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/aos.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {# HTMX #}
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+    
+    {# Web Push Notifications #}
     {% load webpush_notifications %}
     {% webpush_header %}
+    
+    {# Additional Custom Styles #}
+    {% block extra_css %}{% endblock %}
   </head>
   <body>
   
@@ -49,9 +60,9 @@
               <div class="site-top-icons">
                 <ul>
                   {% if user.is_authenticated %}
-                  <li><a href=" {% url "account" %} "><span class="icon icon-person"></span></a></li>
+                  <li><a href="{% url "account" %}"><span class="icon icon-person"></span></a></li>
                   {% else %}
-                  <li><a href=" {% url "signIn" %} "><span class="icon icon-person"></span></a></li>
+                  <li><a href="{% url "signIn" %}"><span class="icon icon-person"></span></a></li>
                   {% endif %}
                   <li><a href="{% url 'create_chatroom' %}"><span class="icon icon-chat"></span></a></li>
                   <li><a href="{% url "wishlist" %}"><span class="icon icon-heart-o"></span></a></li>
@@ -59,11 +70,7 @@
                     <a href="{% url "cart" %}" class="site-cart">
                       <span class="icon icon-shopping_cart"></span>
                       {% if user.is_authenticated %}
-                        {% if request.session.cartCount >= 1 %}
-                          <span class="count">{{request.session.cartCount}}</span>
-                        {% else %}
-                        <span class="count">0</span>
-                        {% endif %}
+                        <span class="count">{{ request.session.cartCount|default:0 }}</span>
                       {% endif %}
                     </a>
                   </li> 
@@ -93,8 +100,8 @@
           <div class="col-lg-4 mb-5 mb-lg-0">
             <h3 class="footer-heading mb-4">Quick Links</h3>
             <ul class="list-unstyled">
-              <li><a href="#">Home</a></li>
-              <li><a href="#">Products</a></li>
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li><a href="{% url 'shop' %}">Products</a></li>
               <li><a href="#">About Us</a></li>
               <li><a href="#">Contact</a></li>
             </ul>
@@ -112,7 +119,7 @@
             <form id="subform" action="{% url "emailSubscribe" %}" method="post">
               {% csrf_token %}
               <div class="input-group mb-3">
-                <input type="email" class="form-control" name="email" placeholder="Enter your email" aria-label="Email" aria-describedby="button-addon2">
+                <input type="email" class="form-control" name="email" placeholder="Enter your email" aria-label="Email" aria-describedby="button-addon2" required>
                 <div class="input-group-append">
                   <button class="btn btn-primary" type="submit" id="button-addon2">Subscribe</button>
                 </div>
@@ -131,37 +138,44 @@
         </div>
       </div>
     </footer>
-    </div>
+  </div>
 
-    {% block chatjs %}{% endblock  %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
-      const form = document.getElementById('subform');
+  {# JavaScript Libraries #}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
-      form.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          const emailInput = this.querySelector('input[name="email"]');
-          const submitButton = this.querySelector('button[type="submit"]');
-          const csrfToken = this.querySelector('input[name="csrfmiddlewaretoken"]').value;
-          
-          emailInput.disabled = true;
-          submitButton.disabled = true;
-      });
-    </script>
-  
-    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
-    <script src="{% static 'js/jquery-ui.js' %}"></script>
-    <script src="{% static 'js/popper.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
-    <script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
-    <script src="{% static 'js/aos.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    </body>
-  </html>
+  {# Custom JavaScript #}
+  <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+  <script src="{% static 'js/jquery-ui.js' %}"></script>
+  <script src="{% static 'js/popper.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+  <script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+  <script src="{% static 'js/aos.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+
+  {# Subscription Form Script #}
+  <script>
+    const form = document.getElementById('subform');
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const emailInput = this.querySelector('input[name="email"]');
+      const submitButton = this.querySelector('button[type="submit"]');
+      const csrfToken = this.querySelector('input[name="csrfmiddlewaretoken"]').value;
+      
+      emailInput.disabled = true;
+      submitButton.disabled = true;
+    });
+  </script>
+
+  {# Additional Custom Scripts #}
+  {% block extra_js %}{% endblock %}
+
+  {% block chatjs %}{% endblock %}
+  </body>
+</html>

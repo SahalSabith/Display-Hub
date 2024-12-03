@@ -158,7 +158,6 @@
  
       if (event.target.classList.contains('js-btn-plus')) {
         if (quantity < stock && quantity < 10) {
-          quantity++;
         } else if (quantity >= 10) {
           Swal.fire({
             icon: 'warning',
@@ -180,7 +179,6 @@
         }
       } else if (event.target.classList.contains('js-btn-minus')) {
         if (quantity > 1) {
-          quantity--;
         } else {
           Swal.fire({
             icon: 'error',

@@ -34,6 +34,45 @@
   <link href="{% static 'admin/css/style.css' %}" rel="stylesheet">
 
   <style>
+    .dropdown-users {
+      max-height: 400px;
+      overflow-y: auto;
+  }
+  .user-item {
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      padding: 10px;
+      width: 100%;
+  }
+  .user-item:hover {
+      background-color: rgba(0,0,0,0.05);
+  }
+  .user-item a {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      width: 100%;
+  }
+  .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #663399;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      text-transform: uppercase;
+  }
+  .user-details {
+      flex-grow: 1;
+  }
+  .dropdown-menu-users {
+      width: 300px;
+  }
+
     .form-label {
         font-weight: 600;
     }
@@ -92,111 +131,48 @@
         </li><!-- End Search Icon-->
 
         <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-bell"></i>
-            <span class="badge bg-primary badge-number">4</span>
-          </a><!-- End Notification Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-            <li class="dropdown-header">
-              You have 4 new notifications
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-exclamation-circle text-warning"></i>
-              <div>
-                <h4>Lorem Ipsum</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>30 min. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-x-circle text-danger"></i>
-              <div>
-                <h4>Atque rerum nesciunt</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>1 hr. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-check-circle text-success"></i>
-              <div>
-                <h4>Sit rerum fuga</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>2 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li class="notification-item">
-              <i class="bi bi-info-circle text-primary"></i>
-              <div>
-                <h4>Dicta reprehenderit</h4>
-                <p>Quae dolorem earum veritatis oditseno</p>
-                <p>4 hrs. ago</p>
-              </div>
-            </li>
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li class="dropdown-footer">
-              <a href="#">Show all notifications</a>
-            </li>
-
-          </ul><!-- End Notification Dropdown Items -->
-
-        </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown">
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
             <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number">2</span>
-          </a><!-- End Messages Icon -->
-        
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
+            <span class="badge bg-success badge-number">{{ users|length }}</span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages dropdown-users">
             <li class="dropdown-header">
-              You have 2 new messages
+                Users to Message ({{ users|length }})
             </li>
             <li>
-              <hr class="dropdown-divider">
+                <hr class="dropdown-divider">
             </li>
         
             {% for user in users %}
-
-            <li class="message-item d-flex justify-content-center">
-              <a href="{% url "admin_message_or_create" user.username %}">
-                <div>
-                  <h4>{{user.username}}</h4>
-                </div>
-              </a>
+            <li class="user-item">
+                <a href="{% url 'admin_message_or_create' user.username %}">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="user-avatar me-3">
+                            {{ user.username|slice:":2" }}
+                        </div>
+                        <div class="user-details">
+                            <h4 class="mb-0">{{ user.username }}</h4>
+                            {% if user.first_name and user.last_name %}
+                                <small class="text-muted">
+                                    {{ user.first_name }} {{ user.last_name }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
             </li>
             <li>
-              <hr class="dropdown-divider">
+                <hr class="dropdown-divider">
             </li>
-
+            {% empty %}
+            <li class="text-center text-muted p-3">
+                No users available
+            </li>
             {% endfor %}
         
-          </ul><!-- End Messages Dropdown Items -->
-        </li><!-- End Messages Nav -->
+        </ul>
+    </li>
 
         <li class="nav-item dropdown pe-3">
 
